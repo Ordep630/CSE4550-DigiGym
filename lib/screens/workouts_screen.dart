@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import '../models/exercise.dart';
 
-class WorkoutPage extends StatelessWidget {
+class WorkoutsScreen extends StatelessWidget {
   final UserProfile user;
 
-  const WorkoutPage({
+  const WorkoutsScreen({
     super.key,
     required this.user,
   });

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../models/user_profile.dart';
-import 'dashboard_page.dart';
-import 'workout_page.dart';
+import 'dashboard_screen.dart';
+import 'workouts_screen.dart';
 import 'meal_page.dart';
-import 'grocery_page.dart';
-import 'profile_page.dart';
+import 'grocery_screen.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final UserProfile user;
@@ -30,9 +30,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final pages = [
       DashboardPage(user: widget.user),
-      WorkoutPage(user: widget.user),
+      WorkoutsScreen(user: widget.user),
       MealPage(user: widget.user),
-      const GroceryPage(),
+      const GroceryScreen(),
       ProfilePage(
         user: widget.user,
         onLogout: widget.onLogout,

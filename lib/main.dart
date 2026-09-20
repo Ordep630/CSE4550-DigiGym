@@ -5,7 +5,6 @@ import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/assessment_screen.dart';
 import 'screens/home_screen.dart';
-import 'screens/workouts_screen.dart';
 import 'screens/meals_screen.dart';
 import 'screens/grocery_screen.dart';
 
@@ -60,7 +59,6 @@ class _DigiGymAppState extends State<DigiGymApp> {
       routes: {
         '/register': (_) => const RegisterScreen(),
         '/assessment': (_) => const AssessmentScreen(),
-        '/workouts': (_) => const WorkoutsScreen(),
         '/meals': (_) => const MealsScreen(),
         '/groceries': (_) => const GroceryScreen(),
       },
