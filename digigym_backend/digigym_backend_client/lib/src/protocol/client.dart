@@ -13,6 +13,8 @@
 import 'dart:async' as _ida;
 import 'package:digigym_backend_client/src/protocol/greetings/greeting.dart'
     as _isjug9ek;
+import 'package:digigym_backend_client/src/protocol/user/user.dart'
+    as _iz9pf62b;
 import 'package:http/http.dart' as _i85jenna;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _iacc;
@@ -264,6 +266,35 @@ class EndpointGreeting extends _isc.EndpointRef {
       );
 }
 
+/// {@category Endpoint}
+class EndpointUser extends _isc.EndpointRef {
+  EndpointUser(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'user';
+
+  _ida.Future<_iz9pf62b.User> createUser(_iz9pf62b.User user) =>
+      caller.callServerEndpoint<_iz9pf62b.User>(
+        'user',
+        'createUser',
+        {'user': user},
+      );
+
+  _ida.Future<_iz9pf62b.User?> getUser(int id) =>
+      caller.callServerEndpoint<_iz9pf62b.User?>(
+        'user',
+        'getUser',
+        {'id': id},
+      );
+
+  _ida.Future<_iz9pf62b.User> updateUser(_iz9pf62b.User user) =>
+      caller.callServerEndpoint<_iz9pf62b.User>(
+        'user',
+        'updateUser',
+        {'user': user},
+      );
+}
+
 class Modules {
   Modules(Client client) {
     serverpod_auth_idp = _iaic.Caller(client);
@@ -305,6 +336,7 @@ class Client extends _isc.ServerpodClientShared {
     emailIdp = EndpointEmailIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
     greeting = EndpointGreeting(this);
+    user = EndpointUser(this);
     modules = Modules(this);
   }
 
@@ -314,6 +346,8 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointGreeting greeting;
 
+  late final EndpointUser user;
+
   late final Modules modules;
 
   @override
@@ -321,6 +355,7 @@ class Client extends _isc.ServerpodClientShared {
     'emailIdp': emailIdp,
     'jwtRefresh': jwtRefresh,
     'greeting': greeting,
+    'user': user,
   };
 
   @override

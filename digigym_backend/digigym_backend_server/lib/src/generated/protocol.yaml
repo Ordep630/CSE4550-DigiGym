@@ -11,3 +11,7 @@ jwtRefresh:
   - refreshAccessToken:
 greeting:
   - hello:
+user:
+  - createUser:
+  - getUser:
+  - updateUser:
