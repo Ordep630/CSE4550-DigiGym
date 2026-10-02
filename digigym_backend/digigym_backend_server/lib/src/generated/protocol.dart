@@ -32,7 +32,7 @@ class Protocol extends _is.DatabaseSerializationManager {
   static List<_isp.TableDefinition> get targetTableDefinitions => [
     _isp.TableDefinition(
       name: 'digigym_user',
-      dartName: 'User',
+      dartName: 'DigiGymUser',
       schema: 'public',
       module: 'digigym_backend',
       columns: [
@@ -44,19 +44,13 @@ class Protocol extends _is.DatabaseSerializationManager {
           columnDefault: 'serial',
         ),
         _isp.ColumnDefinition(
+          name: 'authUserId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
           name: 'name',
-          columnType: _isp.ColumnType.text,
-          isNullable: false,
-          dartType: 'String',
-        ),
-        _isp.ColumnDefinition(
-          name: 'email',
-          columnType: _isp.ColumnType.text,
-          isNullable: false,
-          dartType: 'String',
-        ),
-        _isp.ColumnDefinition(
-          name: 'passwordHash',
           columnType: _isp.ColumnType.text,
           isNullable: false,
           dartType: 'String',
@@ -110,8 +104,33 @@ class Protocol extends _is.DatabaseSerializationManager {
           dartType: 'String',
         ),
       ],
-      foreignKeys: [],
-      indexes: [],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'digigym_user_fk_0',
+          columns: ['authUserId'],
+          referenceTable: 'serverpod_auth_core_user',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'digigym_user_auth_user_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'authUserId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
       managed: true,
     ),
     ..._iais.Protocol.targetTableDefinitions,
@@ -149,14 +168,14 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _izw8z7ou.Greeting) {
       return _izw8z7ou.Greeting.fromJson(data) as T;
     }
-    if (t == _izvcgnx4.User) {
-      return _izvcgnx4.User.fromJson(data) as T;
+    if (t == _izvcgnx4.DigiGymUser) {
+      return _izvcgnx4.DigiGymUser.fromJson(data) as T;
     }
     if (t == _is.getType<_izw8z7ou.Greeting?>()) {
       return (data != null ? _izw8z7ou.Greeting.fromJson(data) : null) as T;
     }
-    if (t == _is.getType<_izvcgnx4.User?>()) {
-      return (data != null ? _izvcgnx4.User.fromJson(data) : null) as T;
+    if (t == _is.getType<_izvcgnx4.DigiGymUser?>()) {
+      return (data != null ? _izvcgnx4.DigiGymUser.fromJson(data) : null) as T;
     }
     try {
       return _iais.Protocol().deserialize<T>(data, t);
@@ -173,7 +192,7 @@ class Protocol extends _is.DatabaseSerializationManager {
   static String? getClassNameForType(Type type) {
     return switch (type) {
       _izw8z7ou.Greeting => 'Greeting',
-      _izvcgnx4.User => 'User',
+      _izvcgnx4.DigiGymUser => 'DigiGymUser',
       _ => null,
     };
   }
@@ -193,8 +212,8 @@ class Protocol extends _is.DatabaseSerializationManager {
     switch (data) {
       case _izw8z7ou.Greeting():
         return 'Greeting';
-      case _izvcgnx4.User():
-        return 'User';
+      case _izvcgnx4.DigiGymUser():
+        return 'DigiGymUser';
     }
     className = _iais.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -224,8 +243,8 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'Greeting') {
       return deserialize<_izw8z7ou.Greeting>(data['data']);
     }
-    if (dataClassName == 'User') {
-      return deserialize<_izvcgnx4.User>(data['data']);
+    if (dataClassName == 'DigiGymUser') {
+      return deserialize<_izvcgnx4.DigiGymUser>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
@@ -268,8 +287,8 @@ class Protocol extends _is.DatabaseSerializationManager {
       }
     }
     switch (t) {
-      case _izvcgnx4.User:
-        return _izvcgnx4.User.t;
+      case _izvcgnx4.DigiGymUser:
+        return _izvcgnx4.DigiGymUser.t;
     }
     return null;
   }

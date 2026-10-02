@@ -1,15 +1,13 @@
 
-### A DigiGym user account and fitness profile
-class: User
+### A DigiGym user account and fitness profile linked to their Serverpod's auth account
+class: DigiGymUser
 table: digigym_user
 
 fields:
+    ### The linked Serverpod authentication account for this user.
+    authUser: module:serverpod_auth_core:AuthUser?, relation(onDelete=Cascade)
     ### The user's display name.
     name: String
-    ### The user's email address, used to log in.
-    email: String
-    ### A securely hashed version of the user's password.
-    passwordHash: String
     ### The user's age in years
     age: int
     ### The user's height in centimeters.
@@ -27,3 +25,8 @@ fields:
     ### The user's body type
     bodyType: String
 
+indexes:
+    ### Ensures each auth account can only have one DigiGym Profile
+    digigym_user_auth_user_idx:
+        fields: authUserId
+        unique: true

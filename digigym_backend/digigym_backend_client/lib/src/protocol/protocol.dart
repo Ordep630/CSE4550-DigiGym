@@ -59,14 +59,14 @@ class Protocol extends _isc.SerializationManager {
     if (t == _izw8z7ou.Greeting) {
       return _izw8z7ou.Greeting.fromJson(data) as T;
     }
-    if (t == _izvcgnx4.User) {
-      return _izvcgnx4.User.fromJson(data) as T;
+    if (t == _izvcgnx4.DigiGymUser) {
+      return _izvcgnx4.DigiGymUser.fromJson(data) as T;
     }
     if (t == _isc.getType<_izw8z7ou.Greeting?>()) {
       return (data != null ? _izw8z7ou.Greeting.fromJson(data) : null) as T;
     }
-    if (t == _isc.getType<_izvcgnx4.User?>()) {
-      return (data != null ? _izvcgnx4.User.fromJson(data) : null) as T;
+    if (t == _isc.getType<_izvcgnx4.DigiGymUser?>()) {
+      return (data != null ? _izvcgnx4.DigiGymUser.fromJson(data) : null) as T;
     }
     try {
       return _iaic.Protocol().deserialize<T>(data, t);
@@ -80,7 +80,7 @@ class Protocol extends _isc.SerializationManager {
   static String? getClassNameForType(Type type) {
     return switch (type) {
       _izw8z7ou.Greeting => 'Greeting',
-      _izvcgnx4.User => 'User',
+      _izvcgnx4.DigiGymUser => 'DigiGymUser',
       _ => null,
     };
   }
@@ -100,8 +100,8 @@ class Protocol extends _isc.SerializationManager {
     switch (data) {
       case _izw8z7ou.Greeting():
         return 'Greeting';
-      case _izvcgnx4.User():
-        return 'User';
+      case _izvcgnx4.DigiGymUser():
+        return 'DigiGymUser';
     }
     className = _iaic.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -127,8 +127,8 @@ class Protocol extends _isc.SerializationManager {
     if (dataClassName == 'Greeting') {
       return deserialize<_izw8z7ou.Greeting>(data['data']);
     }
-    if (dataClassName == 'User') {
-      return deserialize<_izvcgnx4.User>(data['data']);
+    if (dataClassName == 'DigiGymUser') {
+      return deserialize<_izvcgnx4.DigiGymUser>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
