@@ -274,33 +274,6 @@ class EndpointProfile extends _isc.EndpointRef {
   @override
   String get name => 'profile';
 
-  /// Creates a DigiGym profile for the currently authenticated user.
-  _ida.Future<_iz9pf62b.DigiGymUser> createMyProfile(
-    String name,
-    int age,
-    double height,
-    double weight,
-    String fitnessLevel,
-    String fitnessGoal,
-    int workoutTime,
-    String dietaryPreference,
-    String bodyType,
-  ) => caller.callServerEndpoint<_iz9pf62b.DigiGymUser>(
-    'profile',
-    'createMyProfile',
-    {
-      'name': name,
-      'age': age,
-      'height': height,
-      'weight': weight,
-      'fitnessLevel': fitnessLevel,
-      'fitnessGoal': fitnessGoal,
-      'workoutTime': workoutTime,
-      'dietaryPreference': dietaryPreference,
-      'bodyType': bodyType,
-    },
-  );
-
   /// Returns the DigiGym profile for the currently authenticated user.
   _ida.Future<_iz9pf62b.DigiGymUser?> getMyProfile() =>
       caller.callServerEndpoint<_iz9pf62b.DigiGymUser?>(
@@ -339,13 +312,13 @@ class EndpointProfile extends _isc.EndpointRef {
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _iaic.Caller(client);
     serverpod_auth_core = _iacc.Caller(client);
+    serverpod_auth_idp = _iaic.Caller(client);
   }
 
-  late final _iaic.Caller serverpod_auth_idp;
-
   late final _iacc.Caller serverpod_auth_core;
+
+  late final _iaic.Caller serverpod_auth_idp;
 }
 
 class Client extends _isc.ServerpodClientShared {
@@ -402,7 +375,7 @@ class Client extends _isc.ServerpodClientShared {
 
   @override
   Map<String, _isc.ModuleEndpointCaller> get moduleLookup => {
-    'serverpod_auth_idp': modules.serverpod_auth_idp,
     'serverpod_auth_core': modules.serverpod_auth_core,
+    'serverpod_auth_idp': modules.serverpod_auth_idp,
   };
 }

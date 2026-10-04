@@ -284,73 +284,6 @@ class Endpoints extends _is.EndpointDispatch {
       name: 'profile',
       endpoint: endpoints['profile']!,
       methodConnectors: {
-        'createMyProfile': _is.MethodConnector(
-          name: 'createMyProfile',
-          params: {
-            'name': _is.ParameterDescription(
-              name: 'name',
-              type: _is.getType<String>(),
-              nullable: false,
-            ),
-            'age': _is.ParameterDescription(
-              name: 'age',
-              type: _is.getType<int>(),
-              nullable: false,
-            ),
-            'height': _is.ParameterDescription(
-              name: 'height',
-              type: _is.getType<double>(),
-              nullable: false,
-            ),
-            'weight': _is.ParameterDescription(
-              name: 'weight',
-              type: _is.getType<double>(),
-              nullable: false,
-            ),
-            'fitnessLevel': _is.ParameterDescription(
-              name: 'fitnessLevel',
-              type: _is.getType<String>(),
-              nullable: false,
-            ),
-            'fitnessGoal': _is.ParameterDescription(
-              name: 'fitnessGoal',
-              type: _is.getType<String>(),
-              nullable: false,
-            ),
-            'workoutTime': _is.ParameterDescription(
-              name: 'workoutTime',
-              type: _is.getType<int>(),
-              nullable: false,
-            ),
-            'dietaryPreference': _is.ParameterDescription(
-              name: 'dietaryPreference',
-              type: _is.getType<String>(),
-              nullable: false,
-            ),
-            'bodyType': _is.ParameterDescription(
-              name: 'bodyType',
-              type: _is.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _is.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['profile'] as _i6a309j1.ProfileEndpoint)
-                  .createMyProfile(
-                    session,
-                    params['name'],
-                    params['age'],
-                    params['height'],
-                    params['weight'],
-                    params['fitnessLevel'],
-                    params['fitnessGoal'],
-                    params['workoutTime'],
-                    params['dietaryPreference'],
-                    params['bodyType'],
-                  ),
-        ),
         'getMyProfile': _is.MethodConnector(
           name: 'getMyProfile',
           params: {},
@@ -430,9 +363,9 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _iais.Endpoints()
-      ..initializeEndpoints(server);
     modules['serverpod_auth_core'] = _iacs.Endpoints()
+      ..initializeEndpoints(server);
+    modules['serverpod_auth_idp'] = _iais.Endpoints()
       ..initializeEndpoints(server);
   }
 }

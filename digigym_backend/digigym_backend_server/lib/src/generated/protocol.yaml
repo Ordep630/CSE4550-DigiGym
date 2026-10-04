@@ -12,6 +12,5 @@ jwtRefresh:
 greeting:
   - hello:
 profile:
-  - createMyProfile:
   - getMyProfile:
   - updateMyProfile:

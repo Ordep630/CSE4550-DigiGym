@@ -9,49 +9,7 @@ class ProfileEndpoint extends Endpoint {
   @override
   bool get requireLogin => true;
 
-  /// Creates a DigiGym profile for the currently authenticated user.
-  Future<DigiGymUser> createMyProfile(
-    Session session,
-    String name,
-    int age,
-    double height,
-    double weight,
-    String fitnessLevel,
-    String fitnessGoal,
-    int workoutTime,
-    String dietaryPreference,
-    String bodyType,
-  ) async {
-    final authUserId = session.authenticated?.authUserId;
-
-    if (authUserId == null) {
-      throw StateError('User is not authenticated.');
-    }
-
-    final existingProfile = await DigiGymUser.db.findFirstRow(
-      session,
-      where: (t) => t.authUserId.equals(authUserId),
-    );
-
-    if (existingProfile != null) {
-      throw StateError('User profile already exists.');
-    }
-
-    final profile = DigiGymUser(
-      authUserId: authUserId,
-      name: name,
-      age: age,
-      height: height,
-      weight: weight,
-      fitnessLevel: fitnessLevel,
-      fitnessGoal: fitnessGoal,
-      workoutTime: workoutTime,
-      dietaryPreference: dietaryPreference,
-      bodyType: bodyType,
-    );
-
-    return await DigiGymUser.db.insertRow(session, profile);
-  }
+  /* createMyProfile() created through onAfterAuthUserCreated. */
 
   /// Returns the DigiGym profile for the currently authenticated user.
   Future<DigiGymUser?> getMyProfile(Session session) async {

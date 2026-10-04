@@ -554,55 +554,6 @@ class _ProfileEndpoint {
 
   final _is.SerializationManager _serializationManager;
 
-  _ida.Future<_ii4hua2a.DigiGymUser> createMyProfile(
-    _ist.TestSessionBuilder sessionBuilder,
-    String name,
-    int age,
-    double height,
-    double weight,
-    String fitnessLevel,
-    String fitnessGoal,
-    int workoutTime,
-    String dietaryPreference,
-    String bodyType,
-  ) async {
-    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'profile',
-            method: 'createMyProfile',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'profile',
-          methodName: 'createMyProfile',
-          parameters: _ist.testObjectToJson({
-            'name': name,
-            'age': age,
-            'height': height,
-            'weight': weight,
-            'fitnessLevel': fitnessLevel,
-            'fitnessGoal': fitnessGoal,
-            'workoutTime': workoutTime,
-            'dietaryPreference': dietaryPreference,
-            'bodyType': bodyType,
-          }),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _ida.Future<_ii4hua2a.DigiGymUser>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
   _ida.Future<_ii4hua2a.DigiGymUser?> getMyProfile(
     _ist.TestSessionBuilder sessionBuilder,
   ) async {
