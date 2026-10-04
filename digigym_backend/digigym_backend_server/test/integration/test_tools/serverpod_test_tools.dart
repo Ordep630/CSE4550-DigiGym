@@ -15,6 +15,10 @@ import 'dart:async' as _ida;
 import 'dart:io' as _idi;
 import 'package:digigym_backend_server/src/generated/greetings/greeting.dart'
     as _ixw9ndps;
+import 'package:digigym_backend_server/src/generated/user/user.dart'
+    as _ii4hua2a;
+import 'package:digigym_backend_server/src/generated/workout/workout_recommendation.dart'
+    as _igklxlq9;
 import 'package:serverpod/serverpod.dart' as _is;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
@@ -152,6 +156,10 @@ class TestEndpoints {
   late final _JwtRefreshEndpoint jwtRefresh;
 
   late final _GreetingEndpoint greeting;
+
+  late final _ProfileEndpoint profile;
+
+  late final _WorkoutRecommendationEndpoint workoutRecommendation;
 }
 
 class _InternalTestEndpoints extends TestEndpoints
@@ -170,6 +178,14 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     greeting = _GreetingEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    profile = _ProfileEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    workoutRecommendation = _WorkoutRecommendationEndpoint(
       endpoints,
       serializationManager,
     );
@@ -528,6 +544,88 @@ class _GreetingEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<_ixw9ndps.Greeting>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _ProfileEndpoint {
+  _ProfileEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<_ii4hua2a.DigiGymUser?> getMyProfile(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'profile',
+            method: 'getMyProfile',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'profile',
+          methodName: 'getMyProfile',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_ii4hua2a.DigiGymUser?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _WorkoutRecommendationEndpoint {
+  _WorkoutRecommendationEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<_igklxlq9.WorkoutRecommendation?> getMyWorkoutRecommendation(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'workoutRecommendation',
+            method: 'getMyWorkoutRecommendation',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'workoutRecommendation',
+          methodName: 'getMyWorkoutRecommendation',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_igklxlq9.WorkoutRecommendation?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

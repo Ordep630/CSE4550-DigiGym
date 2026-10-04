@@ -18,6 +18,8 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
 import '../auth/email_idp_endpoint.dart' as _iuc1hd5t;
 import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
+import '../user/profile_endpoint.dart' as _i6a309j1;
+import '../workout/workout_recommendation_endpoint.dart' as _if4v7cf2;
 
 class Endpoints extends _is.EndpointDispatch {
   @override
@@ -39,6 +41,18 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'greeting',
+          null,
+        ),
+      'profile': _i6a309j1.ProfileEndpoint()
+        ..initialize(
+          server,
+          'profile',
+          null,
+        ),
+      'workoutRecommendation': _if4v7cf2.WorkoutRecommendationEndpoint()
+        ..initialize(
+          server,
+          'workoutRecommendation',
           null,
         ),
     };
@@ -270,6 +284,40 @@ class Endpoints extends _is.EndpointDispatch {
                     session,
                     params['name'],
                   ),
+        ),
+      },
+    );
+    connectors['profile'] = _is.EndpointConnector(
+      name: 'profile',
+      endpoint: endpoints['profile']!,
+      methodConnectors: {
+        'getMyProfile': _is.MethodConnector(
+          name: 'getMyProfile',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6a309j1.ProfileEndpoint)
+                  .getMyProfile(session),
+        ),
+      },
+    );
+    connectors['workoutRecommendation'] = _is.EndpointConnector(
+      name: 'workoutRecommendation',
+      endpoint: endpoints['workoutRecommendation']!,
+      methodConnectors: {
+        'getMyWorkoutRecommendation': _is.MethodConnector(
+          name: 'getMyWorkoutRecommendation',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['workoutRecommendation']
+                          as _if4v7cf2.WorkoutRecommendationEndpoint)
+                      .getMyWorkoutRecommendation(session),
         ),
       },
     );
