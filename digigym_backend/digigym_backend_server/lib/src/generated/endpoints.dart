@@ -10,8 +10,6 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:digigym_backend_server/src/generated/user/user.dart'
-    as _ii4hua2a;
 import 'package:serverpod/serverpod.dart' as _is;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
@@ -20,7 +18,7 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
 import '../auth/email_idp_endpoint.dart' as _iuc1hd5t;
 import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
-import '../user/user_endpoint.dart' as _io1g7qqb;
+import '../user/profile_endpoint.dart' as _i6a309j1;
 
 class Endpoints extends _is.EndpointDispatch {
   @override
@@ -44,10 +42,10 @@ class Endpoints extends _is.EndpointDispatch {
           'greeting',
           null,
         ),
-      'user': _io1g7qqb.UserEndpoint()
+      'profile': _i6a309j1.ProfileEndpoint()
         ..initialize(
           server,
-          'user',
+          'profile',
           null,
         ),
     };
@@ -282,53 +280,56 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
-    connectors['user'] = _is.EndpointConnector(
-      name: 'user',
-      endpoint: endpoints['user']!,
+    connectors['profile'] = _is.EndpointConnector(
+      name: 'profile',
+      endpoint: endpoints['profile']!,
       methodConnectors: {
-        'createUser': _is.MethodConnector(
-          name: 'createUser',
+        'createMyProfile': _is.MethodConnector(
+          name: 'createMyProfile',
           params: {
-            'user': _is.ParameterDescription(
-              name: 'user',
-              type: _is.getType<_ii4hua2a.User>(),
+            'name': _is.ParameterDescription(
+              name: 'name',
+              type: _is.getType<String>(),
               nullable: false,
             ),
-          },
-          call:
-              (
-                _is.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['user'] as _io1g7qqb.UserEndpoint).createUser(
-                    session,
-                    params['user'],
-                  ),
-        ),
-        'getUser': _is.MethodConnector(
-          name: 'getUser',
-          params: {
-            'id': _is.ParameterDescription(
-              name: 'id',
+            'age': _is.ParameterDescription(
+              name: 'age',
               type: _is.getType<int>(),
               nullable: false,
             ),
-          },
-          call:
-              (
-                _is.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['user'] as _io1g7qqb.UserEndpoint).getUser(
-                session,
-                params['id'],
-              ),
-        ),
-        'updateUser': _is.MethodConnector(
-          name: 'updateUser',
-          params: {
-            'user': _is.ParameterDescription(
-              name: 'user',
-              type: _is.getType<_ii4hua2a.User>(),
+            'height': _is.ParameterDescription(
+              name: 'height',
+              type: _is.getType<double>(),
+              nullable: false,
+            ),
+            'weight': _is.ParameterDescription(
+              name: 'weight',
+              type: _is.getType<double>(),
+              nullable: false,
+            ),
+            'fitnessLevel': _is.ParameterDescription(
+              name: 'fitnessLevel',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'fitnessGoal': _is.ParameterDescription(
+              name: 'fitnessGoal',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'workoutTime': _is.ParameterDescription(
+              name: 'workoutTime',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'dietaryPreference': _is.ParameterDescription(
+              name: 'dietaryPreference',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'bodyType': _is.ParameterDescription(
+              name: 'bodyType',
+              type: _is.getType<String>(),
               nullable: false,
             ),
           },
@@ -336,10 +337,95 @@ class Endpoints extends _is.EndpointDispatch {
               (
                 _is.Session session,
                 Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['user'] as _io1g7qqb.UserEndpoint).updateUser(
+              ) async => (endpoints['profile'] as _i6a309j1.ProfileEndpoint)
+                  .createMyProfile(
                     session,
-                    params['user'],
+                    params['name'],
+                    params['age'],
+                    params['height'],
+                    params['weight'],
+                    params['fitnessLevel'],
+                    params['fitnessGoal'],
+                    params['workoutTime'],
+                    params['dietaryPreference'],
+                    params['bodyType'],
+                  ),
+        ),
+        'getMyProfile': _is.MethodConnector(
+          name: 'getMyProfile',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6a309j1.ProfileEndpoint)
+                  .getMyProfile(session),
+        ),
+        'updateMyProfile': _is.MethodConnector(
+          name: 'updateMyProfile',
+          params: {
+            'name': _is.ParameterDescription(
+              name: 'name',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'age': _is.ParameterDescription(
+              name: 'age',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'height': _is.ParameterDescription(
+              name: 'height',
+              type: _is.getType<double>(),
+              nullable: false,
+            ),
+            'weight': _is.ParameterDescription(
+              name: 'weight',
+              type: _is.getType<double>(),
+              nullable: false,
+            ),
+            'fitnessLevel': _is.ParameterDescription(
+              name: 'fitnessLevel',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'fitnessGoal': _is.ParameterDescription(
+              name: 'fitnessGoal',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'workoutTime': _is.ParameterDescription(
+              name: 'workoutTime',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'dietaryPreference': _is.ParameterDescription(
+              name: 'dietaryPreference',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'bodyType': _is.ParameterDescription(
+              name: 'bodyType',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6a309j1.ProfileEndpoint)
+                  .updateMyProfile(
+                    session,
+                    params['name'],
+                    params['age'],
+                    params['height'],
+                    params['weight'],
+                    params['fitnessLevel'],
+                    params['fitnessGoal'],
+                    params['workoutTime'],
+                    params['dietaryPreference'],
+                    params['bodyType'],
                   ),
         ),
       },

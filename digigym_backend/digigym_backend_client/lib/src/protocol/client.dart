@@ -266,33 +266,75 @@ class EndpointGreeting extends _isc.EndpointRef {
       );
 }
 
+/// Lets the currently logged-in user manage their DigiGym fitness profile.
 /// {@category Endpoint}
-class EndpointUser extends _isc.EndpointRef {
-  EndpointUser(_isc.EndpointCaller caller) : super(caller);
+class EndpointProfile extends _isc.EndpointRef {
+  EndpointProfile(_isc.EndpointCaller caller) : super(caller);
 
   @override
-  String get name => 'user';
+  String get name => 'profile';
 
-  _ida.Future<_iz9pf62b.User> createUser(_iz9pf62b.User user) =>
-      caller.callServerEndpoint<_iz9pf62b.User>(
-        'user',
-        'createUser',
-        {'user': user},
+  /// Creates a DigiGym profile for the currently authenticated user.
+  _ida.Future<_iz9pf62b.DigiGymUser> createMyProfile(
+    String name,
+    int age,
+    double height,
+    double weight,
+    String fitnessLevel,
+    String fitnessGoal,
+    int workoutTime,
+    String dietaryPreference,
+    String bodyType,
+  ) => caller.callServerEndpoint<_iz9pf62b.DigiGymUser>(
+    'profile',
+    'createMyProfile',
+    {
+      'name': name,
+      'age': age,
+      'height': height,
+      'weight': weight,
+      'fitnessLevel': fitnessLevel,
+      'fitnessGoal': fitnessGoal,
+      'workoutTime': workoutTime,
+      'dietaryPreference': dietaryPreference,
+      'bodyType': bodyType,
+    },
+  );
+
+  /// Returns the DigiGym profile for the currently authenticated user.
+  _ida.Future<_iz9pf62b.DigiGymUser?> getMyProfile() =>
+      caller.callServerEndpoint<_iz9pf62b.DigiGymUser?>(
+        'profile',
+        'getMyProfile',
+        {},
       );
 
-  _ida.Future<_iz9pf62b.User?> getUser(int id) =>
-      caller.callServerEndpoint<_iz9pf62b.User?>(
-        'user',
-        'getUser',
-        {'id': id},
-      );
-
-  _ida.Future<_iz9pf62b.User> updateUser(_iz9pf62b.User user) =>
-      caller.callServerEndpoint<_iz9pf62b.User>(
-        'user',
-        'updateUser',
-        {'user': user},
-      );
+  /// Updates the DigiGym profile of the currently authenticated user.
+  _ida.Future<_iz9pf62b.DigiGymUser> updateMyProfile(
+    String name,
+    int age,
+    double height,
+    double weight,
+    String fitnessLevel,
+    String fitnessGoal,
+    int workoutTime,
+    String dietaryPreference,
+    String bodyType,
+  ) => caller.callServerEndpoint<_iz9pf62b.DigiGymUser>(
+    'profile',
+    'updateMyProfile',
+    {
+      'name': name,
+      'age': age,
+      'height': height,
+      'weight': weight,
+      'fitnessLevel': fitnessLevel,
+      'fitnessGoal': fitnessGoal,
+      'workoutTime': workoutTime,
+      'dietaryPreference': dietaryPreference,
+      'bodyType': bodyType,
+    },
+  );
 }
 
 class Modules {
@@ -336,7 +378,7 @@ class Client extends _isc.ServerpodClientShared {
     emailIdp = EndpointEmailIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
     greeting = EndpointGreeting(this);
-    user = EndpointUser(this);
+    profile = EndpointProfile(this);
     modules = Modules(this);
   }
 
@@ -346,7 +388,7 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointGreeting greeting;
 
-  late final EndpointUser user;
+  late final EndpointProfile profile;
 
   late final Modules modules;
 
@@ -355,7 +397,7 @@ class Client extends _isc.ServerpodClientShared {
     'emailIdp': emailIdp,
     'jwtRefresh': jwtRefresh,
     'greeting': greeting,
-    'user': user,
+    'profile': profile,
   };
 
   @override
