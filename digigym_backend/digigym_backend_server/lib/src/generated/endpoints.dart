@@ -18,6 +18,7 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
 import '../auth/email_idp_endpoint.dart' as _iuc1hd5t;
 import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
+import '../user/profile_endpoint.dart' as _i6a309j1;
 
 class Endpoints extends _is.EndpointDispatch {
   @override
@@ -39,6 +40,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'greeting',
+          null,
+        ),
+      'profile': _i6a309j1.ProfileEndpoint()
+        ..initialize(
+          server,
+          'profile',
           null,
         ),
     };
@@ -273,9 +280,92 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _iais.Endpoints()
-      ..initializeEndpoints(server);
+    connectors['profile'] = _is.EndpointConnector(
+      name: 'profile',
+      endpoint: endpoints['profile']!,
+      methodConnectors: {
+        'getMyProfile': _is.MethodConnector(
+          name: 'getMyProfile',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6a309j1.ProfileEndpoint)
+                  .getMyProfile(session),
+        ),
+        'updateMyProfile': _is.MethodConnector(
+          name: 'updateMyProfile',
+          params: {
+            'name': _is.ParameterDescription(
+              name: 'name',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'age': _is.ParameterDescription(
+              name: 'age',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'height': _is.ParameterDescription(
+              name: 'height',
+              type: _is.getType<double>(),
+              nullable: false,
+            ),
+            'weight': _is.ParameterDescription(
+              name: 'weight',
+              type: _is.getType<double>(),
+              nullable: false,
+            ),
+            'fitnessLevel': _is.ParameterDescription(
+              name: 'fitnessLevel',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'fitnessGoal': _is.ParameterDescription(
+              name: 'fitnessGoal',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'workoutTime': _is.ParameterDescription(
+              name: 'workoutTime',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'dietaryPreference': _is.ParameterDescription(
+              name: 'dietaryPreference',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'bodyType': _is.ParameterDescription(
+              name: 'bodyType',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6a309j1.ProfileEndpoint)
+                  .updateMyProfile(
+                    session,
+                    params['name'],
+                    params['age'],
+                    params['height'],
+                    params['weight'],
+                    params['fitnessLevel'],
+                    params['fitnessGoal'],
+                    params['workoutTime'],
+                    params['dietaryPreference'],
+                    params['bodyType'],
+                  ),
+        ),
+      },
+    );
     modules['serverpod_auth_core'] = _iacs.Endpoints()
+      ..initializeEndpoints(server);
+    modules['serverpod_auth_idp'] = _iais.Endpoints()
       ..initializeEndpoints(server);
   }
 }

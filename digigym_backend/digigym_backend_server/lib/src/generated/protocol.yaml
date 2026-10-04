@@ -11,3 +11,6 @@ jwtRefresh:
   - refreshAccessToken:
 greeting:
   - hello:
+profile:
+  - getMyProfile:
+  - updateMyProfile:
