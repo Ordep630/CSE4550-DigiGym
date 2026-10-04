@@ -18,6 +18,7 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
 import '../auth/email_idp_endpoint.dart' as _iuc1hd5t;
 import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
+import '../user/profile_endpoint.dart' as _i6a309j1;
 
 class Endpoints extends _is.EndpointDispatch {
   @override
@@ -39,6 +40,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'greeting',
+          null,
+        ),
+      'profile': _i6a309j1.ProfileEndpoint()
+        ..initialize(
+          server,
+          'profile',
           null,
         ),
     };
@@ -269,6 +276,57 @@ class Endpoints extends _is.EndpointDispatch {
                   (endpoints['greeting'] as _il624ik7.GreetingEndpoint).hello(
                     session,
                     params['name'],
+                  ),
+        ),
+      },
+    );
+    connectors['profile'] = _is.EndpointConnector(
+      name: 'profile',
+      endpoint: endpoints['profile']!,
+      methodConnectors: {
+        'getMyProfile': _is.MethodConnector(
+          name: 'getMyProfile',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6a309j1.ProfileEndpoint)
+                  .getMyProfile(session),
+        ),
+        'getMyFitnessData': _is.MethodConnector(
+          name: 'getMyFitnessData',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6a309j1.ProfileEndpoint)
+                  .getMyFitnessData(session),
+        ),
+        'updateMyFitnessData': _is.MethodConnector(
+          name: 'updateMyFitnessData',
+          params: {
+            'fitnessLevel': _is.ParameterDescription(
+              name: 'fitnessLevel',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'fitnessGoal': _is.ParameterDescription(
+              name: 'fitnessGoal',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6a309j1.ProfileEndpoint)
+                  .updateMyFitnessData(
+                    session,
+                    params['fitnessLevel'],
+                    params['fitnessGoal'],
                   ),
         ),
       },

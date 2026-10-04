@@ -11,8 +11,12 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _ida;
+import 'package:digigym_backend_client/src/protocol/fitness/fitness_data.dart'
+    as _i7ssfes1;
 import 'package:digigym_backend_client/src/protocol/greetings/greeting.dart'
     as _isjug9ek;
+import 'package:digigym_backend_client/src/protocol/user/user.dart'
+    as _iz9pf62b;
 import 'package:http/http.dart' as _i85jenna;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _iacc;
@@ -264,6 +268,43 @@ class EndpointGreeting extends _isc.EndpointRef {
       );
 }
 
+/// Lets the currently logged-in user fetch their own DigiGym fitness profile.
+/// {@category Endpoint}
+class EndpointProfile extends _isc.EndpointRef {
+  EndpointProfile(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'profile';
+
+  /// Returns the DigiGymUser profile for whoever is currently authenticated.
+  _ida.Future<_iz9pf62b.DigiGymUser?> getMyProfile() =>
+      caller.callServerEndpoint<_iz9pf62b.DigiGymUser?>(
+        'profile',
+        'getMyProfile',
+        {},
+      );
+
+  _ida.Future<_i7ssfes1.FitnessData?> getMyFitnessData() =>
+      caller.callServerEndpoint<_i7ssfes1.FitnessData?>(
+        'profile',
+        'getMyFitnessData',
+        {},
+      );
+
+  /// Updates the fitness data for the currently authenticated user.
+  _ida.Future<_i7ssfes1.FitnessData> updateMyFitnessData(
+    String fitnessLevel,
+    String fitnessGoal,
+  ) => caller.callServerEndpoint<_i7ssfes1.FitnessData>(
+    'profile',
+    'updateMyFitnessData',
+    {
+      'fitnessLevel': fitnessLevel,
+      'fitnessGoal': fitnessGoal,
+    },
+  );
+}
+
 class Modules {
   Modules(Client client) {
     serverpod_auth_idp = _iaic.Caller(client);
@@ -305,6 +346,7 @@ class Client extends _isc.ServerpodClientShared {
     emailIdp = EndpointEmailIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
     greeting = EndpointGreeting(this);
+    profile = EndpointProfile(this);
     modules = Modules(this);
   }
 
@@ -314,6 +356,8 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointGreeting greeting;
 
+  late final EndpointProfile profile;
+
   late final Modules modules;
 
   @override
@@ -321,6 +365,7 @@ class Client extends _isc.ServerpodClientShared {
     'emailIdp': emailIdp,
     'jwtRefresh': jwtRefresh,
     'greeting': greeting,
+    'profile': profile,
   };
 
   @override

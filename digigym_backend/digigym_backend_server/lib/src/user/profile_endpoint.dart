@@ -20,4 +20,63 @@ class ProfileEndpoint extends Endpoint {
       where: (t) => t.authUserId.equals(authUserId),
     );
   }
+
+  Future<FitnessData?> getMyFitnessData(Session session) async {
+    final authUserId = session.authenticated?.authUserId;
+
+    if (authUserId == null) {
+      return null;
+    }
+
+    final profile = await DigiGymUser.db.findFirstRow(
+      session,
+      where: (t) => t.authUserId.equals(authUserId),
+    );
+
+    if (profile == null) {
+      return null;
+    }
+
+    return FitnessData(
+      fitnessLevel: profile.fitnessLevel,
+      fitnessGoal: profile.fitnessGoal,
+    );
+  }
+
+  /// Updates the fitness data for the currently authenticated user.
+  Future<FitnessData> updateMyFitnessData(
+    Session session,
+    String fitnessLevel,
+    String fitnessGoal,
+  ) async {
+    final authUserId = session.authenticated?.authUserId;
+
+    if (authUserId == null) {
+      throw StateError('User is not authenticated.');
+    }
+
+    final profile = await DigiGymUser.db.findFirstRow(
+      session,
+      where: (t) => t.authUserId.equals(authUserId),
+    );
+
+    if (profile == null) {
+      throw StateError('User profile not found.');
+    }
+
+    final updatedProfile = profile.copyWith(
+      fitnessLevel: fitnessLevel,
+      fitnessGoal: fitnessGoal,
+    );
+
+    final savedProfile = await DigiGymUser.db.updateRow(
+      session,
+      updatedProfile,
+    );
+
+    return FitnessData(
+      fitnessLevel: savedProfile.fitnessLevel,
+      fitnessGoal: savedProfile.fitnessGoal,
+    );
+  }
 }
