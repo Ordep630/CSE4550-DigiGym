@@ -6,6 +6,7 @@ import 'package:serverpod_cloud_storage/serverpod_cloud_storage.dart';
 
 import 'src/cache_busting.dart';
 import 'src/generated/serverpod.dart';
+import 'src/generated/protocol.dart';
 import 'src/web/routes/app_config_route.dart';
 
 /// The starting point of the Serverpod server.
@@ -33,6 +34,26 @@ void run(List<String> args) async {
         appDisplayName: 'digigym_backend',
       ),
     ],
+    authUsersConfig: AuthUsersConfig(
+      onAfterAuthUserCreated: (session, authUser, {required transaction}) async {
+        await DigiGymUser.db.insertRow(
+          session,
+          DigiGymUser(
+            authUserId: authUser.id,
+            name: '',
+            age: 20,
+            height: 170,
+            weight: 70,
+            fitnessLevel: 'Beginner',
+            fitnessGoal: 'Lose Weight',
+            workoutTime: 30,
+            dietaryPreference: 'No Preference',
+            bodyType: 'Average',
+          ),
+          transaction: transaction,
+        );
+      },
+    ),
   );
 
   // Serve all files in the web/static relative directory under /web.

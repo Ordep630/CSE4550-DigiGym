@@ -10,16 +10,19 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:digigym_backend_client/src/protocol/protocol.dart' as _ikjknwtv;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _iacc;
 import 'package:serverpod_client/serverpod_client.dart' as _isc;
 
-/// A DigiGym user account and fitness profile
-abstract class User
+/// A DigiGym user account and fitness profile linked to their Serverpod's auth account
+abstract class DigiGymUser
     implements _isc.SerializableModel, _isc.ProtocolSerialization {
-  User._({
+  DigiGymUser._({
     this.id,
+    required this.authUserId,
+    this.authUser,
     required this.name,
-    required this.email,
-    required this.passwordHash,
     required this.age,
     required this.height,
     required this.weight,
@@ -30,11 +33,11 @@ abstract class User
     required this.bodyType,
   });
 
-  factory User({
+  factory DigiGymUser({
     int? id,
+    required _isc.UuidValue authUserId,
+    _iacc.AuthUser? authUser,
     required String name,
-    required String email,
-    required String passwordHash,
     required int age,
     required double height,
     required double weight,
@@ -43,14 +46,20 @@ abstract class User
     required int workoutTime,
     required String dietaryPreference,
     required String bodyType,
-  }) = _UserImpl;
+  }) = _DigiGymUserImpl;
 
-  factory User.fromJson(Map<String, dynamic> jsonSerialization) {
-    return User(
+  factory DigiGymUser.fromJson(Map<String, dynamic> jsonSerialization) {
+    return DigiGymUser(
       id: jsonSerialization['id'] as int?,
+      authUserId: _isc.UuidValueJsonExtension.fromJson(
+        jsonSerialization['authUserId'],
+      ),
+      authUser: jsonSerialization['authUser'] == null
+          ? null
+          : _ikjknwtv.Protocol().deserialize<_iacc.AuthUser>(
+              jsonSerialization['authUser'],
+            ),
       name: jsonSerialization['name'] as String,
-      email: jsonSerialization['email'] as String,
-      passwordHash: jsonSerialization['passwordHash'] as String,
       age: jsonSerialization['age'] as int,
       height: (jsonSerialization['height'] as num).toDouble(),
       weight: (jsonSerialization['weight'] as num).toDouble(),
@@ -67,14 +76,13 @@ abstract class User
   /// the id will be null.
   int? id;
 
+  _isc.UuidValue authUserId;
+
+  /// The linked Serverpod authentication account for this user.
+  _iacc.AuthUser? authUser;
+
   /// The user's display name.
   String name;
-
-  /// The user's email address, used to log in.
-  String email;
-
-  /// A securely hashed version of the user's password.
-  String passwordHash;
 
   /// The user's age in years
   int age;
@@ -100,14 +108,14 @@ abstract class User
   /// The user's body type
   String bodyType;
 
-  /// Returns a shallow copy of this [User]
+  /// Returns a shallow copy of this [DigiGymUser]
   /// with some or all fields replaced by the given arguments.
   @_isc.useResult
-  User copyWith({
+  DigiGymUser copyWith({
     int? id,
+    _isc.UuidValue? authUserId,
+    _iacc.AuthUser? authUser,
     String? name,
-    String? email,
-    String? passwordHash,
     int? age,
     double? height,
     double? weight,
@@ -120,11 +128,11 @@ abstract class User
   @override
   Map<String, dynamic> toJson() {
     return {
-      '__className__': 'User',
+      '__className__': 'DigiGymUser',
       if (id != null) 'id': id,
+      'authUserId': authUserId.toJson(),
+      if (authUser != null) 'authUser': authUser?.toJson(),
       'name': name,
-      'email': email,
-      'passwordHash': passwordHash,
       'age': age,
       'height': height,
       'weight': weight,
@@ -139,11 +147,11 @@ abstract class User
   @override
   Map<String, dynamic> toJsonForProtocol() {
     return {
-      '__className__': 'User',
+      '__className__': 'DigiGymUser',
       if (id != null) 'id': id,
+      'authUserId': authUserId.toJson(),
+      if (authUser != null) 'authUser': authUser?.toJson(),
       'name': name,
-      'email': email,
-      'passwordHash': passwordHash,
       'age': age,
       'height': height,
       'weight': weight,
@@ -163,12 +171,12 @@ abstract class User
 
 class _Undefined {}
 
-class _UserImpl extends User {
-  _UserImpl({
+class _DigiGymUserImpl extends DigiGymUser {
+  _DigiGymUserImpl({
     int? id,
+    required _isc.UuidValue authUserId,
+    _iacc.AuthUser? authUser,
     required String name,
-    required String email,
-    required String passwordHash,
     required int age,
     required double height,
     required double weight,
@@ -179,9 +187,9 @@ class _UserImpl extends User {
     required String bodyType,
   }) : super._(
          id: id,
+         authUserId: authUserId,
+         authUser: authUser,
          name: name,
-         email: email,
-         passwordHash: passwordHash,
          age: age,
          height: height,
          weight: weight,
@@ -192,15 +200,15 @@ class _UserImpl extends User {
          bodyType: bodyType,
        );
 
-  /// Returns a shallow copy of this [User]
+  /// Returns a shallow copy of this [DigiGymUser]
   /// with some or all fields replaced by the given arguments.
   @_isc.useResult
   @override
-  User copyWith({
+  DigiGymUser copyWith({
     Object? id = _Undefined,
+    _isc.UuidValue? authUserId,
+    Object? authUser = _Undefined,
     String? name,
-    String? email,
-    String? passwordHash,
     int? age,
     double? height,
     double? weight,
@@ -210,11 +218,13 @@ class _UserImpl extends User {
     String? dietaryPreference,
     String? bodyType,
   }) {
-    return User(
+    return DigiGymUser(
       id: id is int? ? id : this.id,
+      authUserId: authUserId ?? this.authUserId,
+      authUser: authUser is _iacc.AuthUser?
+          ? authUser
+          : this.authUser?.copyWith(),
       name: name ?? this.name,
-      email: email ?? this.email,
-      passwordHash: passwordHash ?? this.passwordHash,
       age: age ?? this.age,
       height: height ?? this.height,
       weight: weight ?? this.weight,
