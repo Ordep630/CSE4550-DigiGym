@@ -29,9 +29,9 @@ The Application is designed to:
 ## Technology
 The technologies used for this project include:
   * Frontend: Flutter
-  * Backend:
-  * Database:
-  * Version Control: Github
+  * Backend: Serverpod 
+  * Database: PostgreSQL   
+  * Version Control: GitHub
   * Development Environment: Visual Studio Code
 
 ## Team Roles
