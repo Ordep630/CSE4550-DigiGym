@@ -32,7 +32,7 @@ class ProfileEndpoint extends Endpoint {
     int age,
     double height,
     double weight,
-    String fitnessLevel,
+    FitnessLevel fitnessLevel,
     String fitnessGoal,
     int workoutTime,
     String dietaryPreference,

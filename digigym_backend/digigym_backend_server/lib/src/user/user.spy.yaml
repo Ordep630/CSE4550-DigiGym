@@ -15,7 +15,7 @@ fields:
     ### The user's weight in kilograms.
     weight: double
     ### The user's fitness experience level.
-    fitnessLevel: String
+    fitnessLevel: FitnessLevel
     ### The user's fitness goal.
     fitnessGoal: String
     ### How many minutes the user has available to work out.

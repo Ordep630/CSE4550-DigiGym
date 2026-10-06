@@ -34,7 +34,7 @@ void main() {
             age: 20,
             height: 170,
             weight: 70,
-            fitnessLevel: 'Beginner',
+            fitnessLevel: FitnessLevel.beginner,
             fitnessGoal: 'Lose Weight',
             workoutTime: 30,
             dietaryPreference: 'No Preference',
@@ -63,7 +63,7 @@ void main() {
         expect(fetched!.authUserId, authUserId);
         expect(fetched.name, 'Test User');
         expect(fetched.age, 20);
-        expect(fetched.fitnessLevel, 'Beginner');
+        expect(fetched.fitnessLevel, FitnessLevel.beginner);
         expect(fetched.fitnessGoal, 'Lose Weight');
 
         /* Update the authenticated user's profile.
@@ -74,7 +74,7 @@ void main() {
           21,
           171.0,
           71.0,
-          'Intermediate',
+          FitnessLevel.intermediate,
           'Build Muscle',
           45,
           'Vegetarian',
@@ -84,7 +84,7 @@ void main() {
         expect(updated.authUserId, authUserId);
         expect(updated.name, 'Updated User');
         expect(updated.age, 21);
-        expect(updated.fitnessLevel, 'Intermediate');
+        expect(updated.fitnessLevel, FitnessLevel.intermediate);
         expect(updated.fitnessGoal, 'Build Muscle');
 
         /* Verify the changes persisted.
@@ -99,7 +99,7 @@ void main() {
         expect(fetchedAgain.age, 21);
         expect(fetchedAgain.height, 171.0);
         expect(fetchedAgain.weight, 71.0);
-        expect(fetchedAgain.fitnessLevel, 'Intermediate');
+        expect(fetchedAgain.fitnessLevel, FitnessLevel.intermediate);
         expect(fetchedAgain.fitnessGoal, 'Build Muscle');
         expect(fetchedAgain.workoutTime, 45);
         expect(fetchedAgain.dietaryPreference, 'Vegetarian');

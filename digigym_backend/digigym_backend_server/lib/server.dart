@@ -44,7 +44,7 @@ void run(List<String> args) async {
             age: 20,
             height: 170,
             weight: 70,
-            fitnessLevel: 'Beginner',
+            fitnessLevel: FitnessLevel.beginner,
             fitnessGoal: 'Lose Weight',
             workoutTime: 30,
             dietaryPreference: 'No Preference',
