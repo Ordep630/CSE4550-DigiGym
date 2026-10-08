@@ -18,9 +18,11 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _iais;
 import 'greetings/greeting.dart' as _izw8z7ou;
+import 'user/fitness_goal.dart' as _ifss0aho;
 import 'user/fitness_level.dart' as _ifclzg6e;
 import 'user/user.dart' as _izvcgnx4;
 export 'greetings/greeting.dart';
+export 'user/fitness_goal.dart';
 export 'user/fitness_level.dart';
 export 'user/user.dart';
 
@@ -85,7 +87,7 @@ class Protocol extends _is.DatabaseSerializationManager {
           name: 'fitnessGoal',
           columnType: _isp.ColumnType.text,
           isNullable: false,
-          dartType: 'String',
+          dartType: 'protocol:FitnessGoal',
         ),
         _isp.ColumnDefinition(
           name: 'workoutTime',
@@ -170,6 +172,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _izw8z7ou.Greeting) {
       return _izw8z7ou.Greeting.fromJson(data) as T;
     }
+    if (t == _ifss0aho.FitnessGoal) {
+      return _ifss0aho.FitnessGoal.fromJson(data) as T;
+    }
     if (t == _ifclzg6e.FitnessLevel) {
       return _ifclzg6e.FitnessLevel.fromJson(data) as T;
     }
@@ -178,6 +183,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _is.getType<_izw8z7ou.Greeting?>()) {
       return (data != null ? _izw8z7ou.Greeting.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_ifss0aho.FitnessGoal?>()) {
+      return (data != null ? _ifss0aho.FitnessGoal.fromJson(data) : null) as T;
     }
     if (t == _is.getType<_ifclzg6e.FitnessLevel?>()) {
       return (data != null ? _ifclzg6e.FitnessLevel.fromJson(data) : null) as T;
@@ -200,6 +208,7 @@ class Protocol extends _is.DatabaseSerializationManager {
   static String? getClassNameForType(Type type) {
     return switch (type) {
       _izw8z7ou.Greeting => 'Greeting',
+      _ifss0aho.FitnessGoal => 'FitnessGoal',
       _ifclzg6e.FitnessLevel => 'FitnessLevel',
       _izvcgnx4.DigiGymUser => 'DigiGymUser',
       _ => null,
@@ -221,6 +230,8 @@ class Protocol extends _is.DatabaseSerializationManager {
     switch (data) {
       case _izw8z7ou.Greeting():
         return 'Greeting';
+      case _ifss0aho.FitnessGoal():
+        return 'FitnessGoal';
       case _ifclzg6e.FitnessLevel():
         return 'FitnessLevel';
       case _izvcgnx4.DigiGymUser():
@@ -253,6 +264,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (dataClassName == 'Greeting') {
       return deserialize<_izw8z7ou.Greeting>(data['data']);
+    }
+    if (dataClassName == 'FitnessGoal') {
+      return deserialize<_ifss0aho.FitnessGoal>(data['data']);
     }
     if (dataClassName == 'FitnessLevel') {
       return deserialize<_ifclzg6e.FitnessLevel>(data['data']);

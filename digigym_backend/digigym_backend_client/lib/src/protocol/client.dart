@@ -13,6 +13,8 @@
 import 'dart:async' as _ida;
 import 'package:digigym_backend_client/src/protocol/greetings/greeting.dart'
     as _isjug9ek;
+import 'package:digigym_backend_client/src/protocol/user/fitness_goal.dart'
+    as _i1zhugzl;
 import 'package:digigym_backend_client/src/protocol/user/fitness_level.dart'
     as _ir29g2zq;
 import 'package:digigym_backend_client/src/protocol/user/user.dart'
@@ -291,7 +293,7 @@ class EndpointProfile extends _isc.EndpointRef {
     double height,
     double weight,
     _ir29g2zq.FitnessLevel fitnessLevel,
-    String fitnessGoal,
+    _i1zhugzl.FitnessGoal fitnessGoal,
     int workoutTime,
     String dietaryPreference,
     String bodyType,

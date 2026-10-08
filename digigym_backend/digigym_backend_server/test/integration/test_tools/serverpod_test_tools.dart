@@ -15,6 +15,8 @@ import 'dart:async' as _ida;
 import 'dart:io' as _idi;
 import 'package:digigym_backend_server/src/generated/greetings/greeting.dart'
     as _ixw9ndps;
+import 'package:digigym_backend_server/src/generated/user/fitness_goal.dart'
+    as _i4runcty;
 import 'package:digigym_backend_server/src/generated/user/fitness_level.dart'
     as _i0de4bt5;
 import 'package:digigym_backend_server/src/generated/user/user.dart'
@@ -593,7 +595,7 @@ class _ProfileEndpoint {
     double height,
     double weight,
     _i0de4bt5.FitnessLevel fitnessLevel,
-    String fitnessGoal,
+    _i4runcty.FitnessGoal fitnessGoal,
     int workoutTime,
     String dietaryPreference,
     String bodyType,

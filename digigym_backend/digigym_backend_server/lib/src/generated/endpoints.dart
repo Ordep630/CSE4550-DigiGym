@@ -10,6 +10,8 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:digigym_backend_server/src/generated/user/fitness_goal.dart'
+    as _i4runcty;
 import 'package:digigym_backend_server/src/generated/user/fitness_level.dart'
     as _i0de4bt5;
 import 'package:serverpod/serverpod.dart' as _is;
@@ -326,7 +328,7 @@ class Endpoints extends _is.EndpointDispatch {
             ),
             'fitnessGoal': _is.ParameterDescription(
               name: 'fitnessGoal',
-              type: _is.getType<String>(),
+              type: _is.getType<_i4runcty.FitnessGoal>(),
               nullable: false,
             ),
             'workoutTime': _is.ParameterDescription(

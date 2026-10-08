@@ -16,6 +16,7 @@ import 'package:digigym_backend_server/src/generated/protocol.dart'
 import 'package:serverpod/serverpod.dart' as _is;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
+import '../user/fitness_goal.dart' as _iez7dbsx;
 import '../user/fitness_level.dart' as _i0eft088;
 
 /// A DigiGym user account and fitness profile linked to their Serverpod's auth account
@@ -45,7 +46,7 @@ abstract class DigiGymUser
     required double height,
     required double weight,
     required _i0eft088.FitnessLevel fitnessLevel,
-    required String fitnessGoal,
+    required _iez7dbsx.FitnessGoal fitnessGoal,
     required int workoutTime,
     required String dietaryPreference,
     required String bodyType,
@@ -69,7 +70,9 @@ abstract class DigiGymUser
       fitnessLevel: _i0eft088.FitnessLevel.fromJson(
         (jsonSerialization['fitnessLevel'] as String),
       ),
-      fitnessGoal: jsonSerialization['fitnessGoal'] as String,
+      fitnessGoal: _iez7dbsx.FitnessGoal.fromJson(
+        (jsonSerialization['fitnessGoal'] as String),
+      ),
       workoutTime: jsonSerialization['workoutTime'] as int,
       dietaryPreference: jsonSerialization['dietaryPreference'] as String,
       bodyType: jsonSerialization['bodyType'] as String,
@@ -104,7 +107,7 @@ abstract class DigiGymUser
   _i0eft088.FitnessLevel fitnessLevel;
 
   /// The user's fitness goal.
-  String fitnessGoal;
+  _iez7dbsx.FitnessGoal fitnessGoal;
 
   /// How many minutes the user has available to work out.
   int workoutTime;
@@ -130,7 +133,7 @@ abstract class DigiGymUser
     double? height,
     double? weight,
     _i0eft088.FitnessLevel? fitnessLevel,
-    String? fitnessGoal,
+    _iez7dbsx.FitnessGoal? fitnessGoal,
     int? workoutTime,
     String? dietaryPreference,
     String? bodyType,
@@ -147,7 +150,7 @@ abstract class DigiGymUser
       'height': height,
       'weight': weight,
       'fitnessLevel': fitnessLevel.toJson(),
-      'fitnessGoal': fitnessGoal,
+      'fitnessGoal': fitnessGoal.toJson(),
       'workoutTime': workoutTime,
       'dietaryPreference': dietaryPreference,
       'bodyType': bodyType,
@@ -166,7 +169,7 @@ abstract class DigiGymUser
       'height': height,
       'weight': weight,
       'fitnessLevel': fitnessLevel.toJson(),
-      'fitnessGoal': fitnessGoal,
+      'fitnessGoal': fitnessGoal.toJson(),
       'workoutTime': workoutTime,
       'dietaryPreference': dietaryPreference,
       'bodyType': bodyType,
@@ -213,7 +216,7 @@ class _DigiGymUserImpl extends DigiGymUser {
     required double height,
     required double weight,
     required _i0eft088.FitnessLevel fitnessLevel,
-    required String fitnessGoal,
+    required _iez7dbsx.FitnessGoal fitnessGoal,
     required int workoutTime,
     required String dietaryPreference,
     required String bodyType,
@@ -245,7 +248,7 @@ class _DigiGymUserImpl extends DigiGymUser {
     double? height,
     double? weight,
     _i0eft088.FitnessLevel? fitnessLevel,
-    String? fitnessGoal,
+    _iez7dbsx.FitnessGoal? fitnessGoal,
     int? workoutTime,
     String? dietaryPreference,
     String? bodyType,
@@ -306,7 +309,9 @@ class DigiGymUserUpdateTable extends _is.UpdateTable<DigiGymUserTable> {
     value,
   );
 
-  _is.ColumnValue<String, String> fitnessGoal(String value) => _is.ColumnValue(
+  _is.ColumnValue<_iez7dbsx.FitnessGoal, _iez7dbsx.FitnessGoal> fitnessGoal(
+    _iez7dbsx.FitnessGoal value,
+  ) => _is.ColumnValue(
     table.fitnessGoal,
     value,
   );
@@ -356,9 +361,10 @@ class DigiGymUserTable extends _is.Table<int?> {
       this,
       _is.EnumSerialization.byName,
     );
-    fitnessGoal = _is.ColumnString(
+    fitnessGoal = _is.ColumnEnum(
       'fitnessGoal',
       this,
+      _is.EnumSerialization.byName,
     );
     workoutTime = _is.ColumnInt(
       'workoutTime',
@@ -397,7 +403,7 @@ class DigiGymUserTable extends _is.Table<int?> {
   late final _is.ColumnEnum<_i0eft088.FitnessLevel> fitnessLevel;
 
   /// The user's fitness goal.
-  late final _is.ColumnString fitnessGoal;
+  late final _is.ColumnEnum<_iez7dbsx.FitnessGoal> fitnessGoal;
 
   /// How many minutes the user has available to work out.
   late final _is.ColumnInt workoutTime;
