@@ -7,8 +7,8 @@ void main() {
   final service = WorkoutRecommendationService();
 
   DigiGymUser createUser({
-    required String fitnessLevel,
-    required String fitnessGoal,
+    required FitnessLevel fitnessLevel,
+    required FitnessGoal fitnessGoal,
     required int workoutTime,
   }) {
     return DigiGymUser(
@@ -29,8 +29,8 @@ void main() {
 
   test('recommends cardio for beginner lose_weight user', () {
     final user = createUser(
-      fitnessLevel: 'beginner',
-      fitnessGoal: 'lose_weight',
+      fitnessLevel: FitnessLevel.beginner,
+      fitnessGoal: FitnessGoal.loseWeight,
       workoutTime: 30,
     );
 
@@ -43,8 +43,8 @@ void main() {
 
   test('recommends strength for intermediate build_muscle user', () {
     final user = createUser(
-      fitnessLevel: 'intermediate',
-      fitnessGoal: 'build_muscle',
+      fitnessLevel: FitnessLevel.intermediate,
+      fitnessGoal: FitnessGoal.buildMuscle,
       workoutTime: 45,
     );
 

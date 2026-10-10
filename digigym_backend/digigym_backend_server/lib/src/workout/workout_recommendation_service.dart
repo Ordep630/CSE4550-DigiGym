@@ -12,28 +12,30 @@ class WorkoutRecommendationService {
     );
   }
 
-  String _getWorkoutType(String fitnessGoal) {
+  String _getWorkoutType(FitnessGoal fitnessGoal) {
     // Placeholder rules for workout recommendation until workout logic is finalized.
-    if (fitnessGoal == 'lose_weight') {
+    /* Updated rules & logic will be implemented in the future. */
+    if (fitnessGoal == FitnessGoal.loseWeight) {
       return 'cardio';
     }
 
-    if (fitnessGoal == 'build_muscle') {
+    if (fitnessGoal == FitnessGoal.buildMuscle) {
       return 'strength';
     }
 
     return 'general_fitness';
   }
 
-  String _getDifficulty(String fitnessLevel) {
+  String _getDifficulty(FitnessLevel fitnessLevel) {
     // Placeholder rules for difficulty until workout logic is finalized.
+    /* Updated rules & logic will be implemented in the future. */
     switch (fitnessLevel) {
-      case 'beginner':
+      case FitnessLevel.beginner:
         return 'beginner';
-      case 'intermediate':
+      case FitnessLevel.intermediate:
         return 'intermediate';
-      default:
-        return 'beginner';
+      case FitnessLevel.advanced:
+        return 'advanced';
     }
   }
 }
