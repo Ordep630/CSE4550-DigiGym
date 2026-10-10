@@ -16,9 +16,15 @@ import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     as _iaic;
 import 'package:serverpod_client/serverpod_client.dart' as _isc;
+import 'fitness/fitness_data.dart' as _isdrmxyn;
 import 'greetings/greeting.dart' as _izw8z7ou;
+import 'user/fitness_goal.dart' as _ifss0aho;
+import 'user/fitness_level.dart' as _ifclzg6e;
 import 'user/user.dart' as _izvcgnx4;
+export 'fitness/fitness_data.dart';
 export 'greetings/greeting.dart';
+export 'user/fitness_goal.dart';
+export 'user/fitness_level.dart';
 export 'user/user.dart';
 export 'client.dart';
 
@@ -56,30 +62,51 @@ class Protocol extends _isc.SerializationManager {
       }
     }
 
+    if (t == _isdrmxyn.FitnessData) {
+      return _isdrmxyn.FitnessData.fromJson(data) as T;
+    }
     if (t == _izw8z7ou.Greeting) {
       return _izw8z7ou.Greeting.fromJson(data) as T;
+    }
+    if (t == _ifss0aho.FitnessGoal) {
+      return _ifss0aho.FitnessGoal.fromJson(data) as T;
+    }
+    if (t == _ifclzg6e.FitnessLevel) {
+      return _ifclzg6e.FitnessLevel.fromJson(data) as T;
     }
     if (t == _izvcgnx4.DigiGymUser) {
       return _izvcgnx4.DigiGymUser.fromJson(data) as T;
     }
+    if (t == _isc.getType<_isdrmxyn.FitnessData?>()) {
+      return (data != null ? _isdrmxyn.FitnessData.fromJson(data) : null) as T;
+    }
     if (t == _isc.getType<_izw8z7ou.Greeting?>()) {
       return (data != null ? _izw8z7ou.Greeting.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_ifss0aho.FitnessGoal?>()) {
+      return (data != null ? _ifss0aho.FitnessGoal.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_ifclzg6e.FitnessLevel?>()) {
+      return (data != null ? _ifclzg6e.FitnessLevel.fromJson(data) : null) as T;
     }
     if (t == _isc.getType<_izvcgnx4.DigiGymUser?>()) {
       return (data != null ? _izvcgnx4.DigiGymUser.fromJson(data) : null) as T;
     }
     try {
-      return _iaic.Protocol().deserialize<T>(data, t);
+      return _iacc.Protocol().deserialize<T>(data, t);
     } on _isc.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _iacc.Protocol().deserialize<T>(data, t);
+      return _iaic.Protocol().deserialize<T>(data, t);
     } on _isc.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
+      _isdrmxyn.FitnessData => 'FitnessData',
       _izw8z7ou.Greeting => 'Greeting',
+      _ifss0aho.FitnessGoal => 'FitnessGoal',
+      _ifclzg6e.FitnessLevel => 'FitnessLevel',
       _izvcgnx4.DigiGymUser => 'DigiGymUser',
       _ => null,
     };
@@ -98,22 +125,28 @@ class Protocol extends _isc.SerializationManager {
     }
 
     switch (data) {
+      case _isdrmxyn.FitnessData():
+        return 'FitnessData';
       case _izw8z7ou.Greeting():
         return 'Greeting';
+      case _ifss0aho.FitnessGoal():
+        return 'FitnessGoal';
+      case _ifclzg6e.FitnessLevel():
+        return 'FitnessLevel';
       case _izvcgnx4.DigiGymUser():
         return 'DigiGymUser';
-    }
-    className = _iaic.Protocol().getClassNameForObject(data);
-    if (className != null) {
-      return className.contains('.')
-          ? className
-          : 'serverpod_auth_idp.$className';
     }
     className = _iacc.Protocol().getClassNameForObject(data);
     if (className != null) {
       return className.contains('.')
           ? className
           : 'serverpod_auth_core.$className';
+    }
+    className = _iaic.Protocol().getClassNameForObject(data);
+    if (className != null) {
+      return className.contains('.')
+          ? className
+          : 'serverpod_auth_idp.$className';
     }
     return null;
   }
@@ -124,26 +157,35 @@ class Protocol extends _isc.SerializationManager {
     if (dataClassName is! String) {
       return super.deserializeByClassName(data);
     }
+    if (dataClassName == 'FitnessData') {
+      return deserialize<_isdrmxyn.FitnessData>(data['data']);
+    }
     if (dataClassName == 'Greeting') {
       return deserialize<_izw8z7ou.Greeting>(data['data']);
     }
+    if (dataClassName == 'FitnessGoal') {
+      return deserialize<_ifss0aho.FitnessGoal>(data['data']);
+    }
+    if (dataClassName == 'FitnessLevel') {
+      return deserialize<_ifclzg6e.FitnessLevel>(data['data']);
+    }
     if (dataClassName == 'DigiGymUser') {
       return deserialize<_izvcgnx4.DigiGymUser>(data['data']);
-    }
-    if (dataClassName.startsWith('serverpod_auth_idp.')) {
-      data['className'] = dataClassName.substring(19);
-      return _iaic.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
       return _iacc.Protocol().deserializeByClassName(data);
     }
+    if (dataClassName.startsWith('serverpod_auth_idp.')) {
+      data['className'] = dataClassName.substring(19);
+      return _iaic.Protocol().deserializeByClassName(data);
+    }
     return super.deserializeByClassName(data);
   }
 
   void _registerHostProtocols() {
-    _iaic.Protocol().registerHostProtocol('digigym_backend', this);
     _iacc.Protocol().registerHostProtocol('digigym_backend', this);
+    _iaic.Protocol().registerHostProtocol('digigym_backend', this);
   }
 
   @override
@@ -159,10 +201,10 @@ class Protocol extends _isc.SerializationManager {
       return null;
     }
     try {
-      return _iaic.Protocol().mapRecordToJson(record);
+      return _iacc.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _iacc.Protocol().mapRecordToJson(record);
+      return _iaic.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

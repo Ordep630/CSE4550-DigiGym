@@ -13,5 +13,6 @@ greeting:
   - hello:
 profile:
   - getMyProfile:
+  - updateMyProfile:
   - getMyFitnessData:
   - updateMyFitnessData:

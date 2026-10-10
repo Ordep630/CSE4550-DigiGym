@@ -15,6 +15,10 @@ import 'package:digigym_backend_client/src/protocol/fitness/fitness_data.dart'
     as _i7ssfes1;
 import 'package:digigym_backend_client/src/protocol/greetings/greeting.dart'
     as _isjug9ek;
+import 'package:digigym_backend_client/src/protocol/user/fitness_goal.dart'
+    as _i1zhugzl;
+import 'package:digigym_backend_client/src/protocol/user/fitness_level.dart'
+    as _ir29g2zq;
 import 'package:digigym_backend_client/src/protocol/user/user.dart'
     as _iz9pf62b;
 import 'package:http/http.dart' as _i85jenna;
@@ -268,7 +272,7 @@ class EndpointGreeting extends _isc.EndpointRef {
       );
 }
 
-/// Lets the currently logged-in user fetch their own DigiGym fitness profile.
+/// Lets the currently logged-in user manage their DigiGym fitness profile.
 /// {@category Endpoint}
 class EndpointProfile extends _isc.EndpointRef {
   EndpointProfile(_isc.EndpointCaller caller) : super(caller);
@@ -276,13 +280,40 @@ class EndpointProfile extends _isc.EndpointRef {
   @override
   String get name => 'profile';
 
-  /// Returns the DigiGymUser profile for whoever is currently authenticated.
+  /// Returns the DigiGym profile for the currently authenticated user.
   _ida.Future<_iz9pf62b.DigiGymUser?> getMyProfile() =>
       caller.callServerEndpoint<_iz9pf62b.DigiGymUser?>(
         'profile',
         'getMyProfile',
         {},
       );
+
+  /// Updates the DigiGym profile of the currently authenticated user.
+  _ida.Future<_iz9pf62b.DigiGymUser> updateMyProfile(
+    String name,
+    int age,
+    double height,
+    double weight,
+    _ir29g2zq.FitnessLevel fitnessLevel,
+    _i1zhugzl.FitnessGoal fitnessGoal,
+    int workoutTime,
+    String dietaryPreference,
+    String bodyType,
+  ) => caller.callServerEndpoint<_iz9pf62b.DigiGymUser>(
+    'profile',
+    'updateMyProfile',
+    {
+      'name': name,
+      'age': age,
+      'height': height,
+      'weight': weight,
+      'fitnessLevel': fitnessLevel,
+      'fitnessGoal': fitnessGoal,
+      'workoutTime': workoutTime,
+      'dietaryPreference': dietaryPreference,
+      'bodyType': bodyType,
+    },
+  );
 
   _ida.Future<_i7ssfes1.FitnessData?> getMyFitnessData() =>
       caller.callServerEndpoint<_i7ssfes1.FitnessData?>(
@@ -293,8 +324,8 @@ class EndpointProfile extends _isc.EndpointRef {
 
   /// Updates the fitness data for the currently authenticated user.
   _ida.Future<_i7ssfes1.FitnessData> updateMyFitnessData(
-    String fitnessLevel,
-    String fitnessGoal,
+    _ir29g2zq.FitnessLevel fitnessLevel,
+    _i1zhugzl.FitnessGoal fitnessGoal,
   ) => caller.callServerEndpoint<_i7ssfes1.FitnessData>(
     'profile',
     'updateMyFitnessData',
@@ -307,13 +338,13 @@ class EndpointProfile extends _isc.EndpointRef {
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _iaic.Caller(client);
     serverpod_auth_core = _iacc.Caller(client);
+    serverpod_auth_idp = _iaic.Caller(client);
   }
 
-  late final _iaic.Caller serverpod_auth_idp;
-
   late final _iacc.Caller serverpod_auth_core;
+
+  late final _iaic.Caller serverpod_auth_idp;
 }
 
 class Client extends _isc.ServerpodClientShared {
@@ -370,7 +401,7 @@ class Client extends _isc.ServerpodClientShared {
 
   @override
   Map<String, _isc.ModuleEndpointCaller> get moduleLookup => {
-    'serverpod_auth_idp': modules.serverpod_auth_idp,
     'serverpod_auth_core': modules.serverpod_auth_core,
+    'serverpod_auth_idp': modules.serverpod_auth_idp,
   };
 }

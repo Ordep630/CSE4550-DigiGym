@@ -31,8 +31,8 @@ void main() {
             age: 25,
             height: 175.0,
             weight: 75.0,
-            fitnessLevel: 'beginner',
-            fitnessGoal: 'weight_loss',
+            fitnessLevel: FitnessLevel.beginner,
+            fitnessGoal: FitnessGoal.loseWeight,
             workoutTime: 45,
             dietaryPreference: 'None',
             bodyType: 'Average',
@@ -53,18 +53,18 @@ void main() {
         );
 
         expect(initial, isNotNull);
-        expect(initial!.fitnessLevel, equals('beginner'));
-        expect(initial.fitnessGoal, equals('weight_loss'));
+        expect(initial!.fitnessLevel, FitnessLevel.beginner);
+        expect(initial.fitnessGoal, equals(FitnessGoal.loseWeight));
 
         /// Update the fitness data
         final updated = await endpoints.profile.updateMyFitnessData(
           authenticatedSession,
-          'intermediate',
-          'build_muscle',
+          FitnessLevel.intermediate,
+          FitnessGoal.buildMuscle,
         );
 
-        expect(updated.fitnessLevel, equals('intermediate'));
-        expect(updated.fitnessGoal, equals('build_muscle'));
+        expect(updated.fitnessLevel, equals(FitnessLevel.intermediate));
+        expect(updated.fitnessGoal, equals(FitnessGoal.buildMuscle));
 
         // Verify that the updated values persisted
         final persisted = await endpoints.profile.getMyFitnessData(
@@ -72,8 +72,8 @@ void main() {
         );
 
         expect(persisted, isNotNull);
-        expect(persisted!.fitnessLevel, equals('intermediate'));
-        expect(persisted.fitnessGoal, equals('build_muscle'));
+        expect(persisted!.fitnessLevel, equals(FitnessLevel.intermediate));
+        expect(persisted.fitnessGoal, equals(FitnessGoal.buildMuscle));
 
         /// Verify the underlying DigiGymUser was updated as well
         await DigiGymUser.db.findFirstRow(
@@ -81,9 +81,9 @@ void main() {
           where: (t) => t.authUserId.equals(authUserId),
         );
 
-       // expect(updatedProfile, isNotNull);
-       // expect(updatedProfile!.fitnessLevel, equals('intermediate'));
-       // expect(updatedProfile.fitnessGoal, equals('build_muscle'));
+        // expect(updatedProfile, isNotNull);
+        // expect(updatedProfile!.fitnessLevel, equals('intermediate'));
+        // expect(updatedProfile.fitnessGoal, equals('build_muscle'));
       },
     );
   });

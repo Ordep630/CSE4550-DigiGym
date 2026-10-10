@@ -11,6 +11,8 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _is;
+import '../user/fitness_goal.dart' as _iez7dbsx;
+import '../user/fitness_level.dart' as _i0eft088;
 
 abstract class FitnessData
     implements _is.SerializableModel, _is.ProtocolSerialization {
@@ -20,34 +22,38 @@ abstract class FitnessData
   });
 
   factory FitnessData({
-    required String fitnessLevel,
-    required String fitnessGoal,
+    required _i0eft088.FitnessLevel fitnessLevel,
+    required _iez7dbsx.FitnessGoal fitnessGoal,
   }) = _FitnessDataImpl;
 
   factory FitnessData.fromJson(Map<String, dynamic> jsonSerialization) {
     return FitnessData(
-      fitnessLevel: jsonSerialization['fitnessLevel'] as String,
-      fitnessGoal: jsonSerialization['fitnessGoal'] as String,
+      fitnessLevel: _i0eft088.FitnessLevel.fromJson(
+        (jsonSerialization['fitnessLevel'] as String),
+      ),
+      fitnessGoal: _iez7dbsx.FitnessGoal.fromJson(
+        (jsonSerialization['fitnessGoal'] as String),
+      ),
     );
   }
 
-  String fitnessLevel;
+  _i0eft088.FitnessLevel fitnessLevel;
 
-  String fitnessGoal;
+  _iez7dbsx.FitnessGoal fitnessGoal;
 
   /// Returns a shallow copy of this [FitnessData]
   /// with some or all fields replaced by the given arguments.
   @_is.useResult
   FitnessData copyWith({
-    String? fitnessLevel,
-    String? fitnessGoal,
+    _i0eft088.FitnessLevel? fitnessLevel,
+    _iez7dbsx.FitnessGoal? fitnessGoal,
   });
   @override
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'FitnessData',
-      'fitnessLevel': fitnessLevel,
-      'fitnessGoal': fitnessGoal,
+      'fitnessLevel': fitnessLevel.toJson(),
+      'fitnessGoal': fitnessGoal.toJson(),
     };
   }
 
@@ -55,8 +61,8 @@ abstract class FitnessData
   Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'FitnessData',
-      'fitnessLevel': fitnessLevel,
-      'fitnessGoal': fitnessGoal,
+      'fitnessLevel': fitnessLevel.toJson(),
+      'fitnessGoal': fitnessGoal.toJson(),
     };
   }
 
@@ -68,8 +74,8 @@ abstract class FitnessData
 
 class _FitnessDataImpl extends FitnessData {
   _FitnessDataImpl({
-    required String fitnessLevel,
-    required String fitnessGoal,
+    required _i0eft088.FitnessLevel fitnessLevel,
+    required _iez7dbsx.FitnessGoal fitnessGoal,
   }) : super._(
          fitnessLevel: fitnessLevel,
          fitnessGoal: fitnessGoal,
@@ -80,8 +86,8 @@ class _FitnessDataImpl extends FitnessData {
   @_is.useResult
   @override
   FitnessData copyWith({
-    String? fitnessLevel,
-    String? fitnessGoal,
+    _i0eft088.FitnessLevel? fitnessLevel,
+    _iez7dbsx.FitnessGoal? fitnessGoal,
   }) {
     return FitnessData(
       fitnessLevel: fitnessLevel ?? this.fitnessLevel,

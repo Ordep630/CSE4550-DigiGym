@@ -10,6 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:digigym_backend_server/src/generated/user/fitness_goal.dart'
+    as _i4runcty;
+import 'package:digigym_backend_server/src/generated/user/fitness_level.dart'
+    as _i0de4bt5;
 import 'package:serverpod/serverpod.dart' as _is;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
@@ -294,6 +298,73 @@ class Endpoints extends _is.EndpointDispatch {
               ) async => (endpoints['profile'] as _i6a309j1.ProfileEndpoint)
                   .getMyProfile(session),
         ),
+        'updateMyProfile': _is.MethodConnector(
+          name: 'updateMyProfile',
+          params: {
+            'name': _is.ParameterDescription(
+              name: 'name',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'age': _is.ParameterDescription(
+              name: 'age',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'height': _is.ParameterDescription(
+              name: 'height',
+              type: _is.getType<double>(),
+              nullable: false,
+            ),
+            'weight': _is.ParameterDescription(
+              name: 'weight',
+              type: _is.getType<double>(),
+              nullable: false,
+            ),
+            'fitnessLevel': _is.ParameterDescription(
+              name: 'fitnessLevel',
+              type: _is.getType<_i0de4bt5.FitnessLevel>(),
+              nullable: false,
+            ),
+            'fitnessGoal': _is.ParameterDescription(
+              name: 'fitnessGoal',
+              type: _is.getType<_i4runcty.FitnessGoal>(),
+              nullable: false,
+            ),
+            'workoutTime': _is.ParameterDescription(
+              name: 'workoutTime',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'dietaryPreference': _is.ParameterDescription(
+              name: 'dietaryPreference',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'bodyType': _is.ParameterDescription(
+              name: 'bodyType',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6a309j1.ProfileEndpoint)
+                  .updateMyProfile(
+                    session,
+                    params['name'],
+                    params['age'],
+                    params['height'],
+                    params['weight'],
+                    params['fitnessLevel'],
+                    params['fitnessGoal'],
+                    params['workoutTime'],
+                    params['dietaryPreference'],
+                    params['bodyType'],
+                  ),
+        ),
         'getMyFitnessData': _is.MethodConnector(
           name: 'getMyFitnessData',
           params: {},
@@ -309,12 +380,12 @@ class Endpoints extends _is.EndpointDispatch {
           params: {
             'fitnessLevel': _is.ParameterDescription(
               name: 'fitnessLevel',
-              type: _is.getType<String>(),
+              type: _is.getType<_i0de4bt5.FitnessLevel>(),
               nullable: false,
             ),
             'fitnessGoal': _is.ParameterDescription(
               name: 'fitnessGoal',
-              type: _is.getType<String>(),
+              type: _is.getType<_i4runcty.FitnessGoal>(),
               nullable: false,
             ),
           },
@@ -331,9 +402,9 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _iais.Endpoints()
-      ..initializeEndpoints(server);
     modules['serverpod_auth_core'] = _iacs.Endpoints()
+      ..initializeEndpoints(server);
+    modules['serverpod_auth_idp'] = _iais.Endpoints()
       ..initializeEndpoints(server);
   }
 }

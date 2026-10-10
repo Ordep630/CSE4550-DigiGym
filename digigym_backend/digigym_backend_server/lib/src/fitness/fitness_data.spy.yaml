@@ -1,4 +1,4 @@
 class: FitnessData
 fields:
-  fitnessLevel: String
-  fitnessGoal: String
+  fitnessLevel: FitnessLevel
+  fitnessGoal: FitnessGoal
