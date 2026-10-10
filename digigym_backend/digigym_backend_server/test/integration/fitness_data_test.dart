@@ -80,10 +80,6 @@ void main() {
           session,
           where: (t) => t.authUserId.equals(authUserId),
         );
-
-        // expect(updatedProfile, isNotNull);
-        // expect(updatedProfile!.fitnessLevel, equals('intermediate'));
-        // expect(updatedProfile.fitnessGoal, equals('build_muscle'));
       },
     );
   });
