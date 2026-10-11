@@ -76,10 +76,13 @@ void main() {
         expect(persisted.fitnessGoal, equals(FitnessGoal.buildMuscle));
 
         /// Verify the underlying DigiGymUser was updated as well
-        await DigiGymUser.db.findFirstRow(
+        final updatedProfile = await DigiGymUser.db.findFirstRow(
           session,
           where: (t) => t.authUserId.equals(authUserId),
         );
+        expect(updatedProfile, isNotNull);
+        expect(updatedProfile!.fitnessLevel, equals(FitnessLevel.intermediate));
+        expect(updatedProfile.fitnessGoal, equals(FitnessGoal.buildMuscle));
       },
     );
   });
