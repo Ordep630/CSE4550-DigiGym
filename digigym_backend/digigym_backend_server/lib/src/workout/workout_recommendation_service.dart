@@ -1,0 +1,37 @@
+
+import '../generated/protocol.dart';
+
+/// Generates a workout recommendation from a user's fitness profile.
+class WorkoutRecommendationService {
+  WorkoutRecommendation recommend(DigiGymUser user) {
+    return WorkoutRecommendation(
+      workoutType: _getWorkoutType(user.fitnessGoal),
+      durationMinutes: user.workoutTime,
+      difficulty: _getDifficulty(user.fitnessLevel),
+    );
+  }
+
+  /// Selects a workout category based on the user's fitness goal.
+  String _getWorkoutType(FitnessGoal fitnessGoal) {
+    switch (fitnessGoal) {
+      case FitnessGoal.loseWeight:
+        return 'cardio';
+      case FitnessGoal.buildMuscle:
+        return 'strength';
+      case FitnessGoal.gainWeight:
+        return 'strength';
+    }
+  }
+
+  /// Matches the recommendation difficulty to the user's fitness level.
+  String _getDifficulty(FitnessLevel fitnessLevel) {
+    switch (fitnessLevel) {
+      case FitnessLevel.beginner:
+        return 'beginner';
+      case FitnessLevel.intermediate:
+        return 'intermediate';
+      case FitnessLevel.advanced:
+        return 'advanced';
+    }
+  }
+}

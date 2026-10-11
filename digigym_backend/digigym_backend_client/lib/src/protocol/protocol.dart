@@ -20,10 +20,12 @@ import 'greetings/greeting.dart' as _izw8z7ou;
 import 'user/fitness_goal.dart' as _ifss0aho;
 import 'user/fitness_level.dart' as _ifclzg6e;
 import 'user/user.dart' as _izvcgnx4;
+import 'workout/workout_recommendation.dart' as _izdon4ck;
 export 'greetings/greeting.dart';
 export 'user/fitness_goal.dart';
 export 'user/fitness_level.dart';
 export 'user/user.dart';
+export 'workout/workout_recommendation.dart';
 export 'client.dart';
 
 class Protocol extends _isc.SerializationManager {
@@ -72,6 +74,9 @@ class Protocol extends _isc.SerializationManager {
     if (t == _izvcgnx4.DigiGymUser) {
       return _izvcgnx4.DigiGymUser.fromJson(data) as T;
     }
+    if (t == _izdon4ck.WorkoutRecommendation) {
+      return _izdon4ck.WorkoutRecommendation.fromJson(data) as T;
+    }
     if (t == _isc.getType<_izw8z7ou.Greeting?>()) {
       return (data != null ? _izw8z7ou.Greeting.fromJson(data) : null) as T;
     }
@@ -83,6 +88,12 @@ class Protocol extends _isc.SerializationManager {
     }
     if (t == _isc.getType<_izvcgnx4.DigiGymUser?>()) {
       return (data != null ? _izvcgnx4.DigiGymUser.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_izdon4ck.WorkoutRecommendation?>()) {
+      return (data != null
+              ? _izdon4ck.WorkoutRecommendation.fromJson(data)
+              : null)
+          as T;
     }
     try {
       return _iacc.Protocol().deserialize<T>(data, t);
@@ -99,6 +110,7 @@ class Protocol extends _isc.SerializationManager {
       _ifss0aho.FitnessGoal => 'FitnessGoal',
       _ifclzg6e.FitnessLevel => 'FitnessLevel',
       _izvcgnx4.DigiGymUser => 'DigiGymUser',
+      _izdon4ck.WorkoutRecommendation => 'WorkoutRecommendation',
       _ => null,
     };
   }
@@ -124,6 +136,8 @@ class Protocol extends _isc.SerializationManager {
         return 'FitnessLevel';
       case _izvcgnx4.DigiGymUser():
         return 'DigiGymUser';
+      case _izdon4ck.WorkoutRecommendation():
+        return 'WorkoutRecommendation';
     }
     className = _iacc.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -157,6 +171,9 @@ class Protocol extends _isc.SerializationManager {
     }
     if (dataClassName == 'DigiGymUser') {
       return deserialize<_izvcgnx4.DigiGymUser>(data['data']);
+    }
+    if (dataClassName == 'WorkoutRecommendation') {
+      return deserialize<_izdon4ck.WorkoutRecommendation>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
