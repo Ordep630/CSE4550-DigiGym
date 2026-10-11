@@ -13,22 +13,19 @@ class WorkoutRecommendationService {
   }
 
   String _getWorkoutType(FitnessGoal fitnessGoal) {
-    // Placeholder rules for workout recommendation until workout logic is finalized.
-    /* Updated rules & logic will be implemented in the future. */
-    if (fitnessGoal == FitnessGoal.loseWeight) {
-      return 'cardio';
+    // Selects a workout type based on the user's fitness goal.
+    switch (fitnessGoal) {
+      case FitnessGoal.loseWeight:
+        return 'cardio';
+      case FitnessGoal.buildMuscle:
+        return 'strength';
+      case FitnessGoal.gainWeight:
+        return 'strength';
     }
-
-    if (fitnessGoal == FitnessGoal.buildMuscle) {
-      return 'strength';
-    }
-
-    return 'general_fitness';
   }
 
   String _getDifficulty(FitnessLevel fitnessLevel) {
-    // Placeholder rules for difficulty until workout logic is finalized.
-    /* Updated rules & logic will be implemented in the future. */
+    // Matches workout difficulty to the user's fitness level.
     switch (fitnessLevel) {
       case FitnessLevel.beginner:
         return 'beginner';

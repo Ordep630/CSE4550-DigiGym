@@ -54,4 +54,18 @@ void main() {
     expect(recommendation.difficulty, 'intermediate');
     expect(recommendation.durationMinutes, 45);
   });
+
+  test('recommends strength for advanced gainWeight user', () {
+    final user = createUser(
+      fitnessLevel: FitnessLevel.advanced,
+      fitnessGoal: FitnessGoal.gainWeight,
+      workoutTime: 60,
+    );
+
+    final recommendation = service.recommend(user);
+
+    expect(recommendation.workoutType, 'strength');
+    expect(recommendation.difficulty, 'advanced');
+    expect(recommendation.durationMinutes, 60);
+  });
 }
