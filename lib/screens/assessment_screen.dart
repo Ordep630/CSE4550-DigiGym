@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/session.dart';
+import '../client.dart';
 
 class AssessmentScreen extends StatefulWidget {
   const AssessmentScreen({super.key});
@@ -16,7 +17,10 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
   String fitnessLevel = 'Beginner';
   String goal = 'Lose Weight';
   String diet = 'No Restrictions';
+  String bodyType = 'Average';
   int workoutTime = 30;
+
+  bool isCreatingPlan = false;
 
   @override
   Widget build(BuildContext context) {
@@ -141,6 +145,32 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               },
             ),
             const SizedBox(height: 15),
+            DropdownButtonFormField<String>(
+  value: bodyType,
+  decoration: const InputDecoration(
+    labelText: 'Body Type',
+    border: OutlineInputBorder(),
+  ),
+  items: [
+    'Slim',
+    'Average',
+    'Athletic',
+    'Heavy',
+  ]
+      .map(
+        (value) => DropdownMenuItem(
+          value: value,
+          child: Text(value),
+        ),
+      )
+      .toList(),
+  onChanged: (value) {
+    setState(() {
+      bodyType = value!;
+    });
+  },
+),
+const SizedBox(height: 15),
             DropdownButtonFormField<int>(
               value: workoutTime,
               decoration: const InputDecoration(
@@ -166,7 +196,9 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: isCreatingPlan
+                  ? null
+                  : () async {
                   final age = int.tryParse(ageController.text.trim());
                   final height =
                       double.tryParse(heightController.text.trim());
@@ -190,7 +222,9 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                     );
                     return;
                   }
-
+                  setState(() {
+                  isCreatingPlan = true;
+                  });
                   user.age = age;
                   user.height = height;
                   user.weight = weight;
@@ -199,6 +233,21 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                   user.dietaryPreference =
                       diet == 'No Restrictions' ? 'No Preference' : diet;
                   user.workoutTime = workoutTime;
+
+                  await client.user.createProfile(
+                  name: user.name,
+                  age: age,
+                  height: height,
+                  weight: weight,
+                  fitnessLevel: fitnessLevel,
+                  fitnessGoal: goal,
+                  workoutTime: workoutTime,
+                  dietaryPreference:
+                      diet == 'No Restrictions' ? 'No Preference' : diet,
+                  bodyType: bodyType,
+                  );
+
+                  if (!context.mounted) return;
 
                   DigiGymSession.registeredUser = user;
                   DigiGymSession.pendingUser = null;
@@ -212,10 +261,18 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                     ),
                   );
                 },
-                child: const Text(
-                  'Create My Plan',
-                  style: TextStyle(fontSize: 16),
-                ),
+                child: isCreatingPlan
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Create My Plan',
+                        style: TextStyle(fontSize: 16),
+                      ),
               ),
             ),
           ],

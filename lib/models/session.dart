@@ -4,4 +4,5 @@ class DigiGymSession {
   static UserProfile? currentUser;
   static UserProfile? registeredUser;
   static UserProfile? pendingUser;
+  static String? registrationRequestId;
 }

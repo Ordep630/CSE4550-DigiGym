@@ -1,0 +1,30 @@
+services:
+  # Development services
+  postgres:
+    image: ghcr.io/serverpod/postgres:16
+    ports:
+      - "8090:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: digigym_backend
+      POSTGRES_PASSWORD: "GyP_zkjPUkXzh-mpWCJ3gwQUwgc39FFj"
+    volumes:
+      - digigym_backend_data:/var/lib/postgresql/data
+
+
+  # Test services
+  postgres_test:
+    image: ghcr.io/serverpod/postgres:16
+    ports:
+      - "9090:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: digigym_backend_test
+      POSTGRES_PASSWORD: "adz9PMxcRTK7KSUVFiKqIc09euScdyfA"
+    volumes:
+      - digigym_backend_test_data:/var/lib/postgresql/data
+
+
+volumes:
+  digigym_backend_data:
+  digigym_backend_test_data:

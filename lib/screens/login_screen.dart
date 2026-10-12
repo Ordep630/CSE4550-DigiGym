@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-
+import 'package:serverpod_auth_core_flutter/serverpod_auth_core_flutter.dart'
+    hide UserProfile;
 import '../models/user_profile.dart';
 import '../models/session.dart';
+import '../client.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -36,26 +38,57 @@ class _LoginScreenState extends State<LoginScreen> {
     bodyType: 'Average',
   );
 
-  void login() {
-    final email = emailController.text.trim();
-    final password = passwordController.text.trim();
+  Future<void> login() async {
+  final email = emailController.text.trim();
+  final password = passwordController.text.trim();
 
-    if (email == demoUser.email && password == demoUser.password) {
-      widget.onLogin(demoUser);
-    } else if (DigiGymSession.registeredUser != null &&
-        email == DigiGymSession.registeredUser!.email &&
-        password == DigiGymSession.registeredUser!.password) {
-      widget.onLogin(DigiGymSession.registeredUser!);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Invalid login. Try demo@gym.com / 123456',
-          ),
-        ),
-      );
-    }
+  // Keep the demo account available.
+  if (email == demoUser.email && password == demoUser.password) {
+    widget.onLogin(demoUser);
+    return;
   }
+
+  try {
+    final authSuccess = await client.emailIdp.login(
+      email: email,
+      password: password,
+    );
+
+    await client.auth.updateSignedInUser(authSuccess);
+    final profile = await client.user.getProfile();
+    print('PROFILE FROM SERVER: $profile');
+    if (profile == null) {
+  throw Exception('No DigiGym profile found.');
+}
+
+final loggedInUser = UserProfile(
+  name: profile.name,
+  email: email,
+  password: password,
+  age: profile.age,
+  height: profile.height,
+  weight: profile.weight,
+  fitnessLevel: profile.fitnessLevel,
+  fitnessGoal: profile.fitnessGoal,
+  workoutTime: profile.workoutTime,
+  dietaryPreference: profile.dietaryPreference,
+  bodyType: profile.bodyType,
+);
+
+    if (!context.mounted) return;
+
+DigiGymSession.currentUser = loggedInUser;
+widget.onLogin(loggedInUser);
+  } catch (e) {
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Invalid email or password.'),
+      ),
+    );
+  }
+}
 
   @override
   void dispose() {

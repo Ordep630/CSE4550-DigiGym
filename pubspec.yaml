@@ -34,6 +34,10 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  digigym_backend_client:
+    path: digigym_backend/digigym_backend_client
+  serverpod_flutter: ^4.0.2
+  serverpod_auth_idp_flutter: ^4.0.2
 
 dev_dependencies:
   flutter_test:

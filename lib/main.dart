@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'client.dart';
 import 'models/user_profile.dart';
 import 'models/session.dart';
 import 'screens/login_screen.dart';
@@ -7,8 +8,13 @@ import 'screens/assessment_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/meals_screen.dart';
 import 'screens/grocery_screen.dart';
+import 'screens/verify_email_screen.dart';
 
-void main() => runApp(const DigiGymApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeClient();
+  runApp(const DigiGymApp());
+}
 
 class DigiGymApp extends StatefulWidget {
   const DigiGymApp({super.key});
@@ -57,6 +63,7 @@ class _DigiGymAppState extends State<DigiGymApp> {
               onUpdateProfile: _updateProfile,
             ),
       routes: {
+        '/verify-email': (context) => const VerifyEmailScreen(),
         '/register': (_) => const RegisterScreen(),
         '/assessment': (_) => const AssessmentScreen(),
         '/meals': (_) => const MealsScreen(),
