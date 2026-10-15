@@ -1,44 +1,12 @@
 import 'package:flutter/material.dart';
-import 'models/user_profile.dart';
-import 'models/session.dart';
-import 'screens/login_screen.dart';
-import 'screens/register_screen.dart';
-import 'screens/assessment_screen.dart';
-import 'screens/home_screen.dart';
-import 'screens/workouts_screen.dart';
-import 'screens/meals_screen.dart';
-import 'screens/grocery_screen.dart';
+import 'main_navigation.dart';
 
-void main() => runApp(const DigiGymApp());
-
-class DigiGymApp extends StatefulWidget {
-  const DigiGymApp({super.key});
-
-  @override
-  State<DigiGymApp> createState() => _DigiGymAppState();
+void main() {
+  runApp(const DigiGymApp());
 }
 
-class _DigiGymAppState extends State<DigiGymApp> {
-  void _login(UserProfile user) {
-    setState(() {
-      DigiGymSession.currentUser = user;
-    });
-  }
-
-  void _logout() {
-    setState(() {
-      DigiGymSession.currentUser = null;
-    });
-  }
-
-  void _updateProfile(UserProfile user) {
-    setState(() {
-      DigiGymSession.currentUser = user;
-      if (DigiGymSession.registeredUser?.email == user.email) {
-        DigiGymSession.registeredUser = user;
-      }
-    });
-  }
+class DigiGymApp extends StatelessWidget {
+  const DigiGymApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -46,24 +14,14 @@ class _DigiGymAppState extends State<DigiGymApp> {
       debugShowCheckedModeBanner: false,
       title: 'DigiGym',
       theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
-        scaffoldBackgroundColor: const Color(0xFFF5F7F5),
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF080D0C),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF00FF66),
+          brightness: Brightness.dark,
+        ),
       ),
-      home: DigiGymSession.currentUser == null
-          ? LoginScreen(onLogin: _login)
-          : HomeScreen(
-              user: DigiGymSession.currentUser!,
-              onLogout: _logout,
-              onUpdateProfile: _updateProfile,
-            ),
-      routes: {
-        '/register': (_) => const RegisterScreen(),
-        '/assessment': (_) => const AssessmentScreen(),
-        '/workouts': (_) => const WorkoutsScreen(),
-        '/meals': (_) => const MealsScreen(),
-        '/groceries': (_) => const GroceryScreen(),
-      },
+      home: const MainNavigation(),
     );
   }
 }
