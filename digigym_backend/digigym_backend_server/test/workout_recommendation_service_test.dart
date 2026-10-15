@@ -15,15 +15,15 @@ void main() {
       authUserId: UuidValue.withValidation(
         '123e4567-e89b-12d3-a456-426614174000',
       ),
-      name: 'Test User',
-      age: 25,
-      height: 175.0,
-      weight: 75.0,
+      name: 'test123',
+      age: 21,
+      height: 171.0,
+      weight: 71.0,
       fitnessLevel: fitnessLevel,
       fitnessGoal: fitnessGoal,
       workoutTime: workoutTime,
-      dietaryPreference: 'none',
-      bodyType: 'average',
+      dietaryPreference: 'vegan',
+      bodyType: 'fit',
     );
   }
 
@@ -41,7 +41,7 @@ void main() {
     expect(recommendation.durationMinutes, 30);
   });
 
-  test('recommends strength for intermediate build_muscle user', () {
+  test('recommends strength for intermediate, buildMuscle user', () {
     final user = createUser(
       fitnessLevel: FitnessLevel.intermediate,
       fitnessGoal: FitnessGoal.buildMuscle,
@@ -55,7 +55,7 @@ void main() {
     expect(recommendation.durationMinutes, 45);
   });
 
-  test('recommends strength for advanced gainWeight user', () {
+  test('recommends strength for advanced, gainWeight user', () {
     final user = createUser(
       fitnessLevel: FitnessLevel.advanced,
       fitnessGoal: FitnessGoal.gainWeight,
@@ -68,4 +68,16 @@ void main() {
     expect(recommendation.difficulty, 'advanced');
     expect(recommendation.durationMinutes, 60);
   });
+
+  /* // TODO: Implement 'FitnessGoal.maintainWeight' enum in workout_recommendation_service.dart and update the recommendation logic accordingly.
+   test('recommends strength and cardio for maintainWeight user', () {
+    final user = createUser(fitnessGoal: FitnessGoal.maintainWeight, fitnessLevel: FitnessLevel.intermediate, workoutTime: 30);
+    final recommendation = service.recommend(user);
+    expect(recommendation.workoutType, 'strength and cardio');
+
+
+   } );
+   */
 }
+
+ 
