@@ -16,3 +16,5 @@ profile:
   - updateMyProfile:
   - getMyFitnessData:
   - updateMyFitnessData:
+workoutRecommendation:
+  - getMyWorkoutRecommendation:
