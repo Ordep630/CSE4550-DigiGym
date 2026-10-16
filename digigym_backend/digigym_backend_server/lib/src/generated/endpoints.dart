@@ -23,6 +23,7 @@ import '../auth/email_idp_endpoint.dart' as _iuc1hd5t;
 import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
 import '../user/profile_endpoint.dart' as _i6a309j1;
+import '../workout/workout_recommendation_endpoint.dart' as _if4v7cf2;
 
 class Endpoints extends _is.EndpointDispatch {
   @override
@@ -50,6 +51,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'profile',
+          null,
+        ),
+      'workoutRecommendation': _if4v7cf2.WorkoutRecommendationEndpoint()
+        ..initialize(
+          server,
+          'workoutRecommendation',
           null,
         ),
     };
@@ -364,6 +371,24 @@ class Endpoints extends _is.EndpointDispatch {
                     params['dietaryPreference'],
                     params['bodyType'],
                   ),
+        ),
+      },
+    );
+    connectors['workoutRecommendation'] = _is.EndpointConnector(
+      name: 'workoutRecommendation',
+      endpoint: endpoints['workoutRecommendation']!,
+      methodConnectors: {
+        'getMyWorkoutRecommendation': _is.MethodConnector(
+          name: 'getMyWorkoutRecommendation',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['workoutRecommendation']
+                          as _if4v7cf2.WorkoutRecommendationEndpoint)
+                      .getMyWorkoutRecommendation(session),
         ),
       },
     );

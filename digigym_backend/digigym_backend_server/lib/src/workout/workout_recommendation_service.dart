@@ -1,16 +1,17 @@
-
 import '../generated/protocol.dart';
 
 /// Generates a workout recommendation from a user's fitness profile.
 class WorkoutRecommendationService {
   WorkoutRecommendation recommend(DigiGymUser user) {
+    final workoutType = _getWorkoutType(user.fitnessGoal);
+    final difficulty = _getDifficulty(user.fitnessLevel);
+
     return WorkoutRecommendation(
-      workoutType: _getWorkoutType(user.fitnessGoal),
+      workoutType: workoutType,
       durationMinutes: user.workoutTime,
-      difficulty: _getDifficulty(user.fitnessLevel),
+      difficulty: difficulty,
     );
   }
-
   /// Selects a workout category based on the user's fitness goal.
   String _getWorkoutType(FitnessGoal fitnessGoal) {
     switch (fitnessGoal) {

@@ -19,6 +19,8 @@ import 'package:digigym_backend_client/src/protocol/user/fitness_level.dart'
     as _ir29g2zq;
 import 'package:digigym_backend_client/src/protocol/user/user.dart'
     as _iz9pf62b;
+import 'package:digigym_backend_client/src/protocol/workout/workout_recommendation.dart'
+    as _ir4uol1t;
 import 'package:http/http.dart' as _i85jenna;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _iacc;
@@ -314,6 +316,22 @@ class EndpointProfile extends _isc.EndpointRef {
   );
 }
 
+/// Provides workout recommendations for the authenticated user.
+/// {@category Endpoint}
+class EndpointWorkoutRecommendation extends _isc.EndpointRef {
+  EndpointWorkoutRecommendation(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'workoutRecommendation';
+
+  _ida.Future<_ir4uol1t.WorkoutRecommendation?> getMyWorkoutRecommendation() =>
+      caller.callServerEndpoint<_ir4uol1t.WorkoutRecommendation?>(
+        'workoutRecommendation',
+        'getMyWorkoutRecommendation',
+        {},
+      );
+}
+
 class Modules {
   Modules(Client client) {
     serverpod_auth_core = _iacc.Caller(client);
@@ -356,6 +374,7 @@ class Client extends _isc.ServerpodClientShared {
     jwtRefresh = EndpointJwtRefresh(this);
     greeting = EndpointGreeting(this);
     profile = EndpointProfile(this);
+    workoutRecommendation = EndpointWorkoutRecommendation(this);
     modules = Modules(this);
   }
 
@@ -367,6 +386,8 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointProfile profile;
 
+  late final EndpointWorkoutRecommendation workoutRecommendation;
+
   late final Modules modules;
 
   @override
@@ -375,6 +396,7 @@ class Client extends _isc.ServerpodClientShared {
     'jwtRefresh': jwtRefresh,
     'greeting': greeting,
     'profile': profile,
+    'workoutRecommendation': workoutRecommendation,
   };
 
   @override
