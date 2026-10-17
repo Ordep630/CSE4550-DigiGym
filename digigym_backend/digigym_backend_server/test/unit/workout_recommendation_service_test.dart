@@ -1,4 +1,3 @@
-
 import 'package:test/test.dart';
 import 'package:uuid/uuid_value.dart';
 import 'package:digigym_backend_server/src/generated/protocol.dart';
@@ -63,6 +62,20 @@ void main() {
       expect(recommendation.workoutType, 'strength');
     });
 
+    test('recommends balanced workouts for maintaining weight', () {
+      final profile = createProfile(
+        fitnessGoal: FitnessGoal.maintainWeight,
+        fitnessLevel: FitnessLevel.intermediate,
+        workoutTime: 45,
+      );
+
+      final recommendation = service.recommend(profile);
+
+      expect(recommendation.workoutType, 'balanced');
+      expect(recommendation.difficulty, 'intermediate');
+      expect(recommendation.durationMinutes, 45);
+    });
+
     test('matches beginner fitness level to beginner difficulty', () {
       final profile = createProfile(
         fitnessLevel: FitnessLevel.beginner,
@@ -73,8 +86,7 @@ void main() {
       expect(recommendation.difficulty, 'beginner');
     });
 
-    test('matches intermediate fitness level to intermediate difficulty',
-        () {
+    test('matches intermediate fitness level to intermediate difficulty', () {
       final profile = createProfile(
         fitnessLevel: FitnessLevel.intermediate,
       );

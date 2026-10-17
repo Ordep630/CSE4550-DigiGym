@@ -20,6 +20,8 @@ class WorkoutRecommendationService {
         return 'strength';
       case FitnessGoal.gainWeight:
         return 'strength';
+      case FitnessGoal.maintainWeight:
+        return 'balanced';
     }
   }
 

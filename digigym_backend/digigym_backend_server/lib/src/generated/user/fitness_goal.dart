@@ -16,7 +16,8 @@ import 'package:serverpod/serverpod.dart' as _is;
 enum FitnessGoal implements _is.SerializableModel {
   loseWeight,
   buildMuscle,
-  gainWeight;
+  gainWeight,
+  maintainWeight;
 
   static FitnessGoal fromJson(String name) {
     switch (name) {
@@ -26,6 +27,8 @@ enum FitnessGoal implements _is.SerializableModel {
         return FitnessGoal.buildMuscle;
       case 'gainWeight':
         return FitnessGoal.gainWeight;
+      case 'maintainWeight':
+        return FitnessGoal.maintainWeight;
       default:
         throw ArgumentError(
           'Value "$name" cannot be converted to "FitnessGoal"',
