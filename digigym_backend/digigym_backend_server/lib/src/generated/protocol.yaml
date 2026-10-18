@@ -1,0 +1,18 @@
+emailIdp:
+  - login:
+  - startRegistration:
+  - verifyRegistrationCode:
+  - finishRegistration:
+  - startPasswordReset:
+  - verifyPasswordResetCode:
+  - finishPasswordReset:
+  - hasAccount:
+jwtRefresh:
+  - refreshAccessToken:
+greeting:
+  - hello:
+profile:
+  - getMyProfile:
+  - updateMyProfile:
+workoutRecommendation:
+  - getMyWorkoutRecommendation:
