@@ -2,9 +2,9 @@
 
 ## Overview
 
-DigiGym is a mobile fitness application designed to help users plan workouts and meals based on their individual fitness goals and needs. This application provides personalized workout recommendations, meal recommendations, nutritional information, and grocery lists based on information provided by the user.
+DigiGym is a mobile fitness application designed to help users plan workouts and meals based on their individual fitness goals and needs. This application provides personalized workout recommendations, meal recommendations, nutritional information, and grocery lists based on information provided by the user. 
 
-## Features
+## Features 
   * User Account creation and login
   * User Profile management
   * Fitness level and fitness goal tracking
@@ -16,7 +16,7 @@ DigiGym is a mobile fitness application designed to help users plan workouts and
 
 ## Project Goals
 
-The goal of DigiGym is to provide users with a convenient way to organize their fitness and nutrition planning in one application.
+The goal of DigiGym is to provide users with a convenient way to organize their fitness and nutrition planning in one application. 
 
 The Application is designed to:
   * Help users create and manage their fitness profiles
@@ -29,41 +29,14 @@ The Application is designed to:
 ## Technology
 The technologies used for this project include:
   * Frontend: Flutter
-  * Backend: Serverpod 4.0.2
-  * Database: PostgreSQL
-  * Version Control: Github
+  * Backend: Serverpod 
+  * Database: PostgreSQL   
+  * Version Control: GitHub
   * Development Environment: Visual Studio Code
-
-## Local Development
-
-1. Install Flutter and the Serverpod CLI.
-2. Copy `digigym_backend/digigym_backend_server/config/passwords.example.yaml`
-   to `passwords.yaml` in the same directory, then replace every placeholder
-   with a local secret. The destination file is gitignored.
-3. From `digigym_backend/digigym_backend_server`, run `serverpod start`.
-4. Run the root Flutter application. The default API URL is
-   `http://localhost:8080/`, which works with iOS Simulator and desktop/web
-   development.
-
-For an Android emulator, point the app at the host loopback address:
-
-```sh
-flutter run --dart-define=SERVER_URL=http://10.0.2.2:8080/
-```
-
-For a physical device, replace the URL with the development machine's LAN IP.
-Do not commit production URLs, passwords, or other credentials.
-
-Backend tests use an isolated embedded PostgreSQL database. They can use a
-process-only test password instead of a credentials file:
-
-```sh
-SERVERPOD_DATABASE_PASSWORD=local_test_only dart test
-```
 
 ## Team Roles
 
-  Team Member | Role
+  Team Member | Role 
   * Chaya       | Frontend Developer
   * Isaac       | Frontend Integration
   * Genesis     | Backend developer
