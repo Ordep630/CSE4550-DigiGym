@@ -13,8 +13,14 @@
 import 'dart:async' as _ida;
 import 'package:digigym_backend_client/src/protocol/greetings/greeting.dart'
     as _isjug9ek;
+import 'package:digigym_backend_client/src/protocol/user/fitness_goal.dart'
+    as _i1zhugzl;
+import 'package:digigym_backend_client/src/protocol/user/fitness_level.dart'
+    as _ir29g2zq;
 import 'package:digigym_backend_client/src/protocol/user/user.dart'
     as _iz9pf62b;
+import 'package:digigym_backend_client/src/protocol/workout/workout_recommendation.dart'
+    as _ir4uol1t;
 import 'package:http/http.dart' as _i85jenna;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _iacc;
@@ -266,26 +272,36 @@ class EndpointGreeting extends _isc.EndpointRef {
       );
 }
 
+/// Lets the currently logged-in user manage their DigiGym fitness profile.
 /// {@category Endpoint}
-class EndpointUser extends _isc.EndpointRef {
-  EndpointUser(_isc.EndpointCaller caller) : super(caller);
+class EndpointProfile extends _isc.EndpointRef {
+  EndpointProfile(_isc.EndpointCaller caller) : super(caller);
 
   @override
-  String get name => 'user';
+  String get name => 'profile';
 
-  _ida.Future<_iz9pf62b.DigiGymUser> createProfile({
-    required String name,
-    required int age,
-    required double height,
-    required double weight,
-    required String fitnessLevel,
-    required String fitnessGoal,
-    required int workoutTime,
-    required String dietaryPreference,
-    required String bodyType,
-  }) => caller.callServerEndpoint<_iz9pf62b.DigiGymUser>(
-    'user',
-    'createProfile',
+  /// Returns the DigiGym profile for the currently authenticated user.
+  _ida.Future<_iz9pf62b.DigiGymUser?> getMyProfile() =>
+      caller.callServerEndpoint<_iz9pf62b.DigiGymUser?>(
+        'profile',
+        'getMyProfile',
+        {},
+      );
+
+  /// Updates the DigiGym profile of the currently authenticated user.
+  _ida.Future<_iz9pf62b.DigiGymUser> updateMyProfile(
+    String name,
+    int age,
+    double height,
+    double weight,
+    _ir29g2zq.FitnessLevel fitnessLevel,
+    _i1zhugzl.FitnessGoal fitnessGoal,
+    int workoutTime,
+    String dietaryPreference,
+    String bodyType,
+  ) => caller.callServerEndpoint<_iz9pf62b.DigiGymUser>(
+    'profile',
+    'updateMyProfile',
     {
       'name': name,
       'age': age,
@@ -298,24 +314,33 @@ class EndpointUser extends _isc.EndpointRef {
       'bodyType': bodyType,
     },
   );
+}
 
-  _ida.Future<_iz9pf62b.DigiGymUser?> getProfile() =>
-      caller.callServerEndpoint<_iz9pf62b.DigiGymUser?>(
-        'user',
-        'getProfile',
+/// Provides workout recommendations for the authenticated user.
+/// {@category Endpoint}
+class EndpointWorkoutRecommendation extends _isc.EndpointRef {
+  EndpointWorkoutRecommendation(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'workoutRecommendation';
+
+  _ida.Future<_ir4uol1t.WorkoutRecommendation?> getMyWorkoutRecommendation() =>
+      caller.callServerEndpoint<_ir4uol1t.WorkoutRecommendation?>(
+        'workoutRecommendation',
+        'getMyWorkoutRecommendation',
         {},
       );
 }
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _iaic.Caller(client);
     serverpod_auth_core = _iacc.Caller(client);
+    serverpod_auth_idp = _iaic.Caller(client);
   }
 
-  late final _iaic.Caller serverpod_auth_idp;
-
   late final _iacc.Caller serverpod_auth_core;
+
+  late final _iaic.Caller serverpod_auth_idp;
 }
 
 class Client extends _isc.ServerpodClientShared {
@@ -348,7 +373,8 @@ class Client extends _isc.ServerpodClientShared {
     emailIdp = EndpointEmailIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
     greeting = EndpointGreeting(this);
-    user = EndpointUser(this);
+    profile = EndpointProfile(this);
+    workoutRecommendation = EndpointWorkoutRecommendation(this);
     modules = Modules(this);
   }
 
@@ -358,7 +384,9 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointGreeting greeting;
 
-  late final EndpointUser user;
+  late final EndpointProfile profile;
+
+  late final EndpointWorkoutRecommendation workoutRecommendation;
 
   late final Modules modules;
 
@@ -367,12 +395,13 @@ class Client extends _isc.ServerpodClientShared {
     'emailIdp': emailIdp,
     'jwtRefresh': jwtRefresh,
     'greeting': greeting,
-    'user': user,
+    'profile': profile,
+    'workoutRecommendation': workoutRecommendation,
   };
 
   @override
   Map<String, _isc.ModuleEndpointCaller> get moduleLookup => {
-    'serverpod_auth_idp': modules.serverpod_auth_idp,
     'serverpod_auth_core': modules.serverpod_auth_core,
+    'serverpod_auth_idp': modules.serverpod_auth_idp,
   };
 }

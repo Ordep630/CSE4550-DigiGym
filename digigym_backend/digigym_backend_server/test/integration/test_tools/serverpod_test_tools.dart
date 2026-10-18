@@ -15,8 +15,14 @@ import 'dart:async' as _ida;
 import 'dart:io' as _idi;
 import 'package:digigym_backend_server/src/generated/greetings/greeting.dart'
     as _ixw9ndps;
+import 'package:digigym_backend_server/src/generated/user/fitness_goal.dart'
+    as _i4runcty;
+import 'package:digigym_backend_server/src/generated/user/fitness_level.dart'
+    as _i0de4bt5;
 import 'package:digigym_backend_server/src/generated/user/user.dart'
     as _ii4hua2a;
+import 'package:digigym_backend_server/src/generated/workout/workout_recommendation.dart'
+    as _igklxlq9;
 import 'package:serverpod/serverpod.dart' as _is;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
@@ -155,7 +161,9 @@ class TestEndpoints {
 
   late final _GreetingEndpoint greeting;
 
-  late final _UserEndpoint user;
+  late final _ProfileEndpoint profile;
+
+  late final _WorkoutRecommendationEndpoint workoutRecommendation;
 }
 
 class _InternalTestEndpoints extends TestEndpoints
@@ -177,7 +185,11 @@ class _InternalTestEndpoints extends TestEndpoints
       endpoints,
       serializationManager,
     );
-    user = _UserEndpoint(
+    profile = _ProfileEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    workoutRecommendation = _WorkoutRecommendationEndpoint(
       endpoints,
       serializationManager,
     );
@@ -544,8 +556,8 @@ class _GreetingEndpoint {
   }
 }
 
-class _UserEndpoint {
-  _UserEndpoint(
+class _ProfileEndpoint {
+  _ProfileEndpoint(
     this._endpointDispatch,
     this._serializationManager,
   );
@@ -554,29 +566,59 @@ class _UserEndpoint {
 
   final _is.SerializationManager _serializationManager;
 
-  _ida.Future<_ii4hua2a.DigiGymUser> createProfile(
-    _ist.TestSessionBuilder sessionBuilder, {
-    required String name,
-    required int age,
-    required double height,
-    required double weight,
-    required String fitnessLevel,
-    required String fitnessGoal,
-    required int workoutTime,
-    required String dietaryPreference,
-    required String bodyType,
-  }) async {
+  _ida.Future<_ii4hua2a.DigiGymUser?> getMyProfile(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
     return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
           (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'user',
-            method: 'createProfile',
+            endpoint: 'profile',
+            method: 'getMyProfile',
           );
       try {
         var _localCallContext = await _endpointDispatch.getMethodCallContext(
           createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'user',
-          methodName: 'createProfile',
+          endpointPath: 'profile',
+          methodName: 'getMyProfile',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_ii4hua2a.DigiGymUser?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<_ii4hua2a.DigiGymUser> updateMyProfile(
+    _ist.TestSessionBuilder sessionBuilder,
+    String name,
+    int age,
+    double height,
+    double weight,
+    _i0de4bt5.FitnessLevel fitnessLevel,
+    _i4runcty.FitnessGoal fitnessGoal,
+    int workoutTime,
+    String dietaryPreference,
+    String bodyType,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'profile',
+            method: 'updateMyProfile',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'profile',
+          methodName: 'updateMyProfile',
           parameters: _ist.testObjectToJson({
             'name': name,
             'age': age,
@@ -602,21 +644,32 @@ class _UserEndpoint {
       }
     });
   }
+}
 
-  _ida.Future<_ii4hua2a.DigiGymUser?> getProfile(
+class _WorkoutRecommendationEndpoint {
+  _WorkoutRecommendationEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<_igklxlq9.WorkoutRecommendation?> getMyWorkoutRecommendation(
     _ist.TestSessionBuilder sessionBuilder,
   ) async {
     return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
           (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'user',
-            method: 'getProfile',
+            endpoint: 'workoutRecommendation',
+            method: 'getMyWorkoutRecommendation',
           );
       try {
         var _localCallContext = await _endpointDispatch.getMethodCallContext(
           createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'user',
-          methodName: 'getProfile',
+          endpointPath: 'workoutRecommendation',
+          methodName: 'getMyWorkoutRecommendation',
           parameters: _ist.testObjectToJson({}),
           serializationManager: _serializationManager,
         );
@@ -625,7 +678,7 @@ class _UserEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _ida.Future<_ii4hua2a.DigiGymUser?>);
+                as _ida.Future<_igklxlq9.WorkoutRecommendation?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

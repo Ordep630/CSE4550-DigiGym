@@ -11,6 +11,8 @@ jwtRefresh:
   - refreshAccessToken:
 greeting:
   - hello:
-user:
-  - createProfile:
-  - getProfile:
+profile:
+  - getMyProfile:
+  - updateMyProfile:
+workoutRecommendation:
+  - getMyWorkoutRecommendation:

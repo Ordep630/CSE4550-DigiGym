@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 
 import '../models/user_profile.dart';
+import '../services/digigym_api.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserProfile user;
+  final DigiGymApi api;
 
   const EditProfileScreen({
     super.key,
     required this.user,
+    this.api = digiGymApi,
   });
 
   @override
@@ -25,15 +28,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late String fitnessGoal;
   late String dietaryPreference;
   late String bodyType;
+  bool isSaving = false;
 
   @override
   void initState() {
     super.initState();
 
     nameController = TextEditingController(text: widget.user.name);
-    ageController = TextEditingController(
-      text: widget.user.age.toString(),
-    );
+    ageController = TextEditingController(text: widget.user.age.toString());
     heightController = TextEditingController(
       text: widget.user.height.toString(),
     );
@@ -60,25 +62,77 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
-  void saveProfile() {
-    final updatedUser = UserProfile(
-      name: nameController.text.trim(),
-      email: widget.user.email,
-      password: widget.user.password,
-      age: int.tryParse(ageController.text) ?? widget.user.age,
-      height: double.tryParse(heightController.text) ??
-          widget.user.height,
-      weight: double.tryParse(weightController.text) ??
-          widget.user.weight,
-      fitnessLevel: fitnessLevel,
-      fitnessGoal: fitnessGoal,
-      workoutTime: int.tryParse(workoutTimeController.text) ??
-          widget.user.workoutTime,
-      dietaryPreference: dietaryPreference,
-      bodyType: bodyType,
-    );
+  Future<void> saveProfile() async {
+    final name = nameController.text.trim();
+    final age = int.tryParse(ageController.text.trim());
+    final height = double.tryParse(heightController.text.trim());
+    final weight = double.tryParse(weightController.text.trim());
+    final workoutTime = int.tryParse(workoutTimeController.text.trim());
 
-    Navigator.pop(context, updatedUser);
+    if (name.isEmpty ||
+        age == null ||
+        age <= 0 ||
+        height == null ||
+        height <= 0 ||
+        weight == null ||
+        weight <= 0 ||
+        workoutTime == null ||
+        workoutTime <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter valid profile values.')),
+      );
+      return;
+    }
+
+    setState(() {
+      isSaving = true;
+    });
+
+    try {
+      var updatedUser = UserProfile(
+        name: name,
+        email: widget.user.email,
+        age: age,
+        height: height,
+        weight: weight,
+        fitnessLevel: fitnessLevel,
+        fitnessGoal: fitnessGoal,
+        workoutTime: workoutTime,
+        dietaryPreference: dietaryPreference,
+        bodyType: bodyType,
+        isDemo: widget.user.isDemo,
+      );
+
+      // The demo account is intentionally local-only.
+      if (!widget.user.isDemo) {
+        updatedUser = await widget.api.updateProfile(updatedUser);
+      }
+
+      if (!mounted) return;
+      Navigator.pop(context, updatedUser);
+    } on ArgumentError {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Choose a supported fitness level and goal.'),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Unable to save your profile. Check your connection and try again.',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isSaving = false;
+        });
+      }
+    }
   }
 
   @override
@@ -129,24 +183,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             const SizedBox(height: 15),
             DropdownButtonFormField<String>(
-              value: fitnessLevel,
+              initialValue: fitnessLevel,
               decoration: const InputDecoration(
                 labelText: 'Fitness Level',
                 border: OutlineInputBorder(),
               ),
               items: const [
-                DropdownMenuItem(
-                  value: 'Beginner',
-                  child: Text('Beginner'),
-                ),
+                DropdownMenuItem(value: 'Beginner', child: Text('Beginner')),
                 DropdownMenuItem(
                   value: 'Intermediate',
                   child: Text('Intermediate'),
                 ),
-                DropdownMenuItem(
-                  value: 'Advanced',
-                  child: Text('Advanced'),
-                ),
+                DropdownMenuItem(value: 'Advanced', child: Text('Advanced')),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -156,7 +204,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             const SizedBox(height: 15),
             DropdownButtonFormField<String>(
-              value: fitnessGoal,
+              initialValue: fitnessGoal,
               decoration: const InputDecoration(
                 labelText: 'Fitness Goal',
                 border: OutlineInputBorder(),
@@ -197,7 +245,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             const SizedBox(height: 15),
             DropdownButtonFormField<String>(
-              value: dietaryPreference,
+              initialValue: dietaryPreference,
               decoration: const InputDecoration(
                 labelText: 'Dietary Preference',
                 border: OutlineInputBorder(),
@@ -211,10 +259,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   value: 'Vegetarian',
                   child: Text('Vegetarian'),
                 ),
-                DropdownMenuItem(
-                  value: 'Vegan',
-                  child: Text('Vegan'),
-                ),
+                DropdownMenuItem(value: 'Vegan', child: Text('Vegan')),
                 DropdownMenuItem(
                   value: 'High Protein',
                   child: Text('High Protein'),
@@ -228,28 +273,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             const SizedBox(height: 15),
             DropdownButtonFormField<String>(
-              value: bodyType,
+              initialValue: bodyType,
               decoration: const InputDecoration(
                 labelText: 'Body Type',
                 border: OutlineInputBorder(),
               ),
               items: const [
-                DropdownMenuItem(
-                  value: 'Slim',
-                  child: Text('Slim'),
-                ),
-                DropdownMenuItem(
-                  value: 'Average',
-                  child: Text('Average'),
-                ),
-                DropdownMenuItem(
-                  value: 'Athletic',
-                  child: Text('Athletic'),
-                ),
-                DropdownMenuItem(
-                  value: 'Heavy',
-                  child: Text('Heavy'),
-                ),
+                DropdownMenuItem(value: 'Slim', child: Text('Slim')),
+                DropdownMenuItem(value: 'Average', child: Text('Average')),
+                DropdownMenuItem(value: 'Athletic', child: Text('Athletic')),
+                DropdownMenuItem(value: 'Heavy', child: Text('Heavy')),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -262,11 +295,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               width: double.infinity,
               height: 52,
               child: ElevatedButton.icon(
-                onPressed: saveProfile,
-                icon: const Icon(Icons.save),
-                label: const Text(
-                  'SAVE CHANGES',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                onPressed: isSaving ? null : saveProfile,
+                icon: isSaving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.save),
+                label: Text(
+                  isSaving ? 'SAVING...' : 'SAVE CHANGES',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ),

@@ -35,24 +35,25 @@ void run(List<String> args) async {
       ),
     ],
     authUsersConfig: AuthUsersConfig(
-      onAfterAuthUserCreated: (session, authUser, {required transaction}) async {
-        await DigiGymUser.db.insertRow(
-          session,
-          DigiGymUser(
-            authUserId: authUser.id,
-            name: '',
-            age: 20,
-            height: 170,
-            weight: 70,
-            fitnessLevel: 'Beginner',
-            fitnessGoal: 'Lose Weight',
-            workoutTime: 30,
-            dietaryPreference: 'No Preference',
-            bodyType: 'Average',
-          ),
-          transaction: transaction,
-        );
-      },
+      onAfterAuthUserCreated:
+          (session, authUser, {required transaction}) async {
+            await DigiGymUser.db.insertRow(
+              session,
+              DigiGymUser(
+                authUserId: authUser.id,
+                name: '',
+                age: 20,
+                height: 170,
+                weight: 70,
+                fitnessLevel: FitnessLevel.beginner,
+                fitnessGoal: FitnessGoal.loseWeight,
+                workoutTime: 30,
+                dietaryPreference: 'No Preference',
+                bodyType: 'Average',
+              ),
+              transaction: transaction,
+            );
+          },
     ),
   );
 

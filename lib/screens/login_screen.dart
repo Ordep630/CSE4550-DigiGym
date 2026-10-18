@@ -1,33 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:serverpod_auth_core_flutter/serverpod_auth_core_flutter.dart'
-    hide UserProfile;
+
 import '../models/user_profile.dart';
 import '../models/session.dart';
-import '../client.dart';
+import '../services/digigym_api.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final void Function(UserProfile) onLogin;
+  final DigiGymApi api;
 
-  const LoginScreen({
-    super.key,
-    required this.onLogin,
-  });
+  const LoginScreen({super.key, required this.onLogin, this.api = digiGymApi});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  static const demoEmail = 'demo@gym.com';
+  static const demoPassword = '123456';
+
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
   bool obscurePassword = true;
+  bool isLoggingIn = false;
 
   final UserProfile demoUser = UserProfile(
     name: 'Demo User',
-    email: 'demo@gym.com',
-    password: '123456',
+    email: demoEmail,
     age: 22,
     height: 175,
     weight: 75,
@@ -36,59 +36,67 @@ class _LoginScreenState extends State<LoginScreen> {
     workoutTime: 45,
     dietaryPreference: 'No Preference',
     bodyType: 'Average',
+    isDemo: true,
   );
 
   Future<void> login() async {
-  final email = emailController.text.trim();
-  final password = passwordController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text;
 
-  // Keep the demo account available.
-  if (email == demoUser.email && password == demoUser.password) {
-    widget.onLogin(demoUser);
-    return;
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter your email and password.')),
+      );
+      return;
+    }
+
+    // Keep the demo account available without creating a backend session.
+    if (email == demoEmail && password == demoPassword) {
+      passwordController.clear();
+      widget.onLogin(demoUser);
+      return;
+    }
+
+    setState(() {
+      isLoggingIn = true;
+    });
+
+    try {
+      final loggedInUser = await widget.api.login(
+        email: email,
+        password: password,
+      );
+      passwordController.clear();
+
+      if (!mounted) return;
+
+      DigiGymSession.currentUser = loggedInUser;
+      widget.onLogin(loggedInUser);
+    } on ProfileSetupRequiredException catch (error) {
+      passwordController.clear();
+      DigiGymSession.pendingUser = UserProfile(name: '', email: error.email);
+      DigiGymSession.clearRegistrationPassword();
+
+      if (!mounted) return;
+      Navigator.pushNamed(context, '/assessment');
+    } catch (_) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Unable to sign in. Check your credentials and connection.',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoggingIn = false;
+        });
+      }
+    }
   }
-
-  try {
-    final authSuccess = await client.emailIdp.login(
-      email: email,
-      password: password,
-    );
-
-    await client.auth.updateSignedInUser(authSuccess);
-    final profile = await client.user.getProfile();
-    print('PROFILE FROM SERVER: $profile');
-    if (profile == null) {
-  throw Exception('No DigiGym profile found.');
-}
-
-final loggedInUser = UserProfile(
-  name: profile.name,
-  email: email,
-  password: password,
-  age: profile.age,
-  height: profile.height,
-  weight: profile.weight,
-  fitnessLevel: profile.fitnessLevel,
-  fitnessGoal: profile.fitnessGoal,
-  workoutTime: profile.workoutTime,
-  dietaryPreference: profile.dietaryPreference,
-  bodyType: profile.bodyType,
-);
-
-    if (!context.mounted) return;
-
-DigiGymSession.currentUser = loggedInUser;
-widget.onLogin(loggedInUser);
-  } catch (e) {
-    if (!context.mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Invalid email or password.'),
-      ),
-    );
-  }
-}
 
   @override
   void dispose() {
@@ -106,26 +114,16 @@ widget.onLogin(loggedInUser);
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                const Icon(
-                  Icons.fitness_center,
-                  size: 80,
-                  color: Colors.green,
-                ),
+                const Icon(Icons.fitness_center, size: 80, color: Colors.green),
                 const SizedBox(height: 20),
                 const Text(
                   'DigiGym',
-                  style: TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   'Your personal fitness companion',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 16,
-                  ),
+                  style: TextStyle(color: Colors.grey, fontSize: 16),
                 ),
                 const SizedBox(height: 40),
                 TextField(
@@ -164,11 +162,17 @@ widget.onLogin(loggedInUser);
                   width: double.infinity,
                   height: 52,
                   child: ElevatedButton(
-                    onPressed: login,
-                    child: const Text(
-                      'LOGIN',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                    onPressed: isLoggingIn ? null : login,
+                    child: isLoggingIn
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text(
+                            'LOGIN',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -188,13 +192,11 @@ widget.onLogin(loggedInUser);
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const RegisterScreen(),
+                        builder: (_) => RegisterScreen(api: widget.api),
                       ),
                     );
                   },
-                  child: const Text(
-                    "Don't have an account? Sign Up",
-                  ),
+                  child: const Text("Don't have an account? Sign Up"),
                 ),
               ],
             ),

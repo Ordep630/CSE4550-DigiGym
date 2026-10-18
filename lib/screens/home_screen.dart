@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/user_profile.dart';
+import '../services/digigym_api.dart';
 import 'dashboard_screen.dart';
 import 'workouts_screen.dart';
 import 'meal_page.dart';
@@ -9,14 +10,16 @@ import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final UserProfile user;
-  final VoidCallback onLogout;
+  final Future<void> Function() onLogout;
   final Function(UserProfile) onUpdateProfile;
+  final DigiGymApi api;
 
   const HomeScreen({
     super.key,
     required this.user,
     required this.onLogout,
     required this.onUpdateProfile,
+    this.api = digiGymApi,
   });
 
   @override
@@ -37,6 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
         user: widget.user,
         onLogout: widget.onLogout,
         onUpdateProfile: widget.onUpdateProfile,
+        api: widget.api,
       ),
     ];
 
@@ -59,10 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.fitness_center),
             label: 'Workout',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.restaurant),
-            label: 'Meals',
-          ),
+          NavigationDestination(icon: Icon(Icons.restaurant), label: 'Meals'),
           NavigationDestination(
             icon: Icon(Icons.shopping_cart),
             label: 'Groceries',

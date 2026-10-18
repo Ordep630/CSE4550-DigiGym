@@ -14,6 +14,8 @@ import 'package:digigym_backend_client/src/protocol/protocol.dart' as _ikjknwtv;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _iacc;
 import 'package:serverpod_client/serverpod_client.dart' as _isc;
+import '../user/fitness_goal.dart' as _iez7dbsx;
+import '../user/fitness_level.dart' as _i0eft088;
 
 /// A DigiGym user account and fitness profile linked to their Serverpod's auth account
 abstract class DigiGymUser
@@ -41,8 +43,8 @@ abstract class DigiGymUser
     required int age,
     required double height,
     required double weight,
-    required String fitnessLevel,
-    required String fitnessGoal,
+    required _i0eft088.FitnessLevel fitnessLevel,
+    required _iez7dbsx.FitnessGoal fitnessGoal,
     required int workoutTime,
     required String dietaryPreference,
     required String bodyType,
@@ -63,8 +65,12 @@ abstract class DigiGymUser
       age: jsonSerialization['age'] as int,
       height: (jsonSerialization['height'] as num).toDouble(),
       weight: (jsonSerialization['weight'] as num).toDouble(),
-      fitnessLevel: jsonSerialization['fitnessLevel'] as String,
-      fitnessGoal: jsonSerialization['fitnessGoal'] as String,
+      fitnessLevel: _i0eft088.FitnessLevel.fromJson(
+        (jsonSerialization['fitnessLevel'] as String),
+      ),
+      fitnessGoal: _iez7dbsx.FitnessGoal.fromJson(
+        (jsonSerialization['fitnessGoal'] as String),
+      ),
       workoutTime: jsonSerialization['workoutTime'] as int,
       dietaryPreference: jsonSerialization['dietaryPreference'] as String,
       bodyType: jsonSerialization['bodyType'] as String,
@@ -94,10 +100,10 @@ abstract class DigiGymUser
   double weight;
 
   /// The user's fitness experience level.
-  String fitnessLevel;
+  _i0eft088.FitnessLevel fitnessLevel;
 
   /// The user's fitness goal.
-  String fitnessGoal;
+  _iez7dbsx.FitnessGoal fitnessGoal;
 
   /// How many minutes the user has available to work out.
   int workoutTime;
@@ -119,8 +125,8 @@ abstract class DigiGymUser
     int? age,
     double? height,
     double? weight,
-    String? fitnessLevel,
-    String? fitnessGoal,
+    _i0eft088.FitnessLevel? fitnessLevel,
+    _iez7dbsx.FitnessGoal? fitnessGoal,
     int? workoutTime,
     String? dietaryPreference,
     String? bodyType,
@@ -136,8 +142,8 @@ abstract class DigiGymUser
       'age': age,
       'height': height,
       'weight': weight,
-      'fitnessLevel': fitnessLevel,
-      'fitnessGoal': fitnessGoal,
+      'fitnessLevel': fitnessLevel.toJson(),
+      'fitnessGoal': fitnessGoal.toJson(),
       'workoutTime': workoutTime,
       'dietaryPreference': dietaryPreference,
       'bodyType': bodyType,
@@ -155,8 +161,8 @@ abstract class DigiGymUser
       'age': age,
       'height': height,
       'weight': weight,
-      'fitnessLevel': fitnessLevel,
-      'fitnessGoal': fitnessGoal,
+      'fitnessLevel': fitnessLevel.toJson(),
+      'fitnessGoal': fitnessGoal.toJson(),
       'workoutTime': workoutTime,
       'dietaryPreference': dietaryPreference,
       'bodyType': bodyType,
@@ -180,8 +186,8 @@ class _DigiGymUserImpl extends DigiGymUser {
     required int age,
     required double height,
     required double weight,
-    required String fitnessLevel,
-    required String fitnessGoal,
+    required _i0eft088.FitnessLevel fitnessLevel,
+    required _iez7dbsx.FitnessGoal fitnessGoal,
     required int workoutTime,
     required String dietaryPreference,
     required String bodyType,
@@ -212,8 +218,8 @@ class _DigiGymUserImpl extends DigiGymUser {
     int? age,
     double? height,
     double? weight,
-    String? fitnessLevel,
-    String? fitnessGoal,
+    _i0eft088.FitnessLevel? fitnessLevel,
+    _iez7dbsx.FitnessGoal? fitnessGoal,
     int? workoutTime,
     String? dietaryPreference,
     String? bodyType,

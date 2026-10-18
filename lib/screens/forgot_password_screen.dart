@@ -6,8 +6,7 @@ class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  State<ForgotPasswordScreen> createState() =>
-      _ForgotPasswordScreenState();
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
@@ -43,23 +42,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       return;
     }
 
-    user.password = _newPasswordController.text;
-
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Password updated. You can now log in.'),
+        content: Text(
+          'Password reset is not connected to the backend yet. No password '
+          'was changed.',
+        ),
       ),
     );
-
-    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Forgot Password'),
-      ),
+      appBar: AppBar(title: const Text('Forgot Password')),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -69,19 +65,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(
-                    Icons.lock_reset,
-                    size: 76,
-                    color: Colors.green,
-                  ),
+                  const Icon(Icons.lock_reset, size: 76, color: Colors.green),
                   const SizedBox(height: 16),
                   const Text(
                     'Reset your DigiGym password',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   const Text(
@@ -156,8 +145,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       suffixIcon: IconButton(
                         onPressed: () {
                           setState(() {
-                            _hideConfirmPassword =
-                                !_hideConfirmPassword;
+                            _hideConfirmPassword = !_hideConfirmPassword;
                           });
                         },
                         icon: Icon(

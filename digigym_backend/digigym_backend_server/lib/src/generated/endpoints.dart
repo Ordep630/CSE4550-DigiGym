@@ -10,6 +10,10 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:digigym_backend_server/src/generated/user/fitness_goal.dart'
+    as _i4runcty;
+import 'package:digigym_backend_server/src/generated/user/fitness_level.dart'
+    as _i0de4bt5;
 import 'package:serverpod/serverpod.dart' as _is;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
@@ -18,7 +22,8 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
 import '../auth/email_idp_endpoint.dart' as _iuc1hd5t;
 import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
-import '../user/user_endpoint.dart' as _io1g7qqb;
+import '../user/profile_endpoint.dart' as _i6a309j1;
+import '../workout/workout_recommendation_endpoint.dart' as _if4v7cf2;
 
 class Endpoints extends _is.EndpointDispatch {
   @override
@@ -42,10 +47,16 @@ class Endpoints extends _is.EndpointDispatch {
           'greeting',
           null,
         ),
-      'user': _io1g7qqb.UserEndpoint()
+      'profile': _i6a309j1.ProfileEndpoint()
         ..initialize(
           server,
-          'user',
+          'profile',
+          null,
+        ),
+      'workoutRecommendation': _if4v7cf2.WorkoutRecommendationEndpoint()
+        ..initialize(
+          server,
+          'workoutRecommendation',
           null,
         ),
     };
@@ -280,12 +291,22 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
-    connectors['user'] = _is.EndpointConnector(
-      name: 'user',
-      endpoint: endpoints['user']!,
+    connectors['profile'] = _is.EndpointConnector(
+      name: 'profile',
+      endpoint: endpoints['profile']!,
       methodConnectors: {
-        'createProfile': _is.MethodConnector(
-          name: 'createProfile',
+        'getMyProfile': _is.MethodConnector(
+          name: 'getMyProfile',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6a309j1.ProfileEndpoint)
+                  .getMyProfile(session),
+        ),
+        'updateMyProfile': _is.MethodConnector(
+          name: 'updateMyProfile',
           params: {
             'name': _is.ParameterDescription(
               name: 'name',
@@ -309,12 +330,12 @@ class Endpoints extends _is.EndpointDispatch {
             ),
             'fitnessLevel': _is.ParameterDescription(
               name: 'fitnessLevel',
-              type: _is.getType<String>(),
+              type: _is.getType<_i0de4bt5.FitnessLevel>(),
               nullable: false,
             ),
             'fitnessGoal': _is.ParameterDescription(
               name: 'fitnessGoal',
-              type: _is.getType<String>(),
+              type: _is.getType<_i4runcty.FitnessGoal>(),
               nullable: false,
             ),
             'workoutTime': _is.ParameterDescription(
@@ -337,35 +358,43 @@ class Endpoints extends _is.EndpointDispatch {
               (
                 _is.Session session,
                 Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['user'] as _io1g7qqb.UserEndpoint).createProfile(
+              ) async => (endpoints['profile'] as _i6a309j1.ProfileEndpoint)
+                  .updateMyProfile(
                     session,
-                    name: params['name'],
-                    age: params['age'],
-                    height: params['height'],
-                    weight: params['weight'],
-                    fitnessLevel: params['fitnessLevel'],
-                    fitnessGoal: params['fitnessGoal'],
-                    workoutTime: params['workoutTime'],
-                    dietaryPreference: params['dietaryPreference'],
-                    bodyType: params['bodyType'],
+                    params['name'],
+                    params['age'],
+                    params['height'],
+                    params['weight'],
+                    params['fitnessLevel'],
+                    params['fitnessGoal'],
+                    params['workoutTime'],
+                    params['dietaryPreference'],
+                    params['bodyType'],
                   ),
         ),
-        'getProfile': _is.MethodConnector(
-          name: 'getProfile',
+      },
+    );
+    connectors['workoutRecommendation'] = _is.EndpointConnector(
+      name: 'workoutRecommendation',
+      endpoint: endpoints['workoutRecommendation']!,
+      methodConnectors: {
+        'getMyWorkoutRecommendation': _is.MethodConnector(
+          name: 'getMyWorkoutRecommendation',
           params: {},
           call:
               (
                 _is.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['user'] as _io1g7qqb.UserEndpoint)
-                  .getProfile(session),
+              ) async =>
+                  (endpoints['workoutRecommendation']
+                          as _if4v7cf2.WorkoutRecommendationEndpoint)
+                      .getMyWorkoutRecommendation(session),
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _iais.Endpoints()
-      ..initializeEndpoints(server);
     modules['serverpod_auth_core'] = _iacs.Endpoints()
+      ..initializeEndpoints(server);
+    modules['serverpod_auth_idp'] = _iais.Endpoints()
       ..initializeEndpoints(server);
   }
 }

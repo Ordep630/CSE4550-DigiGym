@@ -1,0 +1,5 @@
+class: WorkoutRecommendation
+fields:
+  workoutType: String
+  durationMinutes: int
+  difficulty: String

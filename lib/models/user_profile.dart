@@ -1,7 +1,6 @@
 class UserProfile {
   String name;
   String email;
-  String password;
 
   int age;
   double height;
@@ -13,11 +12,11 @@ class UserProfile {
 
   String dietaryPreference;
   String bodyType;
+  final bool isDemo;
 
   UserProfile({
     required this.name,
     required this.email,
-    required this.password,
     this.age = 20,
     this.height = 170,
     this.weight = 70,
@@ -26,6 +25,7 @@ class UserProfile {
     this.workoutTime = 30,
     this.dietaryPreference = 'No Preference',
     this.bodyType = 'Average',
+    this.isDemo = false,
   });
 
   double get bmi {
@@ -40,11 +40,7 @@ class UserProfile {
     double calories;
 
     // Basic estimate for prototype purposes.
-    calories =
-        (10 * weight) +
-        (6.25 * height) -
-        (5 * age) +
-        5;
+    calories = (10 * weight) + (6.25 * height) - (5 * age) + 5;
 
     if (fitnessGoal == 'Lose Weight') {
       calories -= 400;
