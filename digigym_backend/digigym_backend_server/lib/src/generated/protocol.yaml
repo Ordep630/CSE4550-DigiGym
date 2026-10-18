@@ -14,5 +14,7 @@ greeting:
 profile:
   - getMyProfile:
   - updateMyProfile:
+  - getMyFitnessData:
+  - updateMyFitnessData:
 workoutRecommendation:
   - getMyWorkoutRecommendation:
