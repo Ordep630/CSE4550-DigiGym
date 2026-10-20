@@ -125,7 +125,8 @@ void main() {
     restoreCompleter.complete();
     await tester.pumpAndSettle();
 
-    expect(find.text('Welcome, Restored User! 👋'), findsOneWidget);
+    expect(find.text('Welcome back,'), findsOneWidget);
+    expect(find.text('Restored User'), findsOneWidget);
   });
 
   testWidgets(
