@@ -43,14 +43,14 @@ class StatCard extends StatelessWidget {
               DashboardNumber(
                 value: value,
                 dotted: dotted,
-                fontSize: embedded ? 25 : 28,
+                fontSize: embedded && dotted ? 29 : 27,
                 color: highlightValue ? theme.colorScheme.primary : null,
               ),
               const SizedBox(height: 3),
               Text(
                 title,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  fontSize: 11,
+                  fontSize: 12,
                   height: 1.35,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -65,6 +65,9 @@ class StatCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 6),
             child: content,
           )
-        : DashboardGlassCard(padding: const EdgeInsets.all(12), child: content);
+        : DashboardGlassCard(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: content,
+          );
   }
 }

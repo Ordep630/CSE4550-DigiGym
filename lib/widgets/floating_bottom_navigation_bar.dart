@@ -87,20 +87,10 @@ class FloatingBottomNavigationBar extends StatelessWidget {
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Container(
-                                      width: 44,
-                                      height: 32,
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(20),
-                                        color: active
-                                            ? (dark
-                                                  ? selected.withValues(
-                                                      alpha: 0.16,
-                                                    )
-                                                  : const Color(0xFFCEF5DF))
-                                            : Colors.transparent,
-                                      ),
+                                    _SelectedIconGlow(
+                                      key: ValueKey('navigation-icon-$index'),
+                                      selected: active,
+                                      dark: dark,
                                       child: index == 1
                                           ? Image.asset(
                                               'assets/images/digigym_workout_icon.png',
@@ -152,6 +142,73 @@ class FloatingBottomNavigationBar extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Paints illumination separately from the sharp icon in its original slot.
+class _SelectedIconGlow extends StatelessWidget {
+  final bool selected;
+  final bool dark;
+  final Widget child;
+
+  const _SelectedIconGlow({
+    super.key,
+    required this.selected,
+    required this.dark,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 44,
+      height: 32,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          if (selected)
+            Positioned.fill(
+              child: IgnorePointer(
+                key: const ValueKey('navigation-icon-glow'),
+                child: ExcludeSemantics(
+                  child: ClipRect(
+                    // Fade at the slot edges so illumination cannot reach
+                    // labels or neighboring destinations.
+                    child: ShaderMask(
+                      blendMode: BlendMode.dstIn,
+                      shaderCallback: (bounds) => const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.white,
+                          Colors.white,
+                          Colors.transparent,
+                        ],
+                        stops: [0, 0.22, 0.78, 1],
+                      ).createShader(bounds),
+                      child: Opacity(
+                        opacity: dark ? 0.85 : 0.32,
+                        child: ImageFiltered(
+                          imageFilter: ImageFilter.blur(
+                            sigmaX: dark ? 4 : 3,
+                            sigmaY: dark ? 4 : 3,
+                          ),
+                          child: Center(child: child),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          KeyedSubtree(
+            key: const ValueKey('navigation-icon-foreground'),
+            child: child,
+          ),
+        ],
       ),
     );
   }

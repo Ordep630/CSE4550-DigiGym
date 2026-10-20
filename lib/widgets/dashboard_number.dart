@@ -42,7 +42,7 @@ class DashboardNumber extends StatelessWidget {
                 fontVariations: dotted
                     ? const [
                         FontVariation('ROND', 100),
-                        FontVariation('wght', 750),
+                        FontVariation('wght', 840),
                       ]
                     : null,
                 fontFeatures: const [FontFeature.tabularFigures()],

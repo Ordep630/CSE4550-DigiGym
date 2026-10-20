@@ -53,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ? DigiGymDashboardTheme.dark(inheritedTheme)
           : inheritedTheme,
       child: Scaffold(
+        extendBody: selectedIndex == 0,
         body: pages[selectedIndex],
         bottomNavigationBar: FloatingBottomNavigationBar(
           selectedIndex: selectedIndex,

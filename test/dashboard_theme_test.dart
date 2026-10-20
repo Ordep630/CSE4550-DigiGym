@@ -91,10 +91,18 @@ void main() {
 
     ThemeData navigationTheme() =>
         Theme.of(tester.element(find.byType(FloatingBottomNavigationBar)));
+    Scaffold homeScaffold() => tester.widget<Scaffold>(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Scaffold &&
+            widget.bottomNavigationBar is FloatingBottomNavigationBar,
+      ),
+    );
     final navigationRect = tester.getRect(
       find.byType(FloatingBottomNavigationBar),
     );
     expect(navigationTheme().brightness, Brightness.dark);
+    expect(homeScaffold().extendBody, isTrue);
     expect(
       navigationTheme().scaffoldBackgroundColor,
       DigiGymDarkColors.graphite,
@@ -139,6 +147,11 @@ void main() {
         lightTheme.scaffoldBackgroundColor,
       );
       expect(navigationTheme().brightness, Brightness.light);
+      expect(homeScaffold().extendBody, isFalse);
+      expect(
+        tester.getRect(find.byType(entry.value)).bottom,
+        navigationRect.top,
+      );
       expect(
         tester.getRect(find.byType(FloatingBottomNavigationBar)),
         navigationRect,
@@ -155,8 +168,48 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(DashboardPage), findsOneWidget);
     expect(navigationTheme().brightness, Brightness.dark);
+    expect(homeScaffold().extendBody, isTrue);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'dashboard content clears navigation for Android and iOS system insets',
+    (tester) async {
+      tester.view.devicePixelRatio = 3;
+      tester.view.physicalSize = const Size(1280, 2856);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      for (final configuration in [
+        (TargetPlatform.android, const EdgeInsets.only(top: 52, bottom: 24)),
+        (TargetPlatform.iOS, const EdgeInsets.only(top: 59, bottom: 34)),
+        (TargetPlatform.android, EdgeInsets.zero),
+      ]) {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: lightTheme.copyWith(platform: configuration.$1),
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(context).copyWith(padding: configuration.$2),
+              child: child!,
+            ),
+            home: HomeScreen(
+              user: profile(),
+              onLogout: () async {},
+              onUpdateProfile: (_) {},
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final viewport = tester.getRect(find.byType(SingleChildScrollView));
+        final navigation = tester.getRect(
+          find.byType(FloatingBottomNavigationBar),
+        );
+        expect(viewport.top, configuration.$2.top);
+        expect(viewport.bottom, navigation.top);
+        expect(navigation.bottom, 952);
+        expect(tester.takeException(), isNull);
+      }
+    },
+  );
 
   testWidgets(
     'featured goal sits beside calories and workout above BMI and weight',
@@ -186,7 +239,9 @@ void main() {
       expect(bmi.top, greaterThan(goal.bottom));
       expect(bmi.top, weight.top);
       expect(bmi.width, weight.width);
-      expect(goal.height, lessThan(280));
+      // The real-font appearance test checks the compact composition. This
+      // fallback-font test also permits content to grow without clipping.
+      expect(goal.height, greaterThanOrEqualTo(190));
       final headerImage = tester.widget<Image>(
         find.descendant(
           of: find.byType(DashboardPage),

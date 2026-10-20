@@ -43,20 +43,25 @@ class DashboardGlassCard extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xF2333E41),
-                    Color(0xED1A2325),
-                    Color(0xF213191B),
-                    Color(0xF0242D2F),
+                    Color(0xF23B474A),
+                    Color(0xEE192123),
+                    Color(0xF00F1618),
+                    Color(0xF0222D2F),
                   ],
-                  stops: [0, 0.38, 0.75, 1],
+                  stops: [0, 0.28, 0.72, 1],
                 ),
               ),
               child: DecoratedBox(
                 decoration: const BoxDecoration(
                   gradient: RadialGradient(
-                    center: Alignment(0.9, -1.3),
-                    radius: 1.7,
-                    colors: [Color(0x13FFFFFF), Color(0x00FFFFFF)],
+                    center: Alignment(0.85, -1.15),
+                    radius: 1.1,
+                    colors: [
+                      Color(0x20FFFFFF),
+                      Color(0x06FFFFFF),
+                      Color(0x00FFFFFF),
+                    ],
+                    stops: [0, 0.35, 1],
                   ),
                 ),
                 child: Padding(padding: padding, child: child),
@@ -77,17 +82,18 @@ class _GlassEdgePainter extends CustomPainter {
     final rect = (Offset.zero & size).deflate(0.5);
     final paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1
+      ..strokeWidth = 0.8
       ..shader = const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Color(0x55D5E1DF),
+          Color(0x70D5E1DF),
+          Color(0x26D5E1DF),
+          Color(0x05D5E1DF),
           Color(0x12D5E1DF),
-          Color(0x0AD5E1DF),
-          Color(0x33D5E1DF),
+          Color(0x38D5E1DF),
         ],
-        stops: [0, 0.35, 0.65, 1],
+        stops: [0, 0.16, 0.48, 0.76, 1],
       ).createShader(rect);
     canvas.drawRRect(
       RRect.fromRectAndRadius(
@@ -126,16 +132,20 @@ class DashboardIconBadge extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(
-          center: const Alignment(-0.35, -0.5),
-          radius: 1.1,
+          center: const Alignment(-0.65, -0.75),
+          radius: 1.25,
           colors: [
-            accent.withValues(alpha: luminous ? 0.38 : 0.16),
-            const Color(0xFF172523),
+            Color.alphaBlend(
+              accent.withValues(alpha: luminous ? 0.20 : 0.12),
+              const Color(0xFF14231C),
+            ),
+            Color.alphaBlend(
+              accent.withValues(alpha: 0.06),
+              const Color(0xFF14231C),
+            ),
+            const Color(0xFF0E1916),
           ],
-        ),
-        border: Border.all(
-          color: accent.withValues(alpha: luminous ? 0.5 : 0.12),
-          width: 0.8,
+          stops: const [0, 0.4, 1],
         ),
         boxShadow: luminous
             ? [
@@ -152,18 +162,57 @@ class DashboardIconBadge extends StatelessWidget {
               ]
             : null,
       ),
-      child: DecoratedBox(
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0x20FFFFFF), Color(0x00FFFFFF), Color(0x28000000)],
-            stops: [0, 0.45, 1],
+      child: CustomPaint(
+        foregroundPainter: _IconRimPainter(accent, luminous),
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              center: Alignment(-0.55, -0.8),
+              radius: 0.95,
+              colors: [Color(0x24FFFFFF), Color(0x00FFFFFF), Color(0x28000000)],
+              stops: [0, 0.5, 1],
+            ),
           ),
+          child: Icon(icon, size: size * 0.52, color: accent),
         ),
-        child: Icon(icon, size: size * 0.52, color: accent),
       ),
     );
   }
+}
+
+class _IconRimPainter extends CustomPainter {
+  final Color accent;
+  final bool luminous;
+
+  const _IconRimPainter(this.accent, this.luminous);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = (Offset.zero & size).deflate(0.5);
+    final strength = luminous ? 1.0 : 0.35;
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.9
+      ..shader = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color.lerp(
+            accent,
+            Colors.white,
+            0.4,
+          )!.withValues(alpha: 0.9 * strength),
+          accent.withValues(alpha: 0.65 * strength),
+          accent.withValues(alpha: 0.12 * strength),
+          accent.withValues(alpha: 0.55 * strength),
+        ],
+        stops: const [0, 0.18, 0.65, 1],
+      ).createShader(rect);
+    canvas.drawOval(rect, paint);
+  }
+
+  @override
+  bool shouldRepaint(_IconRimPainter oldDelegate) =>
+      accent != oldDelegate.accent || luminous != oldDelegate.luminous;
 }

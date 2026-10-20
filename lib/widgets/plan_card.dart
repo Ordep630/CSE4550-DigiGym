@@ -18,11 +18,11 @@ class PlanCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return DashboardGlassCard(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       child: Row(
         children: [
-          DashboardIconBadge(icon: icon),
+          DashboardIconBadge(icon: icon, size: 48),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -32,7 +32,8 @@ class PlanCard extends StatelessWidget {
                 Text(
                   title,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    fontSize: 14,
+                    fontSize: 17,
+                    height: 1.2,
                     fontWeight: FontWeight.w500,
                     letterSpacing: -0.2,
                   ),
