@@ -11,6 +11,8 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _ida;
+import 'package:digigym_backend_client/src/protocol/fitness/fitness_data.dart'
+    as _i7ssfes1;
 import 'package:digigym_backend_client/src/protocol/greetings/greeting.dart'
     as _isjug9ek;
 import 'package:digigym_backend_client/src/protocol/user/fitness_goal.dart'
@@ -312,6 +314,26 @@ class EndpointProfile extends _isc.EndpointRef {
       'workoutTime': workoutTime,
       'dietaryPreference': dietaryPreference,
       'bodyType': bodyType,
+    },
+  );
+
+  _ida.Future<_i7ssfes1.FitnessData?> getMyFitnessData() =>
+      caller.callServerEndpoint<_i7ssfes1.FitnessData?>(
+        'profile',
+        'getMyFitnessData',
+        {},
+      );
+
+  /// Updates the fitness data for the currently authenticated user.
+  _ida.Future<_i7ssfes1.FitnessData> updateMyFitnessData(
+    _ir29g2zq.FitnessLevel fitnessLevel,
+    _i1zhugzl.FitnessGoal fitnessGoal,
+  ) => caller.callServerEndpoint<_i7ssfes1.FitnessData>(
+    'profile',
+    'updateMyFitnessData',
+    {
+      'fitnessLevel': fitnessLevel,
+      'fitnessGoal': fitnessGoal,
     },
   );
 }

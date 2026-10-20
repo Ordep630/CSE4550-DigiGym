@@ -372,6 +372,41 @@ class Endpoints extends _is.EndpointDispatch {
                     params['bodyType'],
                   ),
         ),
+        'getMyFitnessData': _is.MethodConnector(
+          name: 'getMyFitnessData',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6a309j1.ProfileEndpoint)
+                  .getMyFitnessData(session),
+        ),
+        'updateMyFitnessData': _is.MethodConnector(
+          name: 'updateMyFitnessData',
+          params: {
+            'fitnessLevel': _is.ParameterDescription(
+              name: 'fitnessLevel',
+              type: _is.getType<_i0de4bt5.FitnessLevel>(),
+              nullable: false,
+            ),
+            'fitnessGoal': _is.ParameterDescription(
+              name: 'fitnessGoal',
+              type: _is.getType<_i4runcty.FitnessGoal>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6a309j1.ProfileEndpoint)
+                  .updateMyFitnessData(
+                    session,
+                    params['fitnessLevel'],
+                    params['fitnessGoal'],
+                  ),
+        ),
       },
     );
     connectors['workoutRecommendation'] = _is.EndpointConnector(

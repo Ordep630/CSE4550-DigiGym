@@ -1,0 +1,4 @@
+class: FitnessData
+fields:
+  fitnessLevel: FitnessLevel
+  fitnessGoal: FitnessGoal

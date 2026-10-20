@@ -17,11 +17,13 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _iais;
+import 'fitness/fitness_data.dart' as _isdrmxyn;
 import 'greetings/greeting.dart' as _izw8z7ou;
 import 'user/fitness_goal.dart' as _ifss0aho;
 import 'user/fitness_level.dart' as _ifclzg6e;
 import 'user/user.dart' as _izvcgnx4;
 import 'workout/workout_recommendation.dart' as _izdon4ck;
+export 'fitness/fitness_data.dart';
 export 'greetings/greeting.dart';
 export 'user/fitness_goal.dart';
 export 'user/fitness_level.dart';
@@ -171,6 +173,9 @@ class Protocol extends _is.DatabaseSerializationManager {
       }
     }
 
+    if (t == _isdrmxyn.FitnessData) {
+      return _isdrmxyn.FitnessData.fromJson(data) as T;
+    }
     if (t == _izw8z7ou.Greeting) {
       return _izw8z7ou.Greeting.fromJson(data) as T;
     }
@@ -185,6 +190,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _izdon4ck.WorkoutRecommendation) {
       return _izdon4ck.WorkoutRecommendation.fromJson(data) as T;
+    }
+    if (t == _is.getType<_isdrmxyn.FitnessData?>()) {
+      return (data != null ? _isdrmxyn.FitnessData.fromJson(data) : null) as T;
     }
     if (t == _is.getType<_izw8z7ou.Greeting?>()) {
       return (data != null ? _izw8z7ou.Greeting.fromJson(data) : null) as T;
@@ -218,6 +226,7 @@ class Protocol extends _is.DatabaseSerializationManager {
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
+      _isdrmxyn.FitnessData => 'FitnessData',
       _izw8z7ou.Greeting => 'Greeting',
       _ifss0aho.FitnessGoal => 'FitnessGoal',
       _ifclzg6e.FitnessLevel => 'FitnessLevel',
@@ -240,6 +249,8 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
 
     switch (data) {
+      case _isdrmxyn.FitnessData():
+        return 'FitnessData';
       case _izw8z7ou.Greeting():
         return 'Greeting';
       case _ifss0aho.FitnessGoal():
@@ -275,6 +286,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     var dataClassName = data['className'];
     if (dataClassName is! String) {
       return super.deserializeByClassName(data);
+    }
+    if (dataClassName == 'FitnessData') {
+      return deserialize<_isdrmxyn.FitnessData>(data['data']);
     }
     if (dataClassName == 'Greeting') {
       return deserialize<_izw8z7ou.Greeting>(data['data']);

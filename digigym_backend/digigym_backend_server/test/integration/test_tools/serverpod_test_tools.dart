@@ -13,6 +13,8 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _ida;
 import 'dart:io' as _idi;
+import 'package:digigym_backend_server/src/generated/fitness/fitness_data.dart'
+    as _iqjir54v;
 import 'package:digigym_backend_server/src/generated/greetings/greeting.dart'
     as _ixw9ndps;
 import 'package:digigym_backend_server/src/generated/user/fitness_goal.dart'
@@ -638,6 +640,71 @@ class _ProfileEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<_ii4hua2a.DigiGymUser>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<_iqjir54v.FitnessData?> getMyFitnessData(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'profile',
+            method: 'getMyFitnessData',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'profile',
+          methodName: 'getMyFitnessData',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_iqjir54v.FitnessData?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<_iqjir54v.FitnessData> updateMyFitnessData(
+    _ist.TestSessionBuilder sessionBuilder,
+    _i0de4bt5.FitnessLevel fitnessLevel,
+    _i4runcty.FitnessGoal fitnessGoal,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'profile',
+            method: 'updateMyFitnessData',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'profile',
+          methodName: 'updateMyFitnessData',
+          parameters: _ist.testObjectToJson({
+            'fitnessLevel': fitnessLevel,
+            'fitnessGoal': fitnessGoal,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_iqjir54v.FitnessData>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
