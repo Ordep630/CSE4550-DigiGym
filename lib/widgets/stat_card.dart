@@ -14,19 +14,31 @@ class StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
           children: [
-            Icon(icon, color: Colors.green),
+            Icon(icon, color: theme.colorScheme.primary),
             const SizedBox(height: 8),
-            Text(title, textAlign: TextAlign.center),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
             const SizedBox(height: 4),
             Text(
               value,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.bold,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             ),
           ],
         ),

@@ -14,16 +14,28 @@ class PlanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
-        leading: CircleAvatar(child: Icon(icon)),
+        leading: CircleAvatar(
+          backgroundColor: colors.primaryContainer,
+          foregroundColor: colors.onPrimaryContainer,
+          child: Icon(icon),
+        ),
         title: Text(
           title,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: colors.onSurface,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        subtitle: Text(description),
-        trailing: const Icon(Icons.arrow_forward_ios),
+        subtitle: Text(
+          description,
+          style: TextStyle(color: colors.onSurfaceVariant),
+        ),
+        trailing: Icon(Icons.arrow_forward_ios, color: colors.onSurfaceVariant),
       ),
     );
   }

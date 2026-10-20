@@ -7,13 +7,12 @@ import '../widgets/plan_card.dart';
 class DashboardPage extends StatelessWidget {
   final UserProfile user;
 
-  const DashboardPage({
-    super.key,
-    required this.user,
-  });
+  const DashboardPage({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -28,7 +27,7 @@ class DashboardPage extends StatelessWidget {
           children: [
             Text(
               'Welcome, ${user.name}! 👋',
-              style: const TextStyle(
+              style: theme.textTheme.bodyMedium?.copyWith(
                 fontSize: 25,
                 fontWeight: FontWeight.bold,
               ),
@@ -37,7 +36,9 @@ class DashboardPage extends StatelessWidget {
             Text(
               'Let\'s work toward your '
               '${user.fitnessGoal.toLowerCase()} goal.',
-              style: const TextStyle(color: Colors.grey),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 25),
             Row(
@@ -80,9 +81,9 @@ class DashboardPage extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 30),
-            const Text(
+            Text(
               'Your Plan',
-              style: TextStyle(
+              style: theme.textTheme.bodyMedium?.copyWith(
                 fontSize: 21,
                 fontWeight: FontWeight.bold,
               ),

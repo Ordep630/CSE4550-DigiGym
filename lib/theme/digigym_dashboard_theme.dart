@@ -1,0 +1,63 @@
+import 'package:flutter/material.dart';
+
+/// Shared palette for DigiGym's dark appearance.
+abstract final class DigiGymDarkColors {
+  static const graphite = Color(0xFF0C1010);
+  static const charcoal = Color(0xFF1A201E);
+  static const electricGreen = Color(0xFF70FF45);
+  static const primaryText = Color(0xFFF4F7F5);
+  static const secondaryText = Color(0xFFABB5AF);
+}
+
+/// Builds a scoped theme using semantic colors that widgets can also consume
+/// from a future application-wide dark or light theme.
+abstract final class DigiGymDashboardTheme {
+  static ThemeData dark(ThemeData base) {
+    final colors =
+        ColorScheme.fromSeed(
+          seedColor: DigiGymDarkColors.electricGreen,
+          brightness: Brightness.dark,
+        ).copyWith(
+          primary: DigiGymDarkColors.electricGreen,
+          onPrimary: DigiGymDarkColors.graphite,
+          primaryContainer: Color.alphaBlend(
+            DigiGymDarkColors.electricGreen.withValues(alpha: 0.12),
+            DigiGymDarkColors.charcoal,
+          ),
+          onPrimaryContainer: DigiGymDarkColors.electricGreen,
+          surface: DigiGymDarkColors.charcoal,
+          onSurface: DigiGymDarkColors.primaryText,
+          onSurfaceVariant: DigiGymDarkColors.secondaryText,
+          outlineVariant: DigiGymDarkColors.primaryText.withValues(alpha: 0.08),
+        );
+    final text = base.textTheme.apply(
+      bodyColor: colors.onSurface,
+      displayColor: colors.onSurface,
+    );
+
+    return base.copyWith(
+      colorScheme: colors,
+      scaffoldBackgroundColor: DigiGymDarkColors.graphite,
+      canvasColor: DigiGymDarkColors.graphite,
+      textTheme: text,
+      iconTheme: base.iconTheme.copyWith(color: colors.primary),
+      appBarTheme: base.appBarTheme.copyWith(
+        backgroundColor: DigiGymDarkColors.graphite,
+        foregroundColor: colors.onSurface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+      ),
+      cardTheme: base.cardTheme.copyWith(
+        color: DigiGymDarkColors.charcoal.withValues(alpha: 0.94),
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: colors.outlineVariant),
+        ),
+      ),
+    );
+  }
+}
