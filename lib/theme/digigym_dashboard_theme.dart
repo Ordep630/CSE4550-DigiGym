@@ -12,6 +12,14 @@ abstract final class DigiGymDarkColors {
 /// Builds a scoped theme using semantic colors that widgets can also consume
 /// from a future application-wide dark or light theme.
 abstract final class DigiGymDashboardTheme {
+  static const textFont = 'DigiGymInter';
+  static const numberFont = 'DigiGymDoto';
+  static const cardRadius = 16.0;
+
+  /// Apply only below DashboardPage, leaving navigation typography untouched.
+  static ThemeData content(ThemeData base) =>
+      base.copyWith(textTheme: base.textTheme.apply(fontFamily: textFont));
+
   static ThemeData dark(ThemeData base) {
     final colors =
         ColorScheme.fromSeed(

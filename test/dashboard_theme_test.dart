@@ -7,6 +7,7 @@ import 'package:digigym/screens/profile_screen.dart';
 import 'package:digigym/screens/workouts_screen.dart';
 import 'package:digigym/theme/digigym_dashboard_theme.dart';
 import 'package:digigym/widgets/floating_bottom_navigation_bar.dart';
+import 'package:digigym/widgets/dashboard_glass_card.dart';
 import 'package:digigym/widgets/fitness_goal_card.dart';
 import 'package:digigym/widgets/plan_card.dart';
 import 'package:digigym/widgets/stat_card.dart';
@@ -58,6 +59,14 @@ void main() {
     expect(find.text('80.0 kg'), findsOneWidget);
     expect(find.text('35 min'), findsOneWidget);
     expect(find.byType(StatCard), findsNWidgets(4));
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('dashboard-statistics-panel')),
+        matching: find.byType(StatCard),
+      ),
+      findsNWidgets(2),
+    );
+    expect(find.byType(DashboardGlassCard), findsNWidgets(7));
     expect(find.byType(PlanCard), findsNWidgets(3));
     expect(find.text('Intermediate 35-minute workout'), findsOneWidget);
     expect(find.text('Target approximately 1775 calories'), findsOneWidget);
@@ -167,10 +176,13 @@ void main() {
       final bmi = stat('BMI');
       final weight = stat('Weight');
       expect(goal.left, 20);
-      expect(goal.top, calories.top);
+      final panel = tester.getRect(
+        find.byKey(const ValueKey('dashboard-statistics-panel')),
+      );
+      expect(goal.top, panel.top);
       expect(goal.right, lessThan(calories.left));
       expect(workout.top, greaterThan(calories.bottom));
-      expect(goal.bottom, closeTo(workout.bottom, 0.01));
+      expect(goal.bottom, closeTo(panel.bottom, 0.01));
       expect(bmi.top, greaterThan(goal.bottom));
       expect(bmi.top, weight.top);
       expect(bmi.width, weight.width);
@@ -285,7 +297,14 @@ void main() {
           );
           if (size.width == 320 || scale > 1.3) {
             expect(calories.top, greaterThan(goal.bottom));
-            expect(calories.width, goal.width);
+            expect(
+              tester
+                  .getRect(
+                    find.byKey(const ValueKey('dashboard-statistics-panel')),
+                  )
+                  .width,
+              goal.width,
+            );
           }
           await tester.ensureVisible(find.text('Grocery List'));
           await tester.pumpAndSettle();

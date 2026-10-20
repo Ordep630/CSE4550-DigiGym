@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'dashboard_glass_card.dart';
+
 /// Shows the saved goal without implying any measured progress.
 class FitnessGoalCard extends StatelessWidget {
   final String goal;
@@ -13,48 +15,35 @@ class FitnessGoalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: colors.primaryContainer,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.track_changes,
-                color: colors.onPrimaryContainer,
-              ),
+    return DashboardGlassCard(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Fitness goal',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w500,
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Fitness goal',
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: colors.onSurfaceVariant,
-              ),
+          ),
+          const SizedBox(height: 20),
+          const Center(
+            child: DashboardIconBadge(icon: Icons.track_changes, size: 84),
+          ),
+          const SizedBox(height: 18),
+          Text(
+            goal,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontSize: 21,
+              height: 1.25,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.4,
             ),
-            const SizedBox(height: 8),
-            Text(
-              goal,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-                height: 1.2,
-                letterSpacing: -0.4,
-              ),
-            ),
-            if (visual != null) ...[const SizedBox(height: 16), visual!],
-          ],
-        ),
+          ),
+          if (visual != null) ...[const SizedBox(height: 16), visual!],
+        ],
       ),
     );
   }
