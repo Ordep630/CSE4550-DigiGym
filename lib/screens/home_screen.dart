@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/user_profile.dart';
+import '../widgets/floating_bottom_navigation_bar.dart';
 import '../services/digigym_api.dart';
 import 'dashboard_screen.dart';
 import 'workouts_screen.dart';
@@ -46,34 +47,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       body: pages[selectedIndex],
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: FloatingBottomNavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: (index) {
           setState(() {
             selectedIndex = index;
           });
         },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.fitness_center),
-            label: 'Workout',
-          ),
-          NavigationDestination(icon: Icon(Icons.restaurant), label: 'Meals'),
-          NavigationDestination(
-            icon: Icon(Icons.shopping_cart),
-            label: 'Groceries',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
       ),
     );
   }
