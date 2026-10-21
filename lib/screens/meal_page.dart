@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../models/user_profile.dart';
 import '../models/meal.dart';
+import '../widgets/dashboard_glass_card.dart';
 
 class MealPage extends StatelessWidget {
   final UserProfile user;
 
-  const MealPage({
-    super.key,
-    required this.user,
-  });
+  const MealPage({super.key, required this.user});
 
   List<Meal> getMeals() {
     if (user.fitnessGoal == 'Build Muscle') {
@@ -85,63 +83,74 @@ class MealPage extends StatelessWidget {
     final meals = getMeals();
 
     return Scaffold(
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? Colors.transparent
+          : null,
       appBar: AppBar(title: const Text('Meal Plan')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Daily Nutrition',
-                    style: TextStyle(
-                      fontSize: 21,
-                      fontWeight: FontWeight.bold,
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: ListView(
+          // Reserve the measured navigation inset inside the scroll content,
+          // so the viewport does not cut glass surfaces off above the pill.
+          padding: EdgeInsets.fromLTRB(
+            16,
+            16,
+            16,
+            16 + MediaQuery.paddingOf(context).bottom,
+          ),
+          children: [
+            DashboardGlassCard(
+              margin: const EdgeInsets.all(4),
+              padding: EdgeInsets.zero,
+              cornerRadius: 12,
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Daily Nutrition',
+                      style: TextStyle(
+                        fontSize: 21,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Estimated target: '
-                    '${user.estimatedCalories} calories',
-                  ),
-                  Text('Goal: ${user.fitnessGoal}'),
-                  Text('Diet: ${user.dietaryPreference}'),
-                ],
+                    const SizedBox(height: 10),
+                    Text(
+                      'Estimated target: '
+                      '${user.estimatedCalories} calories',
+                    ),
+                    Text('Goal: ${user.fitnessGoal}'),
+                    Text('Diet: ${user.dietaryPreference}'),
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 15),
-          ...meals.map(
-            (meal) => Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: ListTile(
-                leading: const CircleAvatar(
-                  child: Icon(Icons.restaurant),
-                ),
-                title: Text(
-                  meal.name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
+            const SizedBox(height: 15),
+            ...meals.map(
+              (meal) => DashboardGlassCard(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: EdgeInsets.zero,
+                cornerRadius: 12,
+                child: ListTile(
+                  leading: const CircleAvatar(child: Icon(Icons.restaurant)),
+                  title: Text(
+                    meal.name,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                ),
-                subtitle: Text(
-                  '${meal.portion}\n${meal.protein}',
-                ),
-                isThreeLine: true,
-                trailing: Text(
-                  '${meal.calories}\n kcal',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
+                  subtitle: Text('${meal.portion}\n${meal.protein}'),
+                  isThreeLine: true,
+                  trailing: Text(
+                    '${meal.calories}\n kcal',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:digigym/widgets/floating_bottom_navigation_bar.dart';
@@ -37,6 +39,132 @@ void main() {
     }
     expect(taps, [0, 1, 2, 3, 4]);
   });
+
+  testWidgets(
+    'glass stays clipped to the existing pill and keeps its palettes',
+    (tester) async {
+      for (final brightness in Brightness.values) {
+        await tester.pumpWidget(host(brightness: brightness));
+        await tester.pumpAndSettle();
+        final blur = find.byType(BackdropFilter);
+        expect(blur, findsOneWidget);
+        expect(
+          tester.widget<BackdropFilter>(blur).filter,
+          ui.ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        );
+        final clip = find.ancestor(of: blur, matching: find.byType(ClipRRect));
+        expect(clip, findsOneWidget);
+        expect(
+          tester.widget<ClipRRect>(clip).borderRadius,
+          BorderRadius.circular(48),
+        );
+        expect(tester.widget<ClipRRect>(clip).clipBehavior, Clip.antiAlias);
+        expect(tester.getRect(clip), tester.getRect(blur));
+        final material = tester.widget<Material>(
+          find.descendant(of: blur, matching: find.byType(Material)),
+        );
+        final shape = material.shape! as RoundedRectangleBorder;
+        expect(shape.borderRadius, BorderRadius.circular(48));
+        if (brightness == Brightness.dark) {
+          expect(
+            material.color,
+            const Color(0xFF1A201E).withValues(alpha: .20),
+          );
+          expect(shape.side.color.a, closeTo(.15, .001));
+        } else {
+          expect(material.color, const Color(0xE6F5F8F5));
+          expect(shape.side.color, const Color(0x99FFFFFF));
+        }
+      }
+    },
+  );
+
+  testWidgets(
+    'glass reveals and frosts the backdrop without blurring the margin',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(390, 400);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      Widget scene({Color? color}) => MaterialApp(
+        theme: ThemeData(brightness: Brightness.dark),
+        home: Scaffold(
+          extendBody: true,
+          body: CustomPaint(
+            painter: _NavigationBackdrop(color),
+            child: const SizedBox.expand(),
+          ),
+          bottomNavigationBar: FloatingBottomNavigationBar(
+            selectedIndex: 0,
+            onDestinationSelected: (_) {},
+          ),
+        ),
+      );
+
+      Future<List<List<int>>> sample(List<Offset> points) async {
+        return (await tester.runAsync(() async {
+          final image = await captureImage(
+            tester.element(find.byType(Scaffold)),
+          );
+          try {
+            final bytes = (await image.toByteData(
+              format: ui.ImageByteFormat.rawRgba,
+            ))!;
+            return [
+              for (final point in points)
+                [
+                  for (var channel = 0; channel < 3; channel++)
+                    bytes.getUint8(
+                      (point.dy.round() * image.width + point.dx.round()) * 4 +
+                          channel,
+                    ),
+                ],
+            ];
+          } finally {
+            image.dispose();
+          }
+        }))!;
+      }
+
+      await tester.pumpWidget(scene());
+      await tester.pumpAndSettle();
+      final pill = tester.getRect(find.byType(BackdropFilter));
+      final pixels = await sample([
+        Offset(pill.left + 96, pill.top + 6),
+        Offset(pill.left + 104, pill.top + 6),
+        Offset(2, pill.center.dy),
+        Offset(10, pill.center.dy),
+      ]);
+      for (var channel = 0; channel < 3; channel++) {
+        expect(
+          (pixels[0][channel] - pixels[1][channel]).abs(),
+          lessThan(10),
+          reason: 'The striped backdrop must be frosted inside the pill.',
+        );
+        expect(
+          (pixels[2][channel] - pixels[3][channel]).abs(),
+          greaterThan(40),
+          reason: 'The surrounding margin must retain sharp backdrop detail.',
+        );
+      }
+
+      final backdropSamples = <List<int>>[];
+      for (final color in [const Color(0xFF203830), const Color(0xFF90C0A0)]) {
+        await tester.pumpWidget(scene(color: color));
+        await tester.pumpAndSettle();
+        backdropSamples.add(
+          (await sample([Offset(pill.center.dx, pill.top + 6)])).single,
+        );
+      }
+      expect(
+        backdropSamples[1][1] - backdropSamples[0][1],
+        greaterThan(136 * .65),
+        reason: 'At least 65% of backdrop contrast must survive the glass, including its shadow.',
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets(
     'workout uses the official asset with sharp filtering and proportional width',
@@ -180,29 +308,60 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     tester.view.devicePixelRatio = 1;
     for (final width in [320.0, 1200.0]) {
-      tester.view.physicalSize = Size(width, 800);
-      await tester.pumpWidget(
-        MaterialApp(
-          home: MediaQuery(
-            data: MediaQueryData(
-              size: Size(width, 800),
-              padding: const EdgeInsets.only(bottom: 34),
-              textScaler: TextScaler.linear(2),
-            ),
-            child: Scaffold(
-              bottomNavigationBar: FloatingBottomNavigationBar(
-                selectedIndex: 0,
-                onDestinationSelected: (_) {},
+      for (final scale in [1.0, 2.0, 3.0]) {
+        tester.view.physicalSize = Size(width, 800);
+        await tester.pumpWidget(
+          MaterialApp(
+            home: MediaQuery(
+              data: MediaQueryData(
+                size: Size(width, 800),
+                padding: const EdgeInsets.only(bottom: 34),
+                textScaler: TextScaler.linear(scale),
+              ),
+              child: Scaffold(
+                bottomNavigationBar: FloatingBottomNavigationBar(
+                  selectedIndex: 0,
+                  onDestinationSelected: (_) {},
+                ),
               ),
             ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
-      final surface = tester.getRect(find.byType(BackdropFilter));
-      expect(surface.width, lessThanOrEqualTo(560));
-      expect(surface.bottom, lessThanOrEqualTo(766));
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        final surface = tester.getRect(find.byType(BackdropFilter));
+        expect(surface.width, lessThanOrEqualTo(560));
+        expect(surface.bottom, lessThanOrEqualTo(766));
+      }
     }
   });
+}
+
+/// High-contrast stripes make real backdrop filtering observable without a
+/// platform-dependent golden. A solid color isolates the transmission test.
+class _NavigationBackdrop extends CustomPainter {
+  final Color? color;
+
+  const _NavigationBackdrop(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (color != null) {
+      canvas.drawRect(Offset.zero & size, Paint()..color = color!);
+      return;
+    }
+    for (var x = 0.0; x < size.width; x += 8) {
+      canvas.drawRect(
+        Rect.fromLTWH(x, 0, 8, size.height),
+        Paint()
+          ..color = (x ~/ 8).isEven
+              ? const Color(0xFF95C5AF)
+              : const Color(0xFF21352D),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_NavigationBackdrop oldDelegate) =>
+      color != oldDelegate.color;
 }

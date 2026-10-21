@@ -7,19 +7,19 @@ class DashboardGlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   final EdgeInsetsGeometry margin;
+  final double cornerRadius;
 
   const DashboardGlassCard({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(16),
     this.margin = EdgeInsets.zero,
+    this.cornerRadius = DigiGymDashboardTheme.cardRadius,
   });
 
   @override
   Widget build(BuildContext context) {
-    const radius = BorderRadius.all(
-      Radius.circular(DigiGymDashboardTheme.cardRadius),
-    );
+    final radius = BorderRadius.circular(cornerRadius);
     return Padding(
       padding: margin,
       child: DecoratedBox(
@@ -36,7 +36,7 @@ class DashboardGlassCard extends StatelessWidget {
         child: ClipRRect(
           borderRadius: radius,
           child: CustomPaint(
-            foregroundPainter: const _GlassEdgePainter(),
+            foregroundPainter: _GlassEdgePainter(cornerRadius),
             child: DecoratedBox(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -75,7 +75,9 @@ class DashboardGlassCard extends StatelessWidget {
 }
 
 class _GlassEdgePainter extends CustomPainter {
-  const _GlassEdgePainter();
+  final double cornerRadius;
+
+  const _GlassEdgePainter(this.cornerRadius);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -96,21 +98,20 @@ class _GlassEdgePainter extends CustomPainter {
         stops: [0, 0.16, 0.48, 0.76, 1],
       ).createShader(rect);
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        rect,
-        const Radius.circular(DigiGymDashboardTheme.cardRadius - 0.5),
-      ),
+      RRect.fromRectAndRadius(rect, Radius.circular(cornerRadius - 0.5)),
       paint,
     );
   }
 
   @override
-  bool shouldRepaint(_GlassEdgePainter oldDelegate) => false;
+  bool shouldRepaint(_GlassEdgePainter oldDelegate) =>
+      cornerRadius != oldDelegate.cornerRadius;
 }
 
 /// Shared illuminated icon well used by dashboard cards, never the navbar.
 class DashboardIconBadge extends StatelessWidget {
   final IconData icon;
+  final Widget? child;
   final double size;
   final Color? color;
   final bool luminous;
@@ -118,6 +119,7 @@ class DashboardIconBadge extends StatelessWidget {
   const DashboardIconBadge({
     super.key,
     required this.icon,
+    this.child,
     this.size = 46,
     this.color,
     this.luminous = true,
@@ -174,7 +176,9 @@ class DashboardIconBadge extends StatelessWidget {
               stops: [0, 0.5, 1],
             ),
           ),
-          child: Icon(icon, size: size * 0.52, color: accent),
+          child: child == null
+              ? Icon(icon, size: size * 0.52, color: accent)
+              : Center(child: child),
         ),
       ),
     );

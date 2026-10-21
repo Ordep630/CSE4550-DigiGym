@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:digigym/main.dart';
 import 'package:digigym/models/session.dart';
@@ -7,13 +8,48 @@ import 'package:digigym/screens/assessment_screen.dart';
 import 'package:digigym/screens/edit_profile_screen.dart';
 import 'package:digigym/screens/login_screen.dart';
 import 'package:digigym/screens/profile_screen.dart';
+import 'package:digigym/screens/home_screen.dart';
+import 'package:digigym/screens/dashboard_screen.dart';
+import 'package:digigym/services/dashboard_personalization.dart';
+import 'package:digigym/widgets/floating_bottom_navigation_bar.dart';
 import 'package:digigym/screens/register_screen.dart';
 import 'package:digigym/screens/verify_email_screen.dart';
 import 'package:digigym/services/digigym_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart'
+    show KeyValueStorage;
 
 import 'support/fake_digigym_api.dart';
+
+class _MessageStorage implements KeyValueStorage {
+  String? value;
+  bool unavailable = false;
+  int writes = 0;
+  @override
+  Future<String?> get(String key) async {
+    if (unavailable) throw StateError('Unavailable');
+    return value;
+  }
+
+  @override
+  Future<void> set(String key, String? next) async {
+    if (unavailable) throw StateError('Unavailable');
+    value = next;
+    writes++;
+  }
+}
+
+Future<void> _login(WidgetTester tester, String email) async {
+  await tester.enterText(find.byType(TextField).at(0), email);
+  await tester.enterText(find.byType(TextField).at(1), 'secret12');
+  await tester.ensureVisible(find.widgetWithText(ElevatedButton, 'LOGIN'));
+  await tester.tap(find.widgetWithText(ElevatedButton, 'LOGIN'));
+  await tester.pumpAndSettle();
+}
+
+String _message(WidgetTester tester) =>
+    tester.widget<HomeScreen>(find.byType(HomeScreen)).motivationalMessage;
 
 void main() {
   setUp(() {
@@ -119,13 +155,19 @@ void main() {
       ..restoredProfile = testUser(name: 'Restored User')
       ..restoreWait = restoreCompleter.future;
 
-    await tester.pumpWidget(DigiGymApp(api: api));
+    await tester.pumpWidget(
+      DigiGymApp(
+        api: api,
+        personalization: DashboardPersonalization(storage: _MessageStorage()),
+        clock: () => DateTime(2026, 10, 20, 9),
+      ),
+    );
     expect(find.text('Restoring your session...'), findsOneWidget);
 
     restoreCompleter.complete();
     await tester.pumpAndSettle();
 
-    expect(find.text('Welcome back,'), findsOneWidget);
+    expect(find.text('Good morning,'), findsOneWidget);
     expect(find.text('Restored User'), findsOneWidget);
   });
 
@@ -251,6 +293,188 @@ void main() {
     expect(result?.name, 'Updated User');
     expect(result?.fitnessGoal, 'Maintain Weight');
   });
+
+  testWidgets('only a completed successful login selects a new message', (
+    tester,
+  ) async {
+    final api = FakeDigiGymApi();
+    final storage = _MessageStorage();
+    final service = DashboardPersonalization(
+      storage: storage,
+      random: Random(7),
+    );
+    await tester.pumpWidget(DigiGymApp(api: api, personalization: service));
+    await tester.pumpAndSettle();
+    api.loginError = StateError('Rejected');
+    await _login(tester, 'test@example.com');
+    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(storage.writes, 0);
+    final gate = Completer<void>();
+    api.loginError = null;
+    api.loginWait = gate.future;
+    api.restoredProfile = testUser();
+    await tester.tap(find.widgetWithText(ElevatedButton, 'LOGIN'));
+    await tester.pump();
+    expect(storage.writes, 0);
+    expect(find.byType(HomeScreen), findsNothing);
+    gate.complete();
+    await tester.pumpAndSettle();
+    await service.flush();
+    final first = _message(tester);
+    expect(DashboardPersonalization.messages, contains(first));
+    expect(storage.writes, 1);
+    await tester.widget<HomeScreen>(find.byType(HomeScreen)).onLogout();
+    await tester.pumpAndSettle();
+    await _login(tester, 'test@example.com');
+    await service.flush();
+    expect(_message(tester), isNot(first));
+    expect(storage.writes, 2);
+    expect(api.signOutCalls, 1);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'tabs, rebuilds, profile updates and resume keep the session message',
+    (tester) async {
+      final api = FakeDigiGymApi();
+      final storage = _MessageStorage();
+      final service = DashboardPersonalization(
+        storage: storage,
+        random: Random(8),
+      );
+      var now = DateTime(2026, 10, 20, 9);
+      Widget app() =>
+          DigiGymApp(api: api, personalization: service, clock: () => now);
+      await tester.pumpWidget(app());
+      await tester.pumpAndSettle();
+      api.restoredProfile = testUser();
+      await _login(tester, 'test@example.com');
+      await service.flush();
+      final selected = _message(tester);
+      for (final tab in ['Workout', 'Meals', 'Groceries', 'Profile', 'Home']) {
+        await tester.tap(
+          find.descendant(
+            of: find.byType(FloatingBottomNavigationBar),
+            matching: find.text(tab),
+          ),
+        );
+        await tester.pumpAndSettle();
+        if (tab == 'Workout') now = DateTime(2026, 10, 20, 13);
+        expect(_message(tester), selected);
+      }
+      expect(find.text('Good afternoon,'), findsOneWidget);
+      expect(find.text(selected), findsOneWidget);
+      tester
+          .widget<HomeScreen>(find.byType(HomeScreen))
+          .onUpdateProfile(testUser(name: 'Updated Name'));
+      await tester.pumpAndSettle();
+      expect(find.text('Updated Name'), findsOneWidget);
+      await tester.pumpWidget(app());
+      await tester.pumpAndSettle();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      now = DateTime(2026, 10, 20, 18);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(find.text('Good evening,'), findsOneWidget);
+      expect(_message(tester), selected);
+      expect(
+        tester
+            .widget<DashboardPage>(find.byType(DashboardPage))
+            .motivationalMessage,
+        selected,
+      );
+      await service.flush();
+      expect(storage.writes, 1);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'restoration and account switches preserve the correct account choice',
+    (tester) async {
+      final api = FakeDigiGymApi();
+      final storage = _MessageStorage();
+      var service = DashboardPersonalization(
+        storage: storage,
+        random: Random(9),
+      );
+      await tester.pumpWidget(DigiGymApp(api: api, personalization: service));
+      await tester.pumpAndSettle();
+      api.restoredProfile = testUser(name: 'Account A', email: 'a@example.com');
+      await _login(tester, 'a@example.com');
+      final a = _message(tester);
+      await tester.widget<HomeScreen>(find.byType(HomeScreen)).onLogout();
+      await tester.pumpAndSettle();
+      api.restoredProfile = testUser(name: 'Account B', email: 'b@example.com');
+      await _login(tester, 'b@example.com');
+      final b = _message(tester);
+      expect(b, isNot(a));
+      await service.flush();
+      expect(storage.writes, 2);
+      await tester.pumpWidget(const SizedBox());
+      DigiGymSession.currentUser = null;
+      service = DashboardPersonalization(storage: storage, random: Random(100));
+      await tester.pumpWidget(DigiGymApp(api: api, personalization: service));
+      await tester.pumpAndSettle();
+      expect(find.text('Account B'), findsOneWidget);
+      expect(_message(tester), b);
+      expect(service.restoreSession('a@example.com'), a);
+      await service.flush();
+      expect(storage.writes, 2);
+      await tester.widget<HomeScreen>(find.byType(HomeScreen)).onLogout();
+      await tester.pumpAndSettle();
+      api.restoredProfile = testUser(name: 'Account A', email: 'a@example.com');
+      await _login(tester, 'a@example.com');
+      expect(_message(tester), isNot(b));
+      expect(find.text('Account A'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'unavailable personalization storage does not block auth or restoration',
+    (tester) async {
+      final api = FakeDigiGymApi()
+        ..authenticated = true
+        ..restoredProfile = testUser();
+      final storage = _MessageStorage()..unavailable = true;
+      final service = DashboardPersonalization(storage: storage);
+      await tester.pumpWidget(DigiGymApp(api: api, personalization: service));
+      await tester.pumpAndSettle();
+      final first = _message(tester);
+      expect(
+        find.textContaining('could not restore your session'),
+        findsNothing,
+      );
+      expect(api.authenticated, isTrue);
+      await service.flush();
+      await tester.widget<HomeScreen>(find.byType(HomeScreen)).onLogout();
+      await tester.pumpAndSettle();
+      await _login(tester, 'test@example.com');
+      expect(_message(tester), isNot(first));
+      expect(api.authenticated, isTrue);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'demo login gets one stable message without backend authentication',
+    (tester) async {
+      final api = FakeDigiGymApi();
+      final service = DashboardPersonalization(storage: _MessageStorage());
+      await tester.pumpWidget(DigiGymApp(api: api, personalization: service));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).at(0), 'demo@gym.com');
+      await tester.enterText(find.byType(TextField).at(1), '123456');
+      await tester.ensureVisible(find.widgetWithText(ElevatedButton, 'LOGIN'));
+      await tester.tap(find.widgetWithText(ElevatedButton, 'LOGIN'));
+      await tester.pumpAndSettle();
+      expect(find.byType(HomeScreen), findsOneWidget);
+      expect(api.loginEmail, isNull);
+      expect(api.authenticated, isFalse);
+      expect(DashboardPersonalization.messages, contains(_message(tester)));
+    },
+  );
 
   testWidgets('logout shows progress while the async sign-out is running', (
     tester,

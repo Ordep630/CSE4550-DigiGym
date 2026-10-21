@@ -2,21 +2,15 @@ import 'package:flutter/material.dart';
 
 import '../models/user_profile.dart';
 import '../models/exercise.dart';
+import '../widgets/dashboard_glass_card.dart';
 
 class WorkoutsScreen extends StatelessWidget {
   final UserProfile user;
 
-  const WorkoutsScreen({
-    super.key,
-    required this.user,
-  });
+  const WorkoutsScreen({super.key, required this.user});
 
   Exercise _exercise(String name, String sets, String description) {
-    return Exercise(
-      name: name,
-      sets: sets,
-      description: description,
-    );
+    return Exercise(name: name, sets: sets, description: description);
   }
 
   List<Exercise> beginnerWorkout() {
@@ -376,106 +370,125 @@ class WorkoutsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final exercises = getExercises();
+    final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? Colors.transparent
+          : null,
       appBar: AppBar(title: const Text('Workout Plan')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: getLevelColor(),
-                        child: const Icon(
-                          Icons.fitness_center,
-                          color: Colors.white,
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: ListView(
+          // Reserve the measured navigation inset inside the scroll content,
+          // so the viewport does not cut glass surfaces off above the pill.
+          padding: EdgeInsets.fromLTRB(
+            16,
+            16,
+            16,
+            16 + MediaQuery.paddingOf(context).bottom,
+          ),
+          children: [
+            DashboardGlassCard(
+              margin: const EdgeInsets.all(4),
+              padding: EdgeInsets.zero,
+              cornerRadius: 12,
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: getLevelColor(),
+                          child: const Icon(
+                            Icons.fitness_center,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Fitness Level',
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                            Text(
-                              user.fitnessLevel,
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: getLevelColor(),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Fitness Level',
+                                style: TextStyle(
+                                  color: colors.onSurfaceVariant,
+                                ),
                               ),
-                            ),
-                          ],
+                              Text(
+                                user.fitnessLevel,
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: getLevelColor(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 15),
+                    Text(getLevelDescription()),
+                    const SizedBox(height: 15),
+                    const Divider(),
+                    const SizedBox(height: 10),
+                    Text('Goal: ${user.fitnessGoal}'),
+                    Text('Workout time: ${user.workoutTime} minutes'),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              '${user.fitnessLevel} Workout',
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              '${exercises.length} exercises',
+              style: TextStyle(color: colors.onSurfaceVariant),
+            ),
+            const SizedBox(height: 15),
+            ...exercises.asMap().entries.map((entry) {
+              final index = entry.key;
+              final exercise = entry.value;
+
+              return DashboardGlassCard(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: EdgeInsets.zero,
+                cornerRadius: 12,
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: ExpansionTile(
+                    leading: CircleAvatar(child: Text('${index + 1}')),
+                    title: Text(
+                      exercise.name,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      exercise.sets,
+                      style: TextStyle(color: colors.onSurfaceVariant),
+                    ),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(exercise.description),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 15),
-                  Text(getLevelDescription()),
-                  const SizedBox(height: 15),
-                  const Divider(),
-                  const SizedBox(height: 10),
-                  Text('Goal: ${user.fitnessGoal}'),
-                  Text(
-                    'Workout time: ${user.workoutTime} minutes',
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            '${user.fitnessLevel} Workout',
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            '${exercises.length} exercises',
-            style: const TextStyle(color: Colors.grey),
-          ),
-          const SizedBox(height: 15),
-          ...exercises.asMap().entries.map((entry) {
-            final index = entry.key;
-            final exercise = entry.value;
-
-            return Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: ExpansionTile(
-                leading: CircleAvatar(
-                  child: Text('${index + 1}'),
                 ),
-                title: Text(
-                  exercise.name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                subtitle: Text(exercise.sets),
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(exercise.description),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-        ],
+              );
+            }),
+          ],
+        ),
       ),
     );
   }

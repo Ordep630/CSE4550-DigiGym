@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// Shared palette for DigiGym's dark appearance.
 abstract final class DigiGymDarkColors {
@@ -16,7 +17,7 @@ abstract final class DigiGymDashboardTheme {
   static const numberFont = 'DigiGymDoto';
   static const cardRadius = 16.0;
 
-  /// Apply only below DashboardPage, leaving navigation typography untouched.
+  /// Apply to page content, leaving navigation typography untouched.
   static ThemeData content(ThemeData base) =>
       base.copyWith(textTheme: base.textTheme.apply(fontFamily: textFont));
 
@@ -49,12 +50,23 @@ abstract final class DigiGymDashboardTheme {
       canvasColor: DigiGymDarkColors.graphite,
       textTheme: text,
       iconTheme: base.iconTheme.copyWith(color: colors.primary),
+      dividerColor: colors.outlineVariant,
       appBarTheme: base.appBarTheme.copyWith(
-        backgroundColor: DigiGymDarkColors.graphite,
+        backgroundColor: Colors.transparent,
         foregroundColor: colors.onSurface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
+        systemOverlayStyle: SystemUiOverlayStyle.light,
+      ),
+      listTileTheme: base.listTileTheme.copyWith(iconColor: colors.primary),
+      expansionTileTheme: base.expansionTileTheme.copyWith(
+        textColor: colors.primary,
+        collapsedTextColor: colors.onSurface,
+        iconColor: colors.primary,
+        collapsedIconColor: colors.onSurfaceVariant,
+        backgroundColor: Colors.transparent,
+        collapsedBackgroundColor: Colors.transparent,
       ),
       cardTheme: base.cardTheme.copyWith(
         color: DigiGymDarkColors.charcoal.withValues(alpha: 0.94),

@@ -27,7 +27,9 @@ class FloatingBottomNavigationBar extends StatelessWidget {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final selected = dark ? const Color(0xFF70FF45) : const Color(0xFF21865C);
     final inactive = dark ? const Color(0xFFA6AEAA) : const Color(0xFF626C66);
-    final surface = dark ? const Color(0xE61A201E) : const Color(0xE6F5F8F5);
+    final surface = dark
+        ? const Color(0xFF1A201E).withValues(alpha: 0.20)
+        : const Color(0xE6F5F8F5);
 
     return SafeArea(
       top: false,
@@ -44,20 +46,23 @@ class FloatingBottomNavigationBar extends StatelessWidget {
                   color: Colors.black.withValues(alpha: dark ? 0.22 : 0.10),
                   blurRadius: 18,
                   offset: const Offset(0, 5),
+                  // A filled shadow behind translucent glass adds a second
+                  // dark surface. Keep the dark-mode shadow outside its shape.
+                  blurStyle: dark ? BlurStyle.outer : BlurStyle.normal,
                 ),
               ],
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(48),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
                 child: Material(
                   color: surface,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(48),
                     side: BorderSide(
                       color: dark
-                          ? const Color(0x33FFFFFF)
+                          ? Colors.white.withValues(alpha: 0.15)
                           : const Color(0x99FFFFFF),
                     ),
                   ),

@@ -91,108 +91,135 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
+      backgroundColor: theme.brightness == Brightness.dark
+          ? Colors.transparent
+          : null,
       appBar: AppBar(title: const Text('My Profile')),
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: SingleChildScrollView(
+          // Reserve the measured navigation inset inside the scroll content,
+          // so the viewport does not cut glass surfaces off above the pill.
+          padding: EdgeInsets.fromLTRB(
+            20,
+            20,
+            20,
+            20 + MediaQuery.paddingOf(context).bottom,
+          ),
 
-        child: Column(
-          children: [
-            const CircleAvatar(radius: 50, child: Icon(Icons.person, size: 55)),
-
-            const SizedBox(height: 15),
-
-            Text(
-              widget.user.name,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-
-            Text(widget.user.email, style: const TextStyle(color: Colors.grey)),
-
-            const SizedBox(height: 30),
-
-            ProfileInformation(title: 'Age', value: '${widget.user.age} years'),
-
-            ProfileInformation(
-              title: 'Height',
-              value: '${widget.user.height} cm',
-            ),
-
-            ProfileInformation(
-              title: 'Weight',
-              value: '${widget.user.weight} kg',
-            ),
-
-            ProfileInformation(
-              title: 'BMI',
-              value: widget.user.bmi.toStringAsFixed(1),
-            ),
-
-            ProfileInformation(
-              title: 'Fitness Level',
-              value: widget.user.fitnessLevel,
-            ),
-
-            ProfileInformation(
-              title: 'Fitness Goal',
-              value: widget.user.fitnessGoal,
-            ),
-
-            ProfileInformation(
-              title: 'Workout Time',
-              value: '${widget.user.workoutTime} minutes',
-            ),
-
-            ProfileInformation(
-              title: 'Diet',
-              value: widget.user.dietaryPreference,
-            ),
-
-            const SizedBox(height: 20),
-
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-
-              child: ElevatedButton.icon(
-                onPressed: isLoggingOut
-                    ? null
-                    : () {
-                        editProfile(context);
-                      },
-
-                icon: const Icon(Icons.edit),
-
-                label: const Text('EDIT PROFILE'),
+          child: Column(
+            children: [
+              const CircleAvatar(
+                radius: 50,
+                child: Icon(Icons.person, size: 55),
               ),
-            ),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 15),
 
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-
-              child: OutlinedButton.icon(
-                onPressed: isLoggingOut
-                    ? null
-                    : () {
-                        logout();
-                      },
-
-                icon: isLoggingOut
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.logout),
-
-                label: Text(isLoggingOut ? 'LOGGING OUT...' : 'LOGOUT'),
+              Text(
+                widget.user.name,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-          ],
+
+              Text(
+                widget.user.email,
+                style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+              ),
+
+              const SizedBox(height: 30),
+
+              ProfileInformation(
+                title: 'Age',
+                value: '${widget.user.age} years',
+              ),
+
+              ProfileInformation(
+                title: 'Height',
+                value: '${widget.user.height} cm',
+              ),
+
+              ProfileInformation(
+                title: 'Weight',
+                value: '${widget.user.weight} kg',
+              ),
+
+              ProfileInformation(
+                title: 'BMI',
+                value: widget.user.bmi.toStringAsFixed(1),
+              ),
+
+              ProfileInformation(
+                title: 'Fitness Level',
+                value: widget.user.fitnessLevel,
+              ),
+
+              ProfileInformation(
+                title: 'Fitness Goal',
+                value: widget.user.fitnessGoal,
+              ),
+
+              ProfileInformation(
+                title: 'Workout Time',
+                value: '${widget.user.workoutTime} minutes',
+              ),
+
+              ProfileInformation(
+                title: 'Diet',
+                value: widget.user.dietaryPreference,
+              ),
+
+              const SizedBox(height: 20),
+
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+
+                child: ElevatedButton.icon(
+                  onPressed: isLoggingOut
+                      ? null
+                      : () {
+                          editProfile(context);
+                        },
+
+                  icon: const Icon(Icons.edit),
+
+                  label: const Text('EDIT PROFILE'),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+
+                child: OutlinedButton.icon(
+                  onPressed: isLoggingOut
+                      ? null
+                      : () {
+                          logout();
+                        },
+
+                  icon: isLoggingOut
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.logout),
+
+                  label: Text(isLoggingOut ? 'LOGGING OUT...' : 'LOGOUT'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

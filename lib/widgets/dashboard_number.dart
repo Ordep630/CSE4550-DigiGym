@@ -6,6 +6,8 @@ import '../theme/digigym_dashboard_theme.dart';
 class DashboardNumber extends StatelessWidget {
   final String value;
   final double fontSize;
+  final double lineHeight;
+  final double? unitFontSize;
   final bool dotted;
   final Color? color;
 
@@ -13,6 +15,8 @@ class DashboardNumber extends StatelessWidget {
     super.key,
     required this.value,
     this.fontSize = 28,
+    this.lineHeight = 1.2,
+    this.unitFontSize,
     this.dotted = true,
     this.color,
   });
@@ -37,7 +41,7 @@ class DashboardNumber extends StatelessWidget {
                     ? DigiGymDashboardTheme.numberFont
                     : DigiGymDashboardTheme.textFont,
                 fontSize: fontSize,
-                height: 1.2,
+                height: lineHeight,
                 fontWeight: FontWeight.w600,
                 fontVariations: dotted
                     ? const [
@@ -53,7 +57,7 @@ class DashboardNumber extends StatelessWidget {
               text: unit,
               style: TextStyle(
                 fontFamily: DigiGymDashboardTheme.textFont,
-                fontSize: fontSize * 0.53,
+                fontSize: unitFontSize ?? fontSize * 0.53,
                 color: foreground,
                 fontWeight: FontWeight.w500,
               ),

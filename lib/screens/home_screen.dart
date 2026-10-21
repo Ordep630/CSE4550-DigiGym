@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import '../theme/digigym_dashboard_theme.dart';
 import '../widgets/floating_bottom_navigation_bar.dart';
+import '../widgets/digigym_atmospheric_background.dart';
 import '../services/digigym_api.dart';
+import '../services/dashboard_personalization.dart';
 import 'dashboard_screen.dart';
 import 'workouts_screen.dart';
 import 'meal_page.dart';
@@ -15,6 +17,8 @@ class HomeScreen extends StatefulWidget {
   final Future<void> Function() onLogout;
   final Function(UserProfile) onUpdateProfile;
   final DigiGymApi api;
+  final String motivationalMessage;
+  final DateTime Function()? clock;
 
   const HomeScreen({
     super.key,
@@ -22,6 +26,8 @@ class HomeScreen extends StatefulWidget {
     required this.onLogout,
     required this.onUpdateProfile,
     this.api = digiGymApi,
+    this.motivationalMessage = DashboardPersonalization.defaultMessage,
+    this.clock,
   });
 
   @override
@@ -34,7 +40,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final pages = [
-      DashboardPage(user: widget.user),
+      DashboardPage(
+        user: widget.user,
+        motivationalMessage: widget.motivationalMessage,
+        clock: widget.clock,
+      ),
       WorkoutsScreen(user: widget.user),
       MealPage(user: widget.user),
       const GroceryScreen(),
@@ -46,22 +56,26 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     ];
 
-    final inheritedTheme = Theme.of(context);
+    final darkTheme = DigiGymDashboardTheme.dark(Theme.of(context));
 
     return Theme(
-      data: selectedIndex == 0
-          ? DigiGymDashboardTheme.dark(inheritedTheme)
-          : inheritedTheme,
-      child: Scaffold(
-        extendBody: selectedIndex == 0,
-        body: pages[selectedIndex],
-        bottomNavigationBar: FloatingBottomNavigationBar(
-          selectedIndex: selectedIndex,
-          onDestinationSelected: (index) {
-            setState(() {
-              selectedIndex = index;
-            });
-          },
+      data: darkTheme,
+      child: DigiGymAtmosphericBackground(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          extendBody: true,
+          body: Theme(
+            data: DigiGymDashboardTheme.content(darkTheme),
+            child: pages[selectedIndex],
+          ),
+          bottomNavigationBar: FloatingBottomNavigationBar(
+            selectedIndex: selectedIndex,
+            onDestinationSelected: (index) {
+              setState(() {
+                selectedIndex = index;
+              });
+            },
+          ),
         ),
       ),
     );

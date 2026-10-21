@@ -29,31 +29,35 @@ class _GroceryScreenState extends State<GroceryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? Colors.transparent
+          : null,
       appBar: AppBar(title: const Text('Grocery List')),
-      body: ListView(
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(20),
-            child: Text(
-              'Weekly Grocery List',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: ListView(
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(20),
+              child: Text(
+                'Weekly Grocery List',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
-          ),
-          ...items.entries.map(
-            (item) => CheckboxListTile(
-              title: Text(item.key),
-              value: item.value,
-              onChanged: (value) {
-                setState(() {
-                  items[item.key] = value ?? false;
-                });
-              },
+            ...items.entries.map(
+              (item) => CheckboxListTile(
+                title: Text(item.key),
+                value: item.value,
+                onChanged: (value) {
+                  setState(() {
+                    items[item.key] = value ?? false;
+                  });
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

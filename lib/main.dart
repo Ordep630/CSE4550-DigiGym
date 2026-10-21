@@ -4,6 +4,7 @@ import 'client.dart';
 import 'models/user_profile.dart';
 import 'models/session.dart';
 import 'services/digigym_api.dart';
+import 'services/dashboard_personalization.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/assessment_screen.dart';
@@ -20,22 +21,33 @@ Future<void> main() async {
 
 class DigiGymApp extends StatefulWidget {
   final DigiGymApi api;
+  final DashboardPersonalization? personalization;
+  final DateTime Function()? clock;
 
-  const DigiGymApp({super.key, this.api = digiGymApi});
+  const DigiGymApp({
+    super.key,
+    this.api = digiGymApi,
+    this.personalization,
+    this.clock,
+  });
 
   @override
   State<DigiGymApp> createState() => _DigiGymAppState();
 }
 
-class _DigiGymAppState extends State<DigiGymApp> {
+class _DigiGymAppState extends State<DigiGymApp> with WidgetsBindingObserver {
   bool isRestoringSession = true;
   bool isClearingSession = false;
   bool isCompletingProfile = false;
   String? sessionRestoreError;
+  late final DashboardPersonalization _personalization;
+  String _motivationalMessage = DashboardPersonalization.defaultMessage;
 
   @override
   void initState() {
     super.initState();
+    _personalization = widget.personalization ?? DashboardPersonalization();
+    WidgetsBinding.instance.addObserver(this);
     restoreSession();
   }
 
@@ -46,12 +58,16 @@ class _DigiGymAppState extends State<DigiGymApp> {
     });
 
     try {
+      await _personalization.initialize();
       final user = await widget.api.restoreProfile();
       if (widget.api.isAuthenticated && user == null) {
         throw StateError('The signed-in account has no DigiGym profile.');
       }
 
       if (!mounted) return;
+      if (user != null) {
+        _motivationalMessage = _personalization.restoreSession(user.email);
+      }
       setState(() {
         DigiGymSession.currentUser = user;
         isRestoringSession = false;
@@ -84,6 +100,7 @@ class _DigiGymAppState extends State<DigiGymApp> {
   }
 
   void _login(UserProfile user) {
+    _motivationalMessage = _personalization.startSession(user.email);
     setState(() {
       DigiGymSession.currentUser = user;
     });
@@ -96,7 +113,21 @@ class _DigiGymAppState extends State<DigiGymApp> {
 
     setState(() {
       DigiGymSession.currentUser = null;
+      _motivationalMessage = DashboardPersonalization.defaultMessage;
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _personalization.retryPersistence();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   Future<void> clearStoredSession() async {
@@ -152,6 +183,8 @@ class _DigiGymAppState extends State<DigiGymApp> {
     } else {
       home = HomeScreen(
         user: DigiGymSession.currentUser!,
+        motivationalMessage: _motivationalMessage,
+        clock: widget.clock,
         onLogout: _logout,
         onUpdateProfile: _updateProfile,
         api: widget.api,

@@ -26,6 +26,8 @@ class StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final originalSize = embedded && dotted ? 29.0 : 27.0;
+    final numberScale = !dotted ? 1.0 : (embedded ? 1.15 : 1.17);
     final content = Row(
       children: [
         DashboardIconBadge(
@@ -43,7 +45,10 @@ class StatCard extends StatelessWidget {
               DashboardNumber(
                 value: value,
                 dotted: dotted,
-                fontSize: embedded && dotted ? 29 : 27,
+                fontSize: originalSize * numberScale,
+                // Larger glyphs use the existing line box and unit sizing.
+                lineHeight: 1.2 / numberScale,
+                unitFontSize: originalSize * 0.53,
                 color: highlightValue ? theme.colorScheme.primary : null,
               ),
               const SizedBox(height: 3),

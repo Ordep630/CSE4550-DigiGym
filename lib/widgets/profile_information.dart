@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'dashboard_glass_card.dart';
+
 class ProfileInformation extends StatelessWidget {
   final String title;
   final String value;
@@ -12,18 +14,30 @@ class ProfileInformation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        title: Text(
-          title,
-          style: const TextStyle(color: Colors.grey),
+    final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
+    final content = ListTile(
+      title: Text(
+        title,
+        style: TextStyle(
+          color: dark ? theme.colorScheme.onSurfaceVariant : Colors.grey,
         ),
-        trailing: Text(
-          value,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+      trailing: Text(
+        value,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: dark ? theme.colorScheme.onSurface : null,
         ),
       ),
     );
+    return dark
+        ? DashboardGlassCard(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: EdgeInsets.zero,
+            cornerRadius: 12,
+            child: content,
+          )
+        : Card(margin: const EdgeInsets.only(bottom: 8), child: content);
   }
 }

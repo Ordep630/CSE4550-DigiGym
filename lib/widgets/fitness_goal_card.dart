@@ -38,8 +38,26 @@ class FitnessGoalCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            const Center(
-              child: DashboardIconBadge(icon: Icons.track_changes, size: 68),
+            Center(
+              child: DashboardIconBadge(
+                icon: switch (goal) {
+                  'Lose Weight' => Icons.monitor_weight_outlined,
+                  'Maintain Weight' => Icons.balance,
+                  'Gain Weight' => Icons.trending_up,
+                  _ => Icons.track_changes,
+                },
+                size: 68,
+                child: goal == 'Build Muscle'
+                    ? Image.asset(
+                        'assets/icons/biceps_flexed.png',
+                        width: 68 * 0.52,
+                        height: 68 * 0.52,
+                        color: theme.colorScheme.primary,
+                        colorBlendMode: BlendMode.srcIn,
+                        excludeFromSemantics: true,
+                      )
+                    : null,
+              ),
             ),
             const SizedBox(height: 10),
             Text(

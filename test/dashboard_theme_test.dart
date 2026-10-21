@@ -40,6 +40,7 @@ void main() {
     theme: lightTheme,
     home: HomeScreen(
       user: user,
+      clock: () => DateTime(2026, 10, 20, 9),
       onLogout: () async {},
       onUpdateProfile: (_) {},
     ),
@@ -51,7 +52,11 @@ void main() {
     await tester.pumpWidget(host(profile()));
     await tester.pumpAndSettle();
 
-    expect(find.text('Welcome back,'), findsOneWidget);
+    expect(find.text('Good morning,'), findsOneWidget);
+    expect(
+      find.text('Every workout brings you closer to your goals.'),
+      findsOneWidget,
+    );
     expect(find.text('Alex'), findsOneWidget);
     expect(find.text('Maintain Weight'), findsOneWidget);
     expect(find.text('24.7'), findsOneWidget);
@@ -83,7 +88,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('only Home and its navigation receive the dark theme', (
+  testWidgets('all five main tabs and navigation share the scoped dark theme', (
     tester,
   ) async {
     await tester.pumpWidget(host(profile()));
@@ -140,17 +145,27 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(entry.value), findsOneWidget);
       final pageTheme = Theme.of(tester.element(find.byType(entry.value)));
-      expect(pageTheme.brightness, Brightness.light);
-      expect(pageTheme.colorScheme, lightTheme.colorScheme);
+      expect(pageTheme.brightness, Brightness.dark);
+      expect(pageTheme.colorScheme, navigationTheme().colorScheme);
+      expect(pageTheme.scaffoldBackgroundColor, DigiGymDarkColors.graphite);
       expect(
-        pageTheme.scaffoldBackgroundColor,
-        lightTheme.scaffoldBackgroundColor,
+        pageTheme.textTheme.bodyMedium?.fontFamily,
+        DigiGymDashboardTheme.textFont,
       );
-      expect(navigationTheme().brightness, Brightness.light);
-      expect(homeScaffold().extendBody, isFalse);
+      expect(navigationTheme().brightness, Brightness.dark);
+      expect(homeScaffold().extendBody, isTrue);
       expect(
-        tester.getRect(find.byType(entry.value)).bottom,
-        navigationRect.top,
+        tester
+            .getRect(
+              find
+                  .descendant(
+                    of: find.byType(entry.value),
+                    matching: find.byType(Scrollable),
+                  )
+                  .first,
+            )
+            .bottom,
+        tester.view.physicalSize.height / tester.view.devicePixelRatio,
       );
       expect(
         tester.getRect(find.byType(FloatingBottomNavigationBar)),
@@ -245,7 +260,13 @@ void main() {
       final headerImage = tester.widget<Image>(
         find.descendant(
           of: find.byType(DashboardPage),
-          matching: find.byType(Image),
+          matching: find.byWidgetPredicate(
+            (widget) =>
+                widget is Image &&
+                widget.image is AssetImage &&
+                (widget.image as AssetImage).assetName ==
+                    'assets/images/digigym_workout_icon.png',
+          ),
         ),
       );
       expect(
@@ -271,6 +292,34 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text(entry.key), findsOneWidget);
         expect(find.text(entry.value), findsOneWidget);
+        final badge = tester.widget<DashboardIconBadge>(
+          find.descendant(
+            of: find.byType(FitnessGoalCard),
+            matching: find.byType(DashboardIconBadge),
+          ),
+        );
+        expect(badge.size, 68);
+        expect(badge.luminous, isTrue);
+        if (entry.key == 'Build Muscle') {
+          final image = badge.child! as Image;
+          expect(
+            (image.image as AssetImage).assetName,
+            'assets/icons/biceps_flexed.png',
+          );
+          expect(image.color, DigiGymDarkColors.electricGreen);
+          expect(image.width, 68 * 0.52);
+          expect(image.height, 68 * 0.52);
+        } else {
+          expect(badge.child, isNull);
+          expect(
+            badge.icon,
+            {
+              'Lose Weight': Icons.monitor_weight_outlined,
+              'Maintain Weight': Icons.balance,
+              'Gain Weight': Icons.trending_up,
+            }[entry.key],
+          );
+        }
         expect(
           tester.widget<FitnessGoalCard>(find.byType(FitnessGoalCard)).visual,
           isNull,
