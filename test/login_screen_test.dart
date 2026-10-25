@@ -5,6 +5,7 @@ import 'package:digigym/models/session.dart';
 import 'package:digigym/models/user_profile.dart';
 import 'package:digigym/screens/login_screen.dart';
 import 'package:digigym/screens/register_screen.dart';
+import 'package:digigym/screens/forgot_password_screen.dart';
 import 'package:digigym/services/digigym_api.dart';
 import 'package:digigym/theme/digigym_dashboard_theme.dart';
 import 'package:flutter/material.dart';
@@ -220,38 +221,51 @@ void main() {
     }
   });
 
-  testWidgets('recovery placeholder is accessible and never starts auth', (
-    tester,
-  ) async {
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetDevicePixelRatio);
-    addTearDown(tester.view.resetPhysicalSize);
-    final api = _CountingApi();
-    await pumpLogin(tester, api: api);
-    final recovery = find.widgetWithText(TextButton, 'Forgot Password?');
-    final bounds = tester.getRect(recovery);
-    expect(bounds.height, greaterThanOrEqualTo(48));
-    expect(bounds.width, greaterThanOrEqualTo(48));
-    expect(bounds.right, closeTo(tester.getRect(password).right, .001));
-    expect(bounds.top, closeTo(tester.getRect(password).bottom, .001));
-    expect(tester.getRect(loginButton).top - bounds.bottom, closeTo(4, .001));
-    final style = tester.widget<TextButton>(recovery).style!;
-    expect(style.foregroundColor!.resolve({}), DigiGymDarkColors.secondaryText);
-    final semantics = tester.ensureSemantics();
-    try {
-      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
-      await tester.tap(recovery);
-      await tester.pumpAndSettle();
-      expect(find.text('Password recovery is coming soon.'), findsOneWidget);
-      expect(find.byType(LoginScreen), findsOneWidget);
-      expect(find.byType(RegisterScreen), findsNothing);
-      expect(api.loginCalls, 0);
-      expect(DigiGymSession.currentUser, isNull);
-      expect(tester.takeException(), isNull);
-    } finally {
-      semantics.dispose();
-    }
-  });
+  testWidgets(
+    'recovery action is accessible and opens the real recovery route',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      final api = _CountingApi();
+      await pumpLogin(tester, api: api);
+      final recovery = find.widgetWithText(TextButton, 'Forgot Password?');
+      final bounds = tester.getRect(recovery);
+      expect(bounds.height, greaterThanOrEqualTo(48));
+      expect(bounds.width, greaterThanOrEqualTo(48));
+      expect(bounds.right, closeTo(tester.getRect(password).right, .001));
+      expect(bounds.top, closeTo(tester.getRect(password).bottom, .001));
+      expect(tester.getRect(loginButton).top - bounds.bottom, closeTo(4, .001));
+      final style = tester.widget<TextButton>(recovery).style!;
+      expect(
+        style.foregroundColor!.resolve({}),
+        DigiGymDarkColors.secondaryText,
+      );
+      final semantics = tester.ensureSemantics();
+      try {
+        await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+        await tester.tap(recovery);
+        await tester.pumpAndSettle();
+        expect(find.byType(ForgotPasswordScreen), findsOneWidget);
+        expect(
+          tester
+              .widget<ForgotPasswordScreen>(find.byType(ForgotPasswordScreen))
+              .api,
+          same(api),
+        );
+        expect(find.byType(LoginScreen), findsNothing);
+        expect(find.byType(RegisterScreen), findsNothing);
+        expect(api.loginCalls, 0);
+        expect(DigiGymSession.currentUser, isNull);
+        await tester.tap(find.byType(BackButton));
+        await tester.pumpAndSettle();
+        expect(find.byType(LoginScreen), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      } finally {
+        semantics.dispose();
+      }
+    },
+  );
 
   testWidgets('login gradient uses softer brand greens with readable text', (
     tester,

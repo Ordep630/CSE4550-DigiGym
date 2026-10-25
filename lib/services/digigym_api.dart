@@ -1,5 +1,9 @@
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart'
     hide UserProfile;
+import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+    show
+        EmailAccountPasswordResetException,
+        EmailAccountPasswordResetExceptionReason;
 
 import '../client.dart';
 import '../models/profile_mapping.dart';
@@ -11,6 +15,20 @@ class ProfileSetupRequiredException implements Exception {
   const ProfileSetupRequiredException(this.email);
 }
 
+enum PasswordRecoveryFailure {
+  invalid,
+  expired,
+  policyViolation,
+  tooManyAttempts,
+  unavailable,
+}
+
+/// Safe recovery errors; never carries server messages, passwords or tokens.
+class PasswordRecoveryException implements Exception {
+  final PasswordRecoveryFailure reason;
+  const PasswordRecoveryException(this.reason);
+}
+
 /// Frontend-facing wrapper around DigiGym's Serverpod API.
 ///
 /// Keeping the API boundary here makes the screens testable without a live
@@ -19,6 +37,63 @@ class DigiGymApi {
   const DigiGymApi();
 
   bool get isAuthenticated => client.auth.isAuthenticated;
+
+  Future<String> startPasswordReset(String email) => _recover(() async {
+    final id = await client.emailIdp.startPasswordReset(email: email);
+    return id.toString();
+  });
+
+  Future<String> verifyPasswordResetCode({
+    required String passwordResetRequestId,
+    required String verificationCode,
+  }) => _recover(
+    () => client.emailIdp.verifyPasswordResetCode(
+      passwordResetRequestId: UuidValue.withValidation(passwordResetRequestId),
+      verificationCode: verificationCode,
+    ),
+  );
+
+  Future<void> finishPasswordReset({
+    required String finishPasswordResetToken,
+    required String newPassword,
+  }) => _recover(
+    () => client.emailIdp.finishPasswordReset(
+      finishPasswordResetToken: finishPasswordResetToken,
+      newPassword: newPassword,
+    ),
+  );
+
+  // Recovery never signs in, signs out, or updates stored authentication tokens.
+  Future<T> _recover<T>(Future<T> Function() request) async {
+    try {
+      return await request();
+    } on EmailAccountPasswordResetException catch (error) {
+      throw PasswordRecoveryException(switch (error.reason) {
+        EmailAccountPasswordResetExceptionReason.invalid =>
+          PasswordRecoveryFailure.invalid,
+        EmailAccountPasswordResetExceptionReason.expired =>
+          PasswordRecoveryFailure.expired,
+        EmailAccountPasswordResetExceptionReason.policyViolation =>
+          PasswordRecoveryFailure.policyViolation,
+        EmailAccountPasswordResetExceptionReason.tooManyAttempts =>
+          PasswordRecoveryFailure.tooManyAttempts,
+        EmailAccountPasswordResetExceptionReason.unknown =>
+          PasswordRecoveryFailure.unavailable,
+      });
+    } on FormatException {
+      throw const PasswordRecoveryException(PasswordRecoveryFailure.invalid);
+    } on ServerpodClientHttpException catch (error) {
+      throw PasswordRecoveryException(
+        error.statusCode == 429
+            ? PasswordRecoveryFailure.tooManyAttempts
+            : PasswordRecoveryFailure.unavailable,
+      );
+    } catch (_) {
+      throw const PasswordRecoveryException(
+        PasswordRecoveryFailure.unavailable,
+      );
+    }
+  }
 
   Future<String> startRegistration(String email) async {
     final requestId = await client.emailIdp.startRegistration(email: email);

@@ -8,6 +8,7 @@ import '../services/digigym_api.dart';
 import '../theme/digigym_dashboard_theme.dart';
 import '../widgets/digigym_page_shell.dart';
 import 'register_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final void Function(UserProfile) onLogin;
@@ -242,15 +243,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                     alignment: Alignment.centerRight,
                                     child: TextButton(
                                       onPressed: () {
-                                        ScaffoldMessenger.of(context)
-                                          ..hideCurrentSnackBar()
-                                          ..showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'Password recovery is coming soon.',
-                                              ),
-                                            ),
-                                          );
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute<void>(
+                                            builder: (_) =>
+                                                ForgotPasswordScreen(
+                                                  api: widget.api,
+                                                ),
+                                          ),
+                                        );
                                       },
                                       style: TextButton.styleFrom(
                                         foregroundColor:

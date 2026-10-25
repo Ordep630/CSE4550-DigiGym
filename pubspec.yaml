@@ -38,6 +38,7 @@ dependencies:
     path: digigym_backend/digigym_backend_client
   serverpod_flutter: ^4.0.2
   serverpod_auth_idp_flutter: ^4.0.2
+  serverpod_auth_idp_client: ^4.0.2
 
 dev_dependencies:
   flutter_test:
