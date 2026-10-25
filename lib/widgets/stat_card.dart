@@ -11,6 +11,10 @@ class StatCard extends StatelessWidget {
   final bool embedded;
   final bool dotted;
   final Color? iconColor;
+  final bool fitNumber;
+
+  /// Retain compact numerical typography when embedding a former small card.
+  final bool? compactNumber;
 
   const StatCard({
     super.key,
@@ -21,13 +25,16 @@ class StatCard extends StatelessWidget {
     this.embedded = false,
     this.dotted = true,
     this.iconColor,
+    this.fitNumber = false,
+    this.compactNumber,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final originalSize = embedded && dotted ? 29.0 : 27.0;
-    final numberScale = !dotted ? 1.0 : (embedded ? 1.15 : 1.17);
+    final compact = compactNumber ?? !embedded;
+    final originalSize = !compact && dotted ? 29.0 : 27.0;
+    final numberScale = !dotted ? 1.0 : (compact ? 1.17 : 1.15);
     final content = Row(
       children: [
         DashboardIconBadge(
@@ -50,6 +57,7 @@ class StatCard extends StatelessWidget {
                 lineHeight: 1.2 / numberScale,
                 unitFontSize: originalSize * 0.53,
                 color: highlightValue ? theme.colorScheme.primary : null,
+                fitToWidth: fitNumber,
               ),
               const SizedBox(height: 3),
               Text(

@@ -51,7 +51,7 @@ void main() {
           home: AssessmentScreen(api: api, onComplete: () => completed++),
         ),
       );
-      expect(find.byType(TextField), findsNWidgets(4));
+      expect(find.byType(TextField), findsNWidgets(5));
       expect(find.byType(DropdownButtonFormField<String>), findsNWidgets(4));
       expect(find.byType(DropdownButtonFormField<int>), findsOneWidget);
       expect(
@@ -59,8 +59,9 @@ void main() {
         Brightness.dark,
       );
       await tester.enterText(find.byType(TextField).at(1), '31');
-      await tester.enterText(find.byType(TextField).at(2), '180');
-      await tester.enterText(find.byType(TextField).at(3), '80');
+      await tester.enterText(find.byKey(const ValueKey('height-ft')), '5');
+      await tester.enterText(find.byKey(const ValueKey('height-in')), '11');
+      await tester.enterText(find.byKey(const ValueKey('weight-lb')), '176.4');
       final dropdowns = find.byType(DropdownButtonFormField<String>);
       await choose(tester, dropdowns.at(0), 'Advanced');
       await choose(tester, dropdowns.at(1), 'Maintain Weight');
@@ -84,7 +85,7 @@ void main() {
       final profile = api.updateRequest!;
       expect(
         (profile.name, profile.age, profile.height, profile.weight),
-        ('Assessment User', 31, 180.0, 80.0),
+        ('Assessment User', 31, 180.34, 80.013694068),
       );
       expect(
         (
@@ -123,8 +124,9 @@ void main() {
         .removeCurrentSnackBar();
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).at(1), '31');
-    await tester.enterText(find.byType(TextField).at(2), '180');
-    await tester.enterText(find.byType(TextField).at(3), '80');
+    await tester.enterText(find.byKey(const ValueKey('height-ft')), '5');
+    await tester.enterText(find.byKey(const ValueKey('height-in')), '11');
+    await tester.enterText(find.byKey(const ValueKey('weight-lb')), '176.4');
     await tester.pumpAndSettle();
     await tester.ensureVisible(button);
     await tester.pumpAndSettle();
@@ -138,8 +140,11 @@ void main() {
     );
     expect(api.signOutCalls, 0);
     expect(
-      tester.widget<TextField>(find.byType(TextField).at(3)).controller!.text,
-      '80',
+      tester
+          .widget<TextField>(find.byKey(const ValueKey('weight-lb')))
+          .controller!
+          .text,
+      '176.4',
     );
   });
 
@@ -179,10 +184,10 @@ void main() {
         tester
             .widgetList<TextField>(find.byType(TextField))
             .map((f) => f.controller!.text),
-        ['Test User', '28', '172.0', '68.0', '45'],
+        ['Test User', '28', '5', '7.7', '149.9', '45'],
       );
       await tester.enterText(find.byType(TextField).at(0), 'Updated User');
-      await tester.enterText(find.byType(TextField).at(3), '72.5');
+      await tester.enterText(find.byKey(const ValueKey('weight-lb')), '160');
       await choose(
         tester,
         find.byType(DropdownButtonFormField<String>).at(1),
@@ -205,7 +210,7 @@ void main() {
       await tester.tap(button);
       await tester.pumpAndSettle();
       expect(result!.name, 'Updated User');
-      expect(result!.weight, 72.5);
+      expect(result!.weight, closeTo(72.5747792, 1e-9));
       expect(result!.fitnessGoal, 'Maintain Weight');
       expect(result!.email, original.email);
       expect(api.updates, 2);

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
@@ -23,7 +22,6 @@ class DashboardPersonalization {
   ];
 
   final KeyValueStorage _storage;
-  final Random _random;
   final Duration storageTimeout;
   final Map<String, int> _accountMessages = {};
   int? _previousMessage;
@@ -34,10 +32,8 @@ class DashboardPersonalization {
 
   DashboardPersonalization({
     KeyValueStorage? storage,
-    Random? random,
     this.storageTimeout = const Duration(seconds: 1),
-  }) : _storage = storage ?? FlutterSecureKeyValueStorage(null),
-       _random = random ?? Random();
+  }) : _storage = storage ?? FlutterSecureKeyValueStorage(null);
 
   /// An opaque, stable handle; raw emails and profile fields are never stored.
   static String accountKey(String email) => const Uuid().v5(
@@ -47,9 +43,9 @@ class DashboardPersonalization {
 
   static String greetingFor(DateTime time) {
     final hour = time.toLocal().hour;
-    if (hour >= 5 && hour < 12) return 'Good morning,';
-    if (hour >= 12 && hour < 17) return 'Good afternoon,';
-    return 'Good evening,';
+    if (hour >= 5 && hour < 12) return 'Good Morning,';
+    if (hour >= 12 && hour < 17) return 'Good Afternoon,';
+    return 'Good Evening,';
   }
 
   static DateTime nextGreetingChange(DateTime time) {
@@ -95,9 +91,9 @@ class DashboardPersonalization {
 
   /// Called only after a successful explicit login, never from widget builds.
   String startSession(String email) {
-    final previous = _previousMessage;
-    var index = _random.nextInt(messages.length - (previous == null ? 0 : 1));
-    if (previous != null && index >= previous) index++;
+    final index = _previousMessage == null
+        ? 0
+        : (_previousMessage! + 1) % messages.length;
     _accountMessages[accountKey(email)] = index;
     _previousMessage = index;
     _persist();
@@ -106,9 +102,17 @@ class DashboardPersonalization {
 
   /// Existing sessions retain their choice; pre-feature sessions initialize once.
   String restoreSession(String email) {
-    final index = _accountMessages[accountKey(email)];
-    if (index == null) return startSession(email);
-    if (_dirty) _persist();
+    final key = accountKey(email);
+    final storedIndex = _accountMessages[key];
+    final index = storedIndex ?? _previousMessage ?? 0;
+    final changed = storedIndex == null || _previousMessage != index;
+    _accountMessages[key] = index;
+    // The next explicit login follows the message actually shown this session,
+    // including when another account had written the most recent metadata.
+    _previousMessage = index;
+    // Align persistence without advancing. A restored older account must not
+    // repeat its message after logout followed by a full application restart.
+    if (changed) _persist();
     return messages[index];
   }
 

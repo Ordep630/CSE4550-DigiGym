@@ -10,6 +10,7 @@ class DashboardNumber extends StatelessWidget {
   final double? unitFontSize;
   final bool dotted;
   final Color? color;
+  final bool fitToWidth;
 
   const DashboardNumber({
     super.key,
@@ -19,6 +20,7 @@ class DashboardNumber extends StatelessWidget {
     this.unitFontSize,
     this.dotted = true,
     this.color,
+    this.fitToWidth = false,
   });
 
   @override
@@ -31,39 +33,59 @@ class DashboardNumber extends StatelessWidget {
     return Semantics(
       label: value,
       excludeSemantics: true,
-      child: Text.rich(
-        TextSpan(
-          children: [
-            TextSpan(
-              text: number,
-              style: TextStyle(
-                fontFamily: dotted
-                    ? DigiGymDashboardTheme.numberFont
-                    : DigiGymDashboardTheme.textFont,
-                fontSize: fontSize,
-                height: lineHeight,
-                fontWeight: FontWeight.w600,
-                fontVariations: dotted
-                    ? const [
-                        FontVariation('ROND', 100),
-                        FontVariation('wght', 840),
-                      ]
-                    : null,
-                fontFeatures: const [FontFeature.tabularFigures()],
-                color: foreground,
+      child: _fitNumber(
+        context,
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: number,
+                style: TextStyle(
+                  fontFamily: dotted
+                      ? DigiGymDashboardTheme.numberFont
+                      : DigiGymDashboardTheme.textFont,
+                  fontSize: fontSize,
+                  height: lineHeight,
+                  fontWeight: FontWeight.w600,
+                  fontVariations: dotted
+                      ? const [
+                          FontVariation('ROND', 100),
+                          FontVariation('wght', 840),
+                        ]
+                      : null,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                  color: foreground,
+                ),
               ),
-            ),
-            TextSpan(
-              text: unit,
-              style: TextStyle(
-                fontFamily: DigiGymDashboardTheme.textFont,
-                fontSize: unitFontSize ?? fontSize * 0.53,
-                color: foreground,
-                fontWeight: FontWeight.w500,
+              TextSpan(
+                text: unit,
+                style: TextStyle(
+                  fontFamily: DigiGymDashboardTheme.textFont,
+                  fontSize: unitFontSize ?? fontSize * 0.53,
+                  color: foreground,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _fitNumber(BuildContext context, Widget text) {
+    if (!fitToWidth) return text;
+    // Longer imperial values stay on one line without changing the card's
+    // existing number/label line boxes. Accessible text keeps a larger box.
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minHeight: MediaQuery.textScalerOf(context)
+            .scale((fontSize * lineHeight).floorToDouble()),
+      ),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: text,
       ),
     );
   }

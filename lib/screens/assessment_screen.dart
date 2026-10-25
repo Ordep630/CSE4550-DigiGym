@@ -4,6 +4,8 @@ import '../models/user_profile.dart';
 import '../models/session.dart';
 import '../services/digigym_api.dart';
 import '../widgets/digigym_form_components.dart';
+import '../widgets/imperial_height_input.dart';
+import '../utils/measurement_units.dart';
 
 class AssessmentScreen extends StatefulWidget {
   final DigiGymApi api;
@@ -18,7 +20,8 @@ class AssessmentScreen extends StatefulWidget {
 class _AssessmentScreenState extends State<AssessmentScreen> {
   late final TextEditingController nameController;
   final ageController = TextEditingController();
-  final heightController = TextEditingController();
+  final feetController = TextEditingController();
+  final inchesController = TextEditingController();
   final weightController = TextEditingController();
 
   String fitnessLevel = 'Beginner';
@@ -41,7 +44,8 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
   void dispose() {
     nameController.dispose();
     ageController.dispose();
-    heightController.dispose();
+    feetController.dispose();
+    inchesController.dispose();
     weightController.dispose();
     super.dispose();
   }
@@ -50,8 +54,11 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     if (isCreatingPlan) return;
     final name = nameController.text.trim();
     final age = int.tryParse(ageController.text.trim());
-    final height = double.tryParse(heightController.text.trim());
-    final weight = double.tryParse(weightController.text.trim());
+    final height = MeasurementUnits.parseHeight(
+      feetController.text,
+      inchesController.text,
+    );
+    final weight = MeasurementUnits.parseWeight(weightController.text);
     final user = DigiGymSession.pendingUser;
 
     if (user == null ||
@@ -167,19 +174,19 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
             ),
           ),
           const SizedBox(height: 15),
-          DigiGymGlassField(
-            child: TextField(
-              controller: heightController,
-              keyboardType: TextInputType.number,
-              decoration: digiGymFormDecoration('Height (cm)'),
-            ),
+          ImperialHeightInput(
+            feetController: feetController,
+            inchesController: inchesController,
           ),
           const SizedBox(height: 15),
           DigiGymGlassField(
             child: TextField(
+              key: const ValueKey('weight-lb'),
               controller: weightController,
-              keyboardType: TextInputType.number,
-              decoration: digiGymFormDecoration('Weight (kg)'),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: digiGymFormDecoration('Weight (lb)'),
             ),
           ),
           const SizedBox(height: 20),

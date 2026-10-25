@@ -21,17 +21,28 @@ Widget dashboard({int? streakDays, VoidCallback? onNotifications}) =>
     );
 
 void main() {
-  testWidgets('missing production data and actions add no header elements', (
-    tester,
-  ) async {
-    await tester.pumpWidget(dashboard());
-    await tester.pumpAndSettle();
-    expect(find.byType(DailyStreakIndicator), findsNothing);
-    expect(find.byType(DashboardNotificationButton), findsNothing);
-    expect(find.text('SAMPLE'), findsNothing);
-    expect(find.text('Good morning,'), findsOneWidget);
-    expect(find.text('Isaac'), findsOneWidget);
-  }, skip: DashboardHeaderPreview.enabled);
+  testWidgets(
+    'missing workout data shows a neutral streak without notification actions',
+    (tester) async {
+      await tester.pumpWidget(dashboard());
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<DailyStreakIndicator>(find.byType(DailyStreakIndicator))
+            .days,
+        isNull,
+      );
+      expect(find.byType(DashboardNotificationButton), findsNothing);
+      expect(find.text('SAMPLE'), findsNothing);
+      expect(find.text('—'), findsNothing);
+      final zero = tester.widget<Text>(find.text('0'));
+      expect(zero.style!.color, DigiGymDarkColors.secondaryText);
+      expect(zero.style!.fontFamily, DigiGymDashboardTheme.textFont);
+      expect(find.text('Good Morning,'), findsOneWidget);
+      expect(find.text('Isaac'), findsOneWidget);
+    },
+    skip: DashboardHeaderPreview.enabled,
+  );
 
   testWidgets('supplied streak and notification action are independent', (
     tester,
@@ -50,7 +61,12 @@ void main() {
     var calls = 0;
     await tester.pumpWidget(dashboard(onNotifications: () => calls++));
     await tester.pumpAndSettle();
-    expect(find.byType(DailyStreakIndicator), findsNothing);
+    expect(
+      tester
+          .widget<DailyStreakIndicator>(find.byType(DailyStreakIndicator))
+          .days,
+      isNull,
+    );
     await tester.tap(find.byType(DashboardNotificationButton));
     await tester.pumpAndSettle();
     expect(calls, 1);
@@ -213,15 +229,15 @@ void main() {
   });
 
   testWidgets(
-    'opt-in debug dashboard retains sample semantics and explanatory bell action',
+    'opt-in dashboard shows a neutral streak and explanatory preview bell',
     (tester) async {
       await tester.pumpWidget(dashboard());
       await tester.pumpAndSettle();
       final streak = tester.widget<DailyStreakIndicator>(
         find.byType(DailyStreakIndicator),
       );
-      expect(streak.days, 7);
-      expect(streak.isPreview, isTrue);
+      expect(streak.days, isNull);
+      expect(streak.isPreview, isFalse);
       expect(find.text('SAMPLE'), findsNothing);
       expect(find.text('DAYS'), findsNothing);
       expect(
@@ -242,7 +258,7 @@ void main() {
         tester
             .widget<DailyStreakIndicator>(find.byType(DailyStreakIndicator))
             .days,
-        7,
+        isNull,
       );
     },
     skip: !DashboardHeaderPreview.enabled,

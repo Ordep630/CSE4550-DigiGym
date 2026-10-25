@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/user_profile.dart';
 import '../models/meal.dart';
+import '../utils/measurement_units.dart';
 import '../widgets/dashboard_glass_card.dart';
 
 class MealPage extends StatelessWidget {
@@ -139,7 +140,9 @@ class MealPage extends StatelessWidget {
                     meal.name,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Text('${meal.portion}\n${meal.protein}'),
+                  subtitle: Text(
+                    '${MeasurementUnits.formatFoodPortion(meal.portion)}\n${meal.protein}',
+                  ),
                   isThreeLine: true,
                   trailing: Text(
                     '${meal.calories}\n kcal',

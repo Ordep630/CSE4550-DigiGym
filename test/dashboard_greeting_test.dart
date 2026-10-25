@@ -4,9 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   for (final transition in [
-    (4, 59, 'Good evening,', 'Good morning,'),
-    (11, 59, 'Good morning,', 'Good afternoon,'),
-    (16, 59, 'Good afternoon,', 'Good evening,'),
+    (4, 59, 'Good Evening,', 'Good Morning,'),
+    (11, 59, 'Good Morning,', 'Good Afternoon,'),
+    (16, 59, 'Good Afternoon,', 'Good Evening,'),
   ]) {
     testWidgets('visible dashboard updates at ${transition.$1 + 1}:00', (
       tester,
@@ -31,10 +31,10 @@ void main() {
     );
     now = DateTime(2027, 1, 1);
     await tester.pump(const Duration(seconds: 1));
-    expect(find.text('Good evening,'), findsOneWidget);
+    expect(find.text('Good Evening,'), findsOneWidget);
     now = DateTime(2027, 1, 1, 5);
     await tester.pump(const Duration(hours: 5));
-    expect(find.text('Good morning,'), findsOneWidget);
+    expect(find.text('Good Morning,'), findsOneWidget);
   });
 
   testWidgets('resume rechecks local time and reschedules the boundary', (
@@ -48,10 +48,10 @@ void main() {
     now = DateTime(2026, 10, 20, 16, 59, 59);
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pump();
-    expect(find.text('Good afternoon,'), findsOneWidget);
+    expect(find.text('Good Afternoon,'), findsOneWidget);
     now = DateTime(2026, 10, 20, 17);
     await tester.pump(const Duration(seconds: 1));
-    expect(find.text('Good evening,'), findsOneWidget);
+    expect(find.text('Good Evening,'), findsOneWidget);
   });
 
   testWidgets(
@@ -65,7 +65,7 @@ void main() {
       now = DateTime(2026, 10, 20, 18);
       await tester.pump(const Duration(hours: 9));
       await tester.pumpWidget(greeting());
-      expect(find.text('Good evening,'), findsOneWidget);
+      expect(find.text('Good Evening,'), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(days: 2));
       expect(tester.takeException(), isNull);

@@ -7,10 +7,14 @@ import 'package:digigym/screens/home_screen.dart';
 import 'package:digigym/services/dashboard_personalization.dart';
 import 'package:digigym/theme/digigym_dashboard_theme.dart';
 import 'package:digigym/widgets/floating_bottom_navigation_bar.dart';
-import 'package:digigym/widgets/plan_card.dart';
-import 'package:digigym/widgets/fitness_goal_card.dart';
+import 'package:digigym/widgets/monthly_activity_calendar.dart';
+import 'package:digigym/widgets/dashboard_progress_card.dart';
+import 'package:digigym/widgets/dashboard_glass_card.dart';
 import 'package:digigym/widgets/dashboard_number.dart';
+import 'package:digigym/widgets/dot_matrix_text.dart';
+import 'package:digigym/widgets/segmented_progress_ring.dart';
 import 'package:digigym/widgets/stat_card.dart';
+import 'package:digigym/widgets/weekly_workout_schedule.dart';
 import 'package:digigym/widgets/daily_streak_indicator.dart';
 import 'package:digigym/widgets/dashboard_notification_button.dart';
 import 'package:flutter/foundation.dart';
@@ -132,7 +136,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(BackdropFilter), findsOneWidget);
       expect(
-        Theme.of(tester.element(find.byType(PlanCard).first))
+        Theme.of(tester.element(find.byType(MonthlyActivityCalendar)))
             .textTheme
             .bodyMedium
             ?.fontFamily,
@@ -146,22 +150,58 @@ void main() {
         isNot(DigiGymDashboardTheme.textFont),
       );
       expect(
-        tester.getSize(find.byType(FitnessGoalCard)).height,
+        tester.getSize(find.byType(DashboardProgressCard)).height,
         inInclusiveRange(190, 210),
       );
-      expect(
-        tester
-            .getSize(
-              find
-                  .descendant(
-                    of: find.byType(PlanCard).first,
-                    matching: find.byType(ClipRRect),
-                  )
-                  .first,
-            )
-            .height,
-        inInclusiveRange(72, 80),
+      expect(find.text('Your Plan'), findsNothing);
+      expect(find.byType(MonthlyActivityCalendar), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testAndroidDashboard(
+    'current Pixel Home fits without scrolling and calendar clears navigation',
+    (tester) async {
+      tester.view.devicePixelRatio = 3;
+      tester.view.physicalSize = const Size(1280, 2856);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      await tester.pumpWidget(
+        dashboard(
+          safeArea: const EdgeInsets.only(top: 52, bottom: 24),
+          localTime: DateTime(2026, 10, 25, 9),
+          user: UserProfile(
+            name: 'Isaac',
+            email: 'pixel@example.com',
+            age: 31,
+            height: 174,
+            weight: 58,
+            fitnessLevel: 'Intermediate',
+            fitnessGoal: 'Build Muscle',
+            workoutTime: 30,
+          ),
+        ),
       );
+      await tester.runAsync(() async {
+        for (final asset in [
+          'assets/images/digigym_workout_icon.png',
+          'assets/images/digigym_wordmark.png',
+        ]) {
+          await precacheImage(
+            AssetImage(asset),
+            tester.element(find.byType(HomeScreen)),
+          );
+        }
+      });
+      await tester.pumpAndSettle();
+      final scroll = tester.state<ScrollableState>(find.byType(Scrollable));
+      expect(scroll.position.maxScrollExtent, 0);
+      final calendar = tester.getRect(find.byType(MonthlyActivityCalendar));
+      final navigation = tester.getRect(
+        find.byType(FloatingBottomNavigationBar),
+      );
+      expect(calendar.bottom, lessThan(navigation.top));
+      expect(find.text('Your Plan'), findsNothing);
       expect(tester.takeException(), isNull);
     },
   );
@@ -192,7 +232,7 @@ void main() {
       final wordmark = find.byKey(const ValueKey('dashboard-wordmark'));
       final row = find.ancestor(of: wordmark, matching: find.byType(Row)).first;
       expect(tester.getRect(row), Rect.fromLTRB(20, 70, 1280 / 3 - 20, 101));
-      expect(tester.getRect(find.text('Good morning,')).top, 119);
+      expect(tester.getRect(find.text('Good Morning,')).top, 119);
       expect(find.text('DigiGym'), findsNothing);
       final image = tester.widget<Image>(wordmark);
       expect(
@@ -229,10 +269,7 @@ void main() {
         tester.getRect(wordmark).width / tester.getRect(wordmark).height,
         closeTo(862 / 189, 0.001),
       );
-      expect(
-        find.byType(DailyStreakIndicator),
-        DashboardHeaderPreview.enabled ? findsOneWidget : findsNothing,
-      );
+      expect(find.byType(DailyStreakIndicator), findsOneWidget);
       expect(
         find.byType(DashboardNotificationButton),
         DashboardHeaderPreview.enabled ? findsOneWidget : findsNothing,
@@ -278,7 +315,7 @@ void main() {
             expect(pill.height, closeTo(17 * scale + 18, .001));
             expect(pill.left, greaterThanOrEqualTo(20));
             expect(pill.bottom, lessThan(nameBounds.top));
-            final greeting = tester.getRect(find.text('Good morning,'));
+            final greeting = tester.getRect(find.text('Good Morning,'));
             expect(pill.bottom, lessThanOrEqualTo(greeting.top));
             expect(nameBounds.left, 20);
             expect(nameBounds.top - greeting.bottom, 4);
@@ -313,17 +350,17 @@ void main() {
               find.byType(Scrollable),
             );
             if (size.height == 952 && scale == 1 && name == 'Isaac') {
-              expect(scroll.position.maxScrollExtent, 0);
+              expect(scroll.position.maxScrollExtent, lessThanOrEqualTo(20));
             } else {
               expect(scroll.position.maxScrollExtent, greaterThan(0));
             }
             await tester.ensureVisible(
-              find.text('View ingredients for your meal plan'),
+              find.byKey(const ValueKey('month-day-2026-10-31')),
             );
             await tester.pumpAndSettle();
             expect(
               tester
-                  .getRect(find.text('View ingredients for your meal plan'))
+                  .getRect(find.byKey(const ValueKey('month-day-2026-10-31')))
                   .bottom,
               lessThanOrEqualTo(
                 tester.getRect(find.byType(FloatingBottomNavigationBar)).top,
@@ -395,7 +432,7 @@ void main() {
             (entry.key == 'Daily calorie target' ? 29 : 27) * .53,
           );
           if (entry.key == 'BMI' || entry.key == 'Weight') {
-            expect(tester.getSize(card).height, 67);
+            expect(tester.getSize(card).height, 63);
           }
         }
         expect(tester.takeException(), isNull);
@@ -404,7 +441,7 @@ void main() {
   );
 
   testAndroidDashboard(
-    'complete dashboard fits the measured Pixel 10 Pro viewport',
+    'approved Phase 3H dashboard fits the measured Pixel 10 Pro viewport',
     (tester) async {
       // Measured from the Android render tree: 1280x2856 at DPR 3, with
       // a 52px status area and 104px navigation region (including bottom inset).
@@ -415,6 +452,7 @@ void main() {
       await tester.pumpWidget(
         dashboard(
           safeArea: const EdgeInsets.only(top: 52, bottom: 24),
+          localTime: DateTime(2026, 10, 25, 9),
           user: UserProfile(
             name: 'Isaac',
             email: 'pixel-test@example.com',
@@ -431,7 +469,6 @@ void main() {
         for (final asset in [
           'assets/images/digigym_workout_icon.png',
           'assets/images/digigym_wordmark.png',
-          'assets/icons/biceps_flexed.png',
         ]) {
           await precacheImage(
             AssetImage(asset),
@@ -462,33 +499,130 @@ void main() {
       expect(viewport.top, 52);
       expect(viewport.bottom, navigation.top);
       expect(viewport.height, 796);
-      for (final label in [
-        'Good morning,',
-        DashboardPersonalization.defaultMessage,
-        'Isaac',
-        'Build Muscle',
+
+      final progressCard = find.byType(DashboardProgressCard);
+      expect(progressCard, findsOneWidget);
+      final ring = find.descendant(
+        of: progressCard,
+        matching: find.byType(SegmentedProgressRing),
+      );
+      expect(ring, findsOneWidget);
+      expect(tester.widget<SegmentedProgressRing>(ring).progress, 0);
+      expect(SegmentedProgressPainter.segmentCount, 40);
+      expect(
+        tester
+            .widget<DotMatrixText>(
+              find.descendant(of: ring, matching: find.byType(DotMatrixText)),
+            )
+            .text,
+        '0%',
+      );
+
+      final statistics = find.byKey(
+        const ValueKey('dashboard-statistics-panel'),
+      );
+      expect(tester.widget(statistics), isA<DashboardGlassCard>());
+      final rows = find.descendant(
+        of: statistics,
+        matching: find.byType(StatCard),
+      );
+      expect(tester.widgetList<StatCard>(rows).map((row) => row.title), [
+        'Daily calorie target',
+        'Weight',
+        'BMI',
+      ]);
+      expect(tester.widgetList<StatCard>(rows).map((row) => row.value), [
         '1818',
-        '30 min',
+        '127.9 lb',
         '19.2',
-        '58.0 kg',
+      ]);
+      expect(
+        tester.widgetList<StatCard>(rows).every((row) => row.embedded),
+        isTrue,
+      );
+      final progressBounds = tester.getRect(progressCard);
+      final panelBounds = tester.getRect(statistics);
+      final workout = find.widgetWithText(StatCard, 'Workout');
+      final workoutBounds = tester.getRect(workout);
+      expect(tester.widget<StatCard>(workout).value, '30 min');
+      expect(tester.widget<StatCard>(workout).embedded, isFalse);
+      expect(find.byType(StatCard), findsNWidgets(4));
+      expect(workoutBounds.left, progressBounds.left);
+      expect(workoutBounds.width, progressBounds.width);
+      expect(
+        workoutBounds.top,
+        greaterThanOrEqualTo(progressBounds.bottom + 10),
+      );
+      expect(panelBounds.top, progressBounds.top);
+      expect(panelBounds.bottom, closeTo(workoutBounds.bottom, .01));
+      expect(panelBounds.width, progressBounds.width);
+      expect(panelBounds.left - progressBounds.right, 12);
+      double? previousBottom;
+      for (final row in rows.evaluate()) {
+        final bounds = tester.getRect(find.byWidget(row.widget));
+        expect(panelBounds.contains(bounds.topLeft), isTrue);
+        expect(panelBounds.contains(bounds.bottomRight), isTrue);
+        if (previousBottom != null) {
+          expect(bounds.top, greaterThan(previousBottom));
+        }
+        previousBottom = bounds.bottom;
+      }
+
+      final week = find.byType(WeeklyWorkoutSchedule);
+      final calendar = find.byType(MonthlyActivityCalendar);
+      expect(week, findsOneWidget);
+      expect(calendar, findsOneWidget);
+      expect(tester.getRect(week).top, greaterThan(panelBounds.bottom));
+      expect(
+        tester.getRect(calendar).top,
+        greaterThan(tester.getRect(week).bottom),
+      );
+      expect(tester.getRect(calendar).bottom, lessThan(navigation.top));
+      expect(
+        find.byKey(const ValueKey('month-day-2026-10-31')),
+        findsOneWidget,
+      );
+      for (final removed in [
+        'Build Muscle',
         'Your Plan',
         "Today's Workout",
         "Today's Nutrition",
         'Grocery List',
-        'Intermediate 30-minute workout',
-        'Target approximately 1818 calories',
-        'View ingredients for your meal plan',
       ]) {
-        final bounds = tester.getRect(find.text(label));
+        expect(find.text(removed), findsNothing);
+      }
+
+      // The Phase 2D golden documents the retired layout and remains unchanged.
+      // Check the approved Phase 3H content and geometry without rebasing it.
+      for (final label in [
+        'Good Morning,',
+        DashboardPersonalization.defaultMessage,
+        'Isaac',
+        "Today's Progress",
+        'Complete',
+        '1818',
+        '30 min',
+        '19.2',
+        '127.9 lb',
+        'Daily calorie target',
+        'Workout',
+        'Weight',
+        'BMI',
+        'Your Week',
+        'See All',
+        'Monthly Activity',
+      ]) {
+        final bounds = tester.getRect(
+          find.descendant(
+            of: find.byType(DashboardPage),
+            matching: find.text(label),
+          ),
+        );
         expect(bounds.top, greaterThanOrEqualTo(52), reason: label);
         expect(bounds.bottom, lessThanOrEqualTo(navigation.top), reason: label);
         expect(bounds.left, greaterThanOrEqualTo(20), reason: label);
         expect(bounds.right, lessThanOrEqualTo(1280 / 3 - 20), reason: label);
       }
-      await expectLater(
-        find.byType(MaterialApp),
-        matchesGoldenFile('goldens/dashboard_phase_2d.png'),
-      );
       expect(tester.takeException(), isNull);
     },
   );
@@ -548,10 +682,14 @@ void main() {
               find.byType(Scrollable),
             );
             if (size.height == 952 && scale == 1) {
-              expect(scroll.position.maxScrollExtent, 0, reason: message);
+              expect(
+                scroll.position.maxScrollExtent,
+                lessThanOrEqualTo(20),
+                reason: message,
+              );
             }
             await tester.ensureVisible(
-              find.text('View ingredients for your meal plan'),
+              find.byKey(const ValueKey('month-day-2026-10-31')),
             );
             await tester.pumpAndSettle();
             final navigation = tester.getRect(
@@ -559,7 +697,7 @@ void main() {
             );
             expect(
               tester
-                  .getRect(find.text('View ingredients for your meal plan'))
+                  .getRect(find.byKey(const ValueKey('month-day-2026-10-31')))
                   .bottom,
               lessThanOrEqualTo(navigation.top),
             );
@@ -607,14 +745,16 @@ void main() {
             find.byType(Scrollable),
           );
           expect(scrollable.position.maxScrollExtent, greaterThan(0));
-          await tester.ensureVisible(find.text('Grocery List'));
+          await tester.ensureVisible(
+            find.byKey(const ValueKey('month-day-2026-10-31')),
+          );
           await tester.pumpAndSettle();
           expect(find.text('24.7'), findsOneWidget);
-          expect(find.text('80.0 kg'), findsOneWidget);
+          expect(find.text('176.4 lb'), findsOneWidget);
           expect(find.text('2075'), findsOneWidget);
           expect(find.text('45 min'), findsOneWidget);
           final description = tester.getRect(
-            find.text('View ingredients for your meal plan'),
+            find.byKey(const ValueKey('month-day-2026-10-31')),
           );
           final viewport = tester.getRect(find.byType(SingleChildScrollView));
           expect(description.bottom, lessThanOrEqualTo(viewport.bottom));

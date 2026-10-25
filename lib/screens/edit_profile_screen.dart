@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import '../services/digigym_api.dart';
 import '../widgets/digigym_form_components.dart';
+import '../widgets/imperial_height_input.dart';
+import '../utils/measurement_units.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserProfile user;
@@ -21,7 +23,8 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController nameController;
   late TextEditingController ageController;
-  late TextEditingController heightController;
+  late TextEditingController feetController;
+  late TextEditingController inchesController;
   late TextEditingController weightController;
   late TextEditingController workoutTimeController;
 
@@ -30,6 +33,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late String dietaryPreference;
   late String bodyType;
   bool isSaving = false;
+  late final ({int feet, double inches}) _initialHeight;
+  late final double _initialPounds;
+  late final double _originalHeight;
+  late final double _originalWeight;
 
   @override
   void initState() {
@@ -37,11 +44,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     nameController = TextEditingController(text: widget.user.name);
     ageController = TextEditingController(text: widget.user.age.toString());
-    heightController = TextEditingController(
-      text: widget.user.height.toString(),
+    _originalHeight = widget.user.height;
+    _originalWeight = widget.user.weight;
+    _initialHeight = MeasurementUnits.centimetersToFeetInches(
+      widget.user.height,
+      fractionDigits: 1,
     );
+    _initialPounds = double.parse(
+      MeasurementUnits.kilogramsToPounds(widget.user.weight).toStringAsFixed(1),
+    );
+    feetController = TextEditingController(text: '${_initialHeight.feet}');
+    inchesController = TextEditingController(text: '${_initialHeight.inches}');
     weightController = TextEditingController(
-      text: widget.user.weight.toString(),
+      text: _initialPounds.toStringAsFixed(1),
     );
     workoutTimeController = TextEditingController(
       text: widget.user.workoutTime.toString(),
@@ -57,7 +72,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void dispose() {
     nameController.dispose();
     ageController.dispose();
-    heightController.dispose();
+    feetController.dispose();
+    inchesController.dispose();
     weightController.dispose();
     workoutTimeController.dispose();
     super.dispose();
@@ -67,8 +83,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (isSaving) return;
     final name = nameController.text.trim();
     final age = int.tryParse(ageController.text.trim());
-    final height = double.tryParse(heightController.text.trim());
-    final weight = double.tryParse(weightController.text.trim());
+    final parsedHeight = MeasurementUnits.parseHeight(
+      feetController.text,
+      inchesController.text,
+    );
+    final parsedWeight = MeasurementUnits.parseWeight(weightController.text);
+    // Display rounding must not change a stored measurement on an unchanged save.
+    final height =
+        parsedHeight != null &&
+            int.tryParse(feetController.text.trim()) == _initialHeight.feet &&
+            double.tryParse(inchesController.text.trim()) ==
+                _initialHeight.inches
+        ? _originalHeight
+        : parsedHeight;
+    final weight =
+        parsedWeight != null &&
+            double.tryParse(weightController.text.trim()) == _initialPounds
+        ? _originalWeight
+        : parsedWeight;
     final workoutTime = int.tryParse(workoutTimeController.text.trim());
 
     if (name.isEmpty ||
@@ -159,23 +191,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ),
           const SizedBox(height: 15),
-          DigiGymGlassField(
-            child: TextField(
-              controller: heightController,
-              keyboardType: TextInputType.number,
-              decoration: digiGymFormDecoration(
-                'Height (cm)',
-                icon: Icons.height,
-              ),
-            ),
+          ImperialHeightInput(
+            feetController: feetController,
+            inchesController: inchesController,
           ),
           const SizedBox(height: 15),
           DigiGymGlassField(
             child: TextField(
+              key: const ValueKey('weight-lb'),
               controller: weightController,
-              keyboardType: TextInputType.number,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: digiGymFormDecoration(
-                'Weight (kg)',
+                'Weight (lb)',
                 icon: Icons.monitor_weight,
               ),
             ),

@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:digigym/models/user_profile.dart';
+import 'package:digigym/utils/measurement_units.dart';
 import 'package:digigym/screens/edit_profile_screen.dart';
 import 'package:digigym/screens/home_screen.dart';
 import 'package:digigym/screens/login_screen.dart';
@@ -372,7 +373,12 @@ void main() {
     final page = tester.widget<MealPage>(find.byType(MealPage));
     for (final meal in page.getMeals()) {
       expect(find.text(meal.name), findsOneWidget);
-      expect(find.text('${meal.portion}\n${meal.protein}'), findsOneWidget);
+      expect(
+        find.text(
+          '${MeasurementUnits.formatFoodPortion(meal.portion)}\n${meal.protein}',
+        ),
+        findsOneWidget,
+      );
       expect(find.text('${meal.calories}\n kcal'), findsOneWidget);
     }
     final glass = tester
@@ -430,8 +436,8 @@ void main() {
     expect(find.byType(ProfileInformation), findsNWidgets(8));
     expect(find.text('Isaac'), findsOneWidget);
     expect(find.text('19.2'), findsOneWidget);
-    expect(find.text('58.0 kg'), findsOneWidget);
-    expect(find.text('174.0 cm'), findsOneWidget);
+    expect(find.text('127.9 lb'), findsOneWidget);
+    expect(find.text('5 ft 8.5 in'), findsOneWidget);
     expect(tester.widget<Text>(find.text('Isaac')).style?.fontSize, 24);
     await tester.ensureVisible(find.text('EDIT PROFILE'));
     await tester.tap(find.text('EDIT PROFILE'));
@@ -525,7 +531,17 @@ void main() {
             );
             expect(viewport.bottom, tab == 'Home' ? navigation.top : 844);
             final lastContent = switch (tab) {
-              'Home' => find.text('View ingredients for your meal plan'),
+              'Home' =>
+                find
+                    .byWidgetPredicate(
+                      (w) =>
+                          w is Semantics &&
+                          w.key is ValueKey<String> &&
+                          (w.key! as ValueKey<String>).value.startsWith(
+                            'month-day-',
+                          ),
+                    )
+                    .last,
               'Workout' => find.byType(DashboardGlassCard).last,
               'Meals' => find.byType(DashboardGlassCard).last,
               'Groceries' => find.widgetWithText(CheckboxListTile, 'Cucumber'),

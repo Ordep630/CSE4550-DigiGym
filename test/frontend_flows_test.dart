@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:digigym/main.dart';
 import 'package:digigym/models/session.dart';
@@ -70,7 +69,11 @@ void main() {
     'complete registration verification assessment and login retains the existing flow',
     (tester) async {
       final api = FakeDigiGymApi();
-      await tester.pumpWidget(DigiGymApp(api: api));
+      final storage = _MessageStorage();
+      final personalization = DashboardPersonalization(storage: storage);
+      await tester.pumpWidget(
+        DigiGymApp(api: api, personalization: personalization),
+      );
       await tester.pumpAndSettle();
       final signup = find.widgetWithText(TextButton, 'Sign Up');
       await tester.ensureVisible(signup);
@@ -104,9 +107,11 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(AssessmentScreen), findsOneWidget);
       expect(DigiGymSession.pendingRegistrationPassword, isNull);
+      expect(storage.writes, 0);
       await tester.enterText(find.byType(TextField).at(1), '31');
-      await tester.enterText(find.byType(TextField).at(2), '180');
-      await tester.enterText(find.byType(TextField).at(3), '80');
+      await tester.enterText(find.byKey(const ValueKey('height-ft')), '5');
+      await tester.enterText(find.byKey(const ValueKey('height-in')), '11');
+      await tester.enterText(find.byKey(const ValueKey('weight-lb')), '176.4');
       await tester.pumpAndSettle();
       final create = find.widgetWithText(ElevatedButton, 'Create My Plan');
       await tester.ensureVisible(create);
@@ -123,10 +128,13 @@ void main() {
           .removeCurrentSnackBar();
       await tester.pumpAndSettle();
       await _login(tester, 'new@example.com');
+      await personalization.flush();
+      expect(_message(tester), DashboardPersonalization.messages.first);
+      expect(storage.writes, 1);
       expect(find.byType(HomeScreen), findsOneWidget);
       expect(
         tester.widget<DashboardPage>(find.byType(DashboardPage)).user.weight,
-        80,
+        closeTo(80.013694068, 1e-9),
       );
       expect(
         tester.widget<DashboardPage>(find.byType(DashboardPage)).user.name,
@@ -244,7 +252,7 @@ void main() {
     restoreCompleter.complete();
     await tester.pumpAndSettle();
 
-    expect(find.text('Good morning,'), findsOneWidget);
+    expect(find.text('Good Morning,'), findsOneWidget);
     expect(find.text('Restored User'), findsOneWidget);
   });
 
@@ -294,8 +302,9 @@ void main() {
 
     await tester.pumpWidget(MaterialApp(home: AssessmentScreen(api: api)));
     await tester.enterText(find.byType(TextField).at(1), '31');
-    await tester.enterText(find.byType(TextField).at(2), '180');
-    await tester.enterText(find.byType(TextField).at(3), '80');
+    await tester.enterText(find.byKey(const ValueKey('height-ft')), '5');
+    await tester.enterText(find.byKey(const ValueKey('height-in')), '11');
+    await tester.enterText(find.byKey(const ValueKey('weight-lb')), '176.4');
     await tester.pumpAndSettle();
     await tester.ensureVisible(
       find.widgetWithText(ElevatedButton, 'Create My Plan'),
@@ -306,8 +315,8 @@ void main() {
 
     expect(api.updateRequest?.name, 'Assessment User');
     expect(api.updateRequest?.age, 31);
-    expect(api.updateRequest?.height, 180);
-    expect(api.updateRequest?.weight, 80);
+    expect(api.updateRequest?.height, closeTo(180.34, 1e-9));
+    expect(api.updateRequest?.weight, closeTo(80.013694068, 1e-9));
     expect(api.signOutCalls, 1);
     expect(DigiGymSession.pendingUser, isNull);
     expect(DigiGymSession.registrationRequestId, isNull);
@@ -328,8 +337,9 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField).at(1), '31');
-    await tester.enterText(find.byType(TextField).at(2), '180');
-    await tester.enterText(find.byType(TextField).at(3), '80');
+    await tester.enterText(find.byKey(const ValueKey('height-ft')), '5');
+    await tester.enterText(find.byKey(const ValueKey('height-in')), '11');
+    await tester.enterText(find.byKey(const ValueKey('weight-lb')), '176.4');
     await tester.pumpAndSettle();
     await tester.ensureVisible(
       find.widgetWithText(ElevatedButton, 'Create My Plan'),
@@ -385,10 +395,7 @@ void main() {
   ) async {
     final api = FakeDigiGymApi();
     final storage = _MessageStorage();
-    final service = DashboardPersonalization(
-      storage: storage,
-      random: Random(7),
-    );
+    final service = DashboardPersonalization(storage: storage);
     await tester.pumpWidget(DigiGymApp(api: api, personalization: service));
     await tester.pumpAndSettle();
     api.loginError = StateError('Rejected');
@@ -407,13 +414,14 @@ void main() {
     await tester.pumpAndSettle();
     await service.flush();
     final first = _message(tester);
-    expect(DashboardPersonalization.messages, contains(first));
+    expect(first, DashboardPersonalization.messages.first);
     expect(storage.writes, 1);
     await tester.widget<HomeScreen>(find.byType(HomeScreen)).onLogout();
     await tester.pumpAndSettle();
+    expect(storage.writes, 1);
     await _login(tester, 'test@example.com');
     await service.flush();
-    expect(_message(tester), isNot(first));
+    expect(_message(tester), DashboardPersonalization.messages[1]);
     expect(storage.writes, 2);
     expect(api.signOutCalls, 1);
     expect(tester.takeException(), isNull);
@@ -424,10 +432,7 @@ void main() {
     (tester) async {
       final api = FakeDigiGymApi();
       final storage = _MessageStorage();
-      final service = DashboardPersonalization(
-        storage: storage,
-        random: Random(8),
-      );
+      final service = DashboardPersonalization(storage: storage);
       var now = DateTime(2026, 10, 20, 9);
       Widget app() =>
           DigiGymApp(api: api, personalization: service, clock: () => now);
@@ -448,7 +453,7 @@ void main() {
         if (tab == 'Workout') now = DateTime(2026, 10, 20, 13);
         expect(_message(tester), selected);
       }
-      expect(find.text('Good afternoon,'), findsOneWidget);
+      expect(find.text('Good Afternoon,'), findsOneWidget);
       expect(find.text(selected), findsOneWidget);
       tester
           .widget<HomeScreen>(find.byType(HomeScreen))
@@ -461,7 +466,7 @@ void main() {
       now = DateTime(2026, 10, 20, 18);
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
       await tester.pumpAndSettle();
-      expect(find.text('Good evening,'), findsOneWidget);
+      expect(find.text('Good Evening,'), findsOneWidget);
       expect(_message(tester), selected);
       expect(
         tester
@@ -480,10 +485,7 @@ void main() {
     (tester) async {
       final api = FakeDigiGymApi();
       final storage = _MessageStorage();
-      var service = DashboardPersonalization(
-        storage: storage,
-        random: Random(9),
-      );
+      var service = DashboardPersonalization(storage: storage);
       await tester.pumpWidget(DigiGymApp(api: api, personalization: service));
       await tester.pumpAndSettle();
       api.restoredProfile = testUser(name: 'Account A', email: 'a@example.com');
@@ -499,12 +501,12 @@ void main() {
       expect(storage.writes, 2);
       await tester.pumpWidget(const SizedBox());
       DigiGymSession.currentUser = null;
-      service = DashboardPersonalization(storage: storage, random: Random(100));
+      service = DashboardPersonalization(storage: storage);
       await tester.pumpWidget(DigiGymApp(api: api, personalization: service));
       await tester.pumpAndSettle();
       expect(find.text('Account B'), findsOneWidget);
       expect(_message(tester), b);
-      expect(service.restoreSession('a@example.com'), a);
+      expect(a, DashboardPersonalization.messages.first);
       await service.flush();
       expect(storage.writes, 2);
       await tester.widget<HomeScreen>(find.byType(HomeScreen)).onLogout();

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import '../services/digigym_api.dart';
 import '../widgets/profile_information.dart';
+import '../utils/measurement_units.dart';
 import 'edit_profile_screen.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -142,12 +143,12 @@ class _ProfilePageState extends State<ProfilePage> {
 
               ProfileInformation(
                 title: 'Height',
-                value: '${widget.user.height} cm',
+                value: MeasurementUnits.formatHeight(widget.user.height),
               ),
 
               ProfileInformation(
                 title: 'Weight',
-                value: '${widget.user.weight} kg',
+                value: MeasurementUnits.formatWeight(widget.user.weight),
               ),
 
               ProfileInformation(

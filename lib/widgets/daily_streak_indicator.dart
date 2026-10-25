@@ -4,16 +4,13 @@ import '../theme/digigym_dashboard_theme.dart';
 
 /// Displays a supplied streak; this widget never calculates or persists one.
 class DailyStreakIndicator extends StatelessWidget {
-  final int days;
+  final int? days;
 
   /// Identifies sample data to assistive technology without extra visible text.
   final bool isPreview;
 
-  const DailyStreakIndicator({
-    super.key,
-    required this.days,
-    this.isPreview = false,
-  }) : assert(days >= 0);
+  const DailyStreakIndicator({super.key, this.days, this.isPreview = false})
+    : assert(days == null || days >= 0);
 
   static const _orange = Color(0xFFFFAA58);
   static const _numberStyle = TextStyle(
@@ -25,10 +22,10 @@ class DailyStreakIndicator extends StatelessWidget {
   );
 
   /// Natural width used by the header to wrap actions without shrinking art.
-  static double preferredWidth(BuildContext context, int days) {
+  static double preferredWidth(BuildContext context, int? days) {
     final number = TextPainter(
       text: TextSpan(
-        text: '$days',
+        text: (days ?? 0).toString(),
         style: DefaultTextStyle.of(context).style.merge(_numberStyle),
       ),
       textDirection: Directionality.of(context),
@@ -45,7 +42,9 @@ class DailyStreakIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final scaler = MediaQuery.textScalerOf(context);
     return Semantics(
-      label: isPreview
+      label: days == null
+          ? '0-day workout streak. No workout completions recorded; tracking is not available yet.'
+          : isPreview
           ? 'Development preview: sample $days-day workout streak'
           : '$days-day workout streak',
       excludeSemantics: true,
@@ -78,7 +77,14 @@ class DailyStreakIndicator extends StatelessWidget {
               size: scaler.scale(17),
               color: _orange,
             ),
-            Text('$days', style: _numberStyle),
+            Text(
+              (days ?? 0).toString(),
+              style: _numberStyle.copyWith(
+                color: (days ?? 0) == 0
+                    ? DigiGymDarkColors.secondaryText
+                    : DigiGymDarkColors.primaryText,
+              ),
+            ),
           ],
         ),
       ),

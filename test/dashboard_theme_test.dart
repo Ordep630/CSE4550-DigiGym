@@ -9,6 +9,8 @@ import 'package:digigym/theme/digigym_dashboard_theme.dart';
 import 'package:digigym/widgets/floating_bottom_navigation_bar.dart';
 import 'package:digigym/widgets/dashboard_glass_card.dart';
 import 'package:digigym/widgets/fitness_goal_card.dart';
+import 'package:digigym/widgets/dashboard_progress_card.dart';
+import 'package:digigym/widgets/segmented_progress_ring.dart';
 import 'package:digigym/widgets/plan_card.dart';
 import 'package:digigym/widgets/stat_card.dart';
 import 'package:flutter/material.dart';
@@ -46,47 +48,47 @@ void main() {
     ),
   );
 
-  testWidgets('dashboard keeps profile data, derived values and plan content', (
-    tester,
-  ) async {
-    await tester.pumpWidget(host(profile()));
-    await tester.pumpAndSettle();
+  testWidgets(
+    'dashboard keeps profile data and replaces redundant plans with monthly activity',
+    (tester) async {
+      await tester.pumpWidget(host(profile()));
+      await tester.pumpAndSettle();
 
-    expect(find.text('Good morning,'), findsOneWidget);
-    expect(
-      find.text('Every workout brings you closer to your goals.'),
-      findsOneWidget,
-    );
-    expect(find.text('Alex'), findsOneWidget);
-    expect(find.text('Maintain Weight'), findsOneWidget);
-    expect(find.text('24.7'), findsOneWidget);
-    expect(find.text('1775'), findsOneWidget);
-    expect(find.text('80.0 kg'), findsOneWidget);
-    expect(find.text('35 min'), findsOneWidget);
-    expect(find.byType(StatCard), findsNWidgets(4));
-    expect(
-      find.descendant(
-        of: find.byKey(const ValueKey('dashboard-statistics-panel')),
-        matching: find.byType(StatCard),
-      ),
-      findsNWidgets(2),
-    );
-    expect(find.byType(DashboardGlassCard), findsNWidgets(7));
-    expect(find.byType(PlanCard), findsNWidgets(3));
-    expect(find.text('Intermediate 35-minute workout'), findsOneWidget);
-    expect(find.text('Target approximately 1775 calories'), findsOneWidget);
-    expect(find.text('View ingredients for your meal plan'), findsOneWidget);
+      expect(find.text('Good Morning,'), findsOneWidget);
+      expect(
+        find.text('Every workout brings you closer to your goals.'),
+        findsOneWidget,
+      );
+      expect(find.text('Alex'), findsOneWidget);
+      expect(find.text("Today's Progress"), findsOneWidget);
+      expect(find.text('24.7'), findsOneWidget);
+      expect(find.text('1775'), findsOneWidget);
+      expect(find.text('176.4 lb'), findsOneWidget);
+      expect(find.text('35 min'), findsOneWidget);
+      expect(find.byType(StatCard), findsNWidgets(4));
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('dashboard-statistics-panel')),
+          matching: find.byType(StatCard),
+        ),
+        findsNWidgets(3),
+      );
+      expect(find.byType(DashboardGlassCard), findsNWidgets(5));
+      expect(find.byType(PlanCard), findsNothing);
+      expect(find.text('Your Plan'), findsNothing);
+      expect(find.text('Your Week'), findsOneWidget);
+      expect(find.text('Monthly Activity'), findsOneWidget);
 
-    // A changed profile must reach the same dashboard without cached/mock data.
-    await tester.pumpWidget(host(profile(weight: 90, name: 'Taylor')));
-    await tester.pumpAndSettle();
-    expect(find.text('Taylor'), findsOneWidget);
-    expect(find.text('27.8'), findsOneWidget);
-    expect(find.text('1875'), findsOneWidget);
-    expect(find.text('90.0 kg'), findsOneWidget);
-    expect(find.text('Target approximately 1875 calories'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
+      // A changed profile must reach the same dashboard without cached/mock data.
+      await tester.pumpWidget(host(profile(weight: 90, name: 'Taylor')));
+      await tester.pumpAndSettle();
+      expect(find.text('Taylor'), findsOneWidget);
+      expect(find.text('27.8'), findsOneWidget);
+      expect(find.text('1875'), findsOneWidget);
+      expect(find.text('198.4 lb'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('all five main tabs and navigation share the scoped dark theme', (
     tester,
@@ -227,7 +229,7 @@ void main() {
   );
 
   testWidgets(
-    'featured goal sits beside calories and workout above BMI and weight',
+    'progress and workout align with one tall calories weight and BMI panel',
     (tester) async {
       tester.view.devicePixelRatio = 1;
       tester.view.physicalSize = const Size(390, 844);
@@ -236,7 +238,7 @@ void main() {
       await tester.pumpWidget(host(profile()));
       await tester.pumpAndSettle();
 
-      final goal = tester.getRect(find.byType(FitnessGoalCard));
+      final goal = tester.getRect(find.byType(DashboardProgressCard));
       Rect stat(String label) =>
           tester.getRect(find.widgetWithText(StatCard, label));
       final calories = stat('Daily calorie target');
@@ -248,12 +250,18 @@ void main() {
         find.byKey(const ValueKey('dashboard-statistics-panel')),
       );
       expect(goal.top, panel.top);
-      expect(goal.right, lessThan(calories.left));
-      expect(workout.top, greaterThan(calories.bottom));
-      expect(goal.bottom, closeTo(panel.bottom, 0.01));
-      expect(bmi.top, greaterThan(goal.bottom));
-      expect(bmi.top, weight.top);
-      expect(bmi.width, weight.width);
+      expect(workout.left, goal.left);
+      expect(workout.width, goal.width);
+      expect(workout.top, greaterThanOrEqualTo(goal.bottom + 10));
+      expect(panel.bottom, closeTo(workout.bottom, .01));
+      expect(panel.width, goal.width);
+      expect(panel.left - goal.right, 12);
+      expect(calories.top, lessThan(weight.top));
+      expect(weight.top, lessThan(bmi.top));
+      for (final row in [calories, weight, bmi]) {
+        expect(row.left, greaterThan(panel.left));
+        expect(row.right, lessThan(panel.right));
+      }
       // The real-font appearance test checks the compact composition. This
       // fallback-font test also permits content to grow without clipping.
       expect(goal.height, greaterThanOrEqualTo(190));
@@ -280,7 +288,69 @@ void main() {
   );
 
   testWidgets(
-    'featured goal uses every saved goal and its existing calorie estimate',
+    'long numbers imperial units and three-digit workouts stay inside their cards',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      final user = UserProfile(
+        name: 'Alexandria Morgan Hernandez',
+        email: 'layout@example.com',
+        age: 31,
+        height: 165,
+        weight: 999.9,
+        fitnessLevel: 'Intermediate',
+        fitnessGoal: 'Build Muscle',
+        workoutTime: 125,
+      );
+      for (final width in [280.0, 320.0, 390.0, 1280 / 3]) {
+        tester.view.physicalSize = Size(width, 844);
+        for (final scale in [1.0, 2.0, 3.0]) {
+          await tester.pumpWidget(
+            MaterialApp(
+              theme: lightTheme,
+              builder: (context, child) => MediaQuery(
+                data: MediaQuery.of(context)
+                    .copyWith(textScaler: TextScaler.linear(scale)),
+                child: child!,
+              ),
+              home: HomeScreen(
+                user: user,
+                onLogout: () async {},
+                onUpdateProfile: (_) {},
+                clock: () => DateTime(2026, 10, 25, 9),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+          expect(find.text('125 min'), findsOneWidget);
+          expect(find.text('2204.4 lb'), findsOneWidget);
+          expect(find.text(user.bmi.toStringAsFixed(1)), findsOneWidget);
+          expect(find.text('${user.estimatedCalories}'), findsOneWidget);
+          for (final card in tester.widgetList<StatCard>(
+            find.byType(StatCard),
+          )) {
+            expect(card.fitNumber, isTrue);
+          }
+          final panel = find.byKey(
+            const ValueKey('dashboard-statistics-panel'),
+          );
+          expect(
+            find.descendant(of: panel, matching: find.byType(StatCard)),
+            findsNWidgets(3),
+          );
+          await tester.ensureVisible(
+            find.byKey(const ValueKey('month-day-2026-10-31')),
+          );
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull, reason: '$width at $scale');
+        }
+      }
+    },
+  );
+
+  testWidgets(
+    'progress remains zero for every goal while calorie calculations remain real',
     (tester) async {
       for (final entry in {
         'Build Muscle': '2075',
@@ -290,41 +360,15 @@ void main() {
       }.entries) {
         await tester.pumpWidget(host(profile(fitnessGoal: entry.key)));
         await tester.pumpAndSettle();
-        expect(find.text(entry.key), findsOneWidget);
         expect(find.text(entry.value), findsOneWidget);
-        final badge = tester.widget<DashboardIconBadge>(
-          find.descendant(
-            of: find.byType(FitnessGoalCard),
-            matching: find.byType(DashboardIconBadge),
-          ),
-        );
-        expect(badge.size, 68);
-        expect(badge.luminous, isTrue);
-        if (entry.key == 'Build Muscle') {
-          final image = badge.child! as Image;
-          expect(
-            (image.image as AssetImage).assetName,
-            'assets/icons/biceps_flexed.png',
-          );
-          expect(image.color, DigiGymDarkColors.electricGreen);
-          expect(image.width, 68 * 0.52);
-          expect(image.height, 68 * 0.52);
-        } else {
-          expect(badge.child, isNull);
-          expect(
-            badge.icon,
-            {
-              'Lose Weight': Icons.monitor_weight_outlined,
-              'Maintain Weight': Icons.balance,
-              'Gain Weight': Icons.trending_up,
-            }[entry.key],
-          );
-        }
         expect(
-          tester.widget<FitnessGoalCard>(find.byType(FitnessGoalCard)).visual,
-          isNull,
+          tester
+              .widget<SegmentedProgressRing>(find.byType(SegmentedProgressRing))
+              .progress,
+          0,
         );
-        expect(find.byType(CircularProgressIndicator), findsNothing);
+        expect(find.text('Complete'), findsOneWidget);
+        expect(find.byType(FitnessGoalCard), findsNothing);
       }
     },
   );
@@ -395,7 +439,7 @@ void main() {
             isNull,
             reason: '$size at text scale $scale',
           );
-          final goal = tester.getRect(find.byType(FitnessGoalCard));
+          final goal = tester.getRect(find.byType(DashboardProgressCard));
           final calories = tester.getRect(
             find.widgetWithText(StatCard, 'Daily calorie target'),
           );
@@ -410,12 +454,14 @@ void main() {
               goal.width,
             );
           }
-          await tester.ensureVisible(find.text('Grocery List'));
+          await tester.ensureVisible(
+            find.byKey(const ValueKey('month-day-2026-10-31')),
+          );
           await tester.pumpAndSettle();
           expect(find.text('Alexandria Morgan Hernandez'), findsOneWidget);
           expect(find.text('24.7'), findsOneWidget);
           expect(find.text('1775'), findsOneWidget);
-          expect(find.text('80.0 kg'), findsOneWidget);
+          expect(find.text('176.4 lb'), findsOneWidget);
           expect(find.text('35 min'), findsOneWidget);
           expect(
             tester.takeException(),
@@ -427,22 +473,25 @@ void main() {
     },
   );
 
-  testWidgets('plan cards open their existing main tabs', (tester) async {
+  testWidgets('removing Home plan cards preserves all existing main tabs', (
+    tester,
+  ) async {
     await tester.pumpWidget(host(profile()));
     await tester.pumpAndSettle();
+    expect(find.byType(PlanCard), findsNothing);
     for (final destination in [
-      ("Today's Workout", 1, "workout"),
-      ("Today's Nutrition", 2, "nutrition"),
-      ('Grocery List', 3, 'grocery'),
+      ('Workout', 1, WorkoutsScreen),
+      ('Meals', 2, MealPage),
+      ('Groceries', 3, GroceryScreen),
     ]) {
-      await tester.ensureVisible(
-        find.byKey(ValueKey("dashboard-plan-${destination.$3}-action")),
-      );
-      await tester.pumpAndSettle();
       await tester.tap(
-        find.byKey(ValueKey("dashboard-plan-${destination.$3}-action")),
+        find.descendant(
+          of: find.byType(FloatingBottomNavigationBar),
+          matching: find.text(destination.$1),
+        ),
       );
       await tester.pumpAndSettle();
+      expect(find.byType(destination.$3), findsOneWidget);
       expect(
         tester
             .widget<FloatingBottomNavigationBar>(
@@ -460,13 +509,6 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(DashboardPage), findsOneWidget);
     }
-    expect(
-      find.descendant(
-        of: find.byType(PlanCard),
-        matching: find.byType(InkWell),
-      ),
-      findsNothing,
-    );
     expect(tester.takeException(), isNull);
   });
 }

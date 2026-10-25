@@ -7,10 +7,10 @@ import 'package:digigym/screens/edit_profile_screen.dart';
 import 'package:digigym/screens/meal_page.dart';
 import 'package:digigym/screens/workouts_screen.dart';
 import 'package:digigym/screens/profile_screen.dart';
-import 'package:digigym/screens/grocery_screen.dart';
 import 'package:digigym/theme/digigym_dashboard_theme.dart';
 import 'package:digigym/widgets/dashboard_card_action.dart';
 import 'package:digigym/widgets/floating_bottom_navigation_bar.dart';
+import 'package:digigym/widgets/stat_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -49,12 +49,10 @@ void main() {
     DigiGymSession.currentUser = null;
   });
   for (final action in [
+    ('progress', 1, WorkoutsScreen),
     ('calories', 2, MealPage),
     ('workout', 1, WorkoutsScreen),
     ('bmi', 4, ProfilePage),
-    ('plan-workout', 1, WorkoutsScreen),
-    ('plan-nutrition', 2, MealPage),
-    ('plan-grocery', 3, GroceryScreen),
   ]) {
     testWidgets('${action.$1} opens its existing tab without pushing a route', (
       tester,
@@ -97,7 +95,63 @@ void main() {
     });
   }
 
-  for (final action in ['goal', 'weight']) {
+  testWidgets('Your Week See All opens the existing Workout tab', (
+    tester,
+  ) async {
+    await startDashboard(tester);
+    final target = find.byKey(const ValueKey('dashboard-week-see-all'));
+    await tester.ensureVisible(target);
+    await tester.pumpAndSettle();
+    expect(tester.getSize(target).height, greaterThanOrEqualTo(48));
+    await tester.tap(target);
+    await tester.pumpAndSettle();
+    expect(find.byType(WorkoutsScreen), findsOneWidget);
+    expect(
+      tester
+          .widget<FloatingBottomNavigationBar>(
+            find.byType(FloatingBottomNavigationBar),
+          )
+          .selectedIndex,
+      1,
+    );
+    expect(
+      Navigator.canPop(tester.element(find.byType(WorkoutsScreen))),
+      isFalse,
+    );
+  });
+
+  testWidgets(
+    'unified statistics panel keeps three separate accessible actions',
+    (tester) async {
+      await startDashboard(tester);
+      final panel = find.byKey(const ValueKey('dashboard-statistics-panel'));
+      final rows = tester.widgetList<StatCard>(
+        find.descendant(of: panel, matching: find.byType(StatCard)),
+      );
+      expect(rows.map((row) => row.title), [
+        'Daily calorie target',
+        'Weight',
+        'BMI',
+      ]);
+      expect(
+        find.descendant(of: panel, matching: find.byType(InkWell)),
+        findsNWidgets(3),
+      );
+      for (final name in ['calories', 'weight', 'bmi']) {
+        final action = find.byKey(ValueKey('dashboard-$name-action'));
+        expect(tester.getSize(action).height, greaterThanOrEqualTo(48));
+        expect(
+          tester
+              .getSemantics(action)
+              .getSemanticsData()
+              .hasAction(ui.SemanticsAction.tap),
+          isTrue,
+        );
+      }
+    },
+  );
+
+  for (final action in ['weight']) {
     testWidgets(
       '$action opens Edit Profile and returned data refreshes dashboard calculations',
       (tester) async {
@@ -115,7 +169,7 @@ void main() {
               .text,
           'Test User',
         );
-        await tester.enterText(find.byType(TextField).at(3), '72.5');
+        await tester.enterText(find.byKey(const ValueKey('weight-lb')), '160');
         await tester.pumpAndSettle();
         final save = find.widgetWithText(ElevatedButton, 'SAVE CHANGES');
         await tester.ensureVisible(save);
@@ -125,13 +179,13 @@ void main() {
         final dashboard = tester.widget<DashboardPage>(
           find.byType(DashboardPage),
         );
-        expect(dashboard.user.weight, 72.5);
+        expect(dashboard.user.weight, closeTo(72.5747792, 1e-9));
         expect(dashboard.user.bmi, api.updateRequest!.bmi);
         expect(
           dashboard.user.estimatedCalories,
           api.updateRequest!.estimatedCalories,
         );
-        expect(DigiGymSession.currentUser!.weight, 72.5);
+        expect(DigiGymSession.currentUser!.weight, closeTo(72.5747792, 1e-9));
       },
     );
   }
@@ -186,7 +240,7 @@ void main() {
       final original = await capture(false);
       final interactive = await capture(true);
       expect(interactive, orderedEquals(original));
-      expect(find.byType(DashboardCardAction), findsNWidgets(8));
+      expect(find.byType(DashboardCardAction), findsNWidgets(5));
     },
   );
 }
