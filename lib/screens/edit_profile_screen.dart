@@ -175,7 +175,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       title: 'Edit Profile',
       child: Column(
         children: [
-          const DigiGymFormBranding(),
           DigiGymGlassField(
             child: TextField(
               controller: nameController,

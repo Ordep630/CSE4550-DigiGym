@@ -32,7 +32,7 @@ class DigiGymFormPage extends StatelessWidget {
               child: Row(
                 children: [
                   if (showBack && Navigator.canPop(context))
-                    const BackButton()
+                    const BackButton(color: DigiGymDarkColors.electricGreen)
                   else
                     const SizedBox(width: 12),
                   Expanded(

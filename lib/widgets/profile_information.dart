@@ -5,11 +5,15 @@ import 'dashboard_glass_card.dart';
 class ProfileInformation extends StatelessWidget {
   final String title;
   final String value;
+  final bool connected;
+  final Color? valueColor;
 
   const ProfileInformation({
     super.key,
     required this.title,
     required this.value,
+    this.connected = false,
+    this.valueColor,
   });
 
   @override
@@ -23,7 +27,7 @@ class ProfileInformation extends StatelessWidget {
         );
         final valueStyle = TextStyle(
           fontWeight: FontWeight.bold,
-          color: dark ? theme.colorScheme.onSurface : null,
+          color: valueColor ?? (dark ? theme.colorScheme.onSurface : null),
         );
         double width(String text, TextStyle? style) {
           final painter = TextPainter(
@@ -55,6 +59,7 @@ class ProfileInformation extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   value,
+                  textAlign: TextAlign.right,
                   style: theme.textTheme.bodyMedium?.merge(valueStyle),
                 ),
               ],
@@ -68,16 +73,11 @@ class ProfileInformation extends StatelessWidget {
               color: dark ? theme.colorScheme.onSurfaceVariant : Colors.grey,
             ),
           ),
-          trailing: Text(
-            value,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: dark ? theme.colorScheme.onSurface : null,
-            ),
-          ),
+          trailing: Text(value, textAlign: TextAlign.right, style: valueStyle),
         );
       },
     );
+    if (connected) return content;
     return dark
         ? DashboardGlassCard(
             margin: const EdgeInsets.only(bottom: 8),

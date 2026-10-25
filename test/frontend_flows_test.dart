@@ -586,18 +586,18 @@ void main() {
     );
 
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('LOGOUT'));
+    await tester.ensureVisible(find.text('Log Out'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('LOGOUT'));
+    await tester.tap(find.text('Log Out'));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ElevatedButton, 'Logout'));
     await tester.pump();
 
     expect(logoutCalls, 1);
-    expect(find.text('LOGGING OUT...'), findsOneWidget);
+    expect(find.text('Logging out…'), findsOneWidget);
 
     logoutCompleter.complete();
     await tester.pumpAndSettle();
-    expect(find.text('LOGOUT'), findsOneWidget);
+    expect(find.text('Log Out'), findsOneWidget);
   });
 }

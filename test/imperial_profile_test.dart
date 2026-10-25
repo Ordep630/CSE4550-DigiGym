@@ -1,6 +1,6 @@
 import 'package:digigym/models/user_profile.dart';
 import 'package:digigym/screens/edit_profile_screen.dart';
-import 'package:digigym/screens/profile_screen.dart';
+import 'package:digigym/screens/profile_details_screen.dart';
 import 'package:digigym/theme/digigym_dashboard_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -107,12 +107,10 @@ void main() {
                   .copyWith(textScaler: TextScaler.linear(scale)),
               child: child!,
             ),
-            home: ProfilePage(
+            home: ProfileDetailsScreen(
               user: testUser()
                 ..height = 174
                 ..weight = 58,
-              onLogout: () async {},
-              onUpdateProfile: (_) {},
             ),
           ),
         );

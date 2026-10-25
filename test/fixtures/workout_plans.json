@@ -1,0 +1,255 @@
+{
+  "Beginner / Lose Weight": [
+    {
+      "name": "Walking",
+      "sets": "10-15 minutes",
+      "description": "Walk at a comfortable but consistent pace. Keep your posture upright."
+    },
+    {
+      "name": "Bodyweight Squats",
+      "sets": "2 x 10",
+      "description": "Stand with your feet shoulder-width apart. Lower your hips slowly and return to standing."
+    },
+    {
+      "name": "Wall Push Ups",
+      "sets": "2 x 10",
+      "description": "Place your hands against a wall and slowly bend your elbows. Push yourself back."
+    },
+    {
+      "name": "Step Ups",
+      "sets": "2 x 10 each leg",
+      "description": "Step onto a stable platform and return to the starting position."
+    },
+    {
+      "name": "Plank",
+      "sets": "2 x 20 seconds",
+      "description": "Keep your body straight while supporting yourself on your forearms."
+    }
+  ],
+  "Beginner / Build Muscle": [
+    {
+      "name": "Bodyweight Squats",
+      "sets": "3 x 10",
+      "description": "Keep your chest up and lower your hips until your thighs are comfortable."
+    },
+    {
+      "name": "Knee Push Ups",
+      "sets": "3 x 8",
+      "description": "Keep your knees on the floor and lower your chest toward the ground."
+    },
+    {
+      "name": "Glute Bridges",
+      "sets": "3 x 12",
+      "description": "Lie on your back and drive your hips upward while squeezing your glutes."
+    },
+    {
+      "name": "Bird Dog",
+      "sets": "3 x 8 each side",
+      "description": "From your hands and knees, extend the opposite arm and leg while keeping your core stable."
+    },
+    {
+      "name": "Plank",
+      "sets": "3 x 20 seconds",
+      "description": "Keep your core tight and your body in a straight line."
+    }
+  ],
+  "Beginner / Default": [
+    {
+      "name": "Bodyweight Squats",
+      "sets": "2 x 10",
+      "description": "Keep your feet shoulder-width apart and perform controlled squats."
+    },
+    {
+      "name": "Wall Push Ups",
+      "sets": "2 x 10",
+      "description": "Use a wall to perform an easier push-up variation."
+    },
+    {
+      "name": "Glute Bridges",
+      "sets": "2 x 12",
+      "description": "Lift your hips while lying on your back."
+    },
+    {
+      "name": "Plank",
+      "sets": "2 x 20 seconds",
+      "description": "Keep your core tight and maintain a straight body."
+    }
+  ],
+  "Intermediate / Lose Weight": [
+    {
+      "name": "Jumping Jacks",
+      "sets": "3 x 30 seconds",
+      "description": "Perform jumping jacks at a steady pace. Keep your movements controlled."
+    },
+    {
+      "name": "Bodyweight Squats",
+      "sets": "3 x 15",
+      "description": "Perform controlled squats while keeping your knees aligned with your feet."
+    },
+    {
+      "name": "Mountain Climbers",
+      "sets": "3 x 20",
+      "description": "Start in a plank position and alternate driving your knees toward your chest."
+    },
+    {
+      "name": "Reverse Lunges",
+      "sets": "3 x 10 each leg",
+      "description": "Step backward and lower your body until your front leg is comfortably bent."
+    },
+    {
+      "name": "Burpees",
+      "sets": "3 x 8",
+      "description": "Perform a squat, move into a plank, return to a squat and stand or jump."
+    },
+    {
+      "name": "Plank",
+      "sets": "3 x 40 seconds",
+      "description": "Keep your core engaged and maintain a straight body position."
+    }
+  ],
+  "Intermediate / Build Muscle": [
+    {
+      "name": "Push Ups",
+      "sets": "4 x 12",
+      "description": "Keep your body straight and lower your chest under control."
+    },
+    {
+      "name": "Bodyweight Squats",
+      "sets": "4 x 15",
+      "description": "Lower your hips while keeping your chest upright."
+    },
+    {
+      "name": "Walking Lunges",
+      "sets": "3 x 12 each leg",
+      "description": "Take controlled steps forward while lowering your back knee."
+    },
+    {
+      "name": "Pike Push Ups",
+      "sets": "3 x 8",
+      "description": "Position your body in an inverted V and perform a controlled push-up."
+    },
+    {
+      "name": "Single Leg Glute Bridge",
+      "sets": "3 x 10 each leg",
+      "description": "Lift your hips using one leg while keeping your core stable."
+    },
+    {
+      "name": "Plank",
+      "sets": "3 x 45 seconds",
+      "description": "Maintain a strong core and neutral spine."
+    }
+  ],
+  "Intermediate / Default": [
+    {
+      "name": "Push Ups",
+      "sets": "3 x 12",
+      "description": "Keep your body straight and perform controlled push-ups."
+    },
+    {
+      "name": "Bodyweight Squats",
+      "sets": "3 x 15",
+      "description": "Perform controlled squats through a comfortable range of motion."
+    },
+    {
+      "name": "Reverse Lunges",
+      "sets": "3 x 10 each leg",
+      "description": "Step backward and lower your body under control."
+    },
+    {
+      "name": "Plank",
+      "sets": "3 x 40 seconds",
+      "description": "Keep your core tight and your hips level."
+    }
+  ],
+  "Advanced / Lose Weight": [
+    {
+      "name": "Burpees",
+      "sets": "4 x 15",
+      "description": "Perform each repetition with controlled movement and good technique."
+    },
+    {
+      "name": "Jump Squats",
+      "sets": "4 x 15",
+      "description": "Perform a squat and explosively jump upward. Land softly and repeat."
+    },
+    {
+      "name": "Mountain Climbers",
+      "sets": "4 x 30",
+      "description": "Maintain a strong plank position while alternating your knees rapidly."
+    },
+    {
+      "name": "Walking Lunges",
+      "sets": "4 x 15 each leg",
+      "description": "Perform controlled walking lunges while maintaining good balance."
+    },
+    {
+      "name": "High Knees",
+      "sets": "4 x 45 seconds",
+      "description": "Drive your knees upward while maintaining a fast but controlled pace."
+    },
+    {
+      "name": "Plank",
+      "sets": "4 x 60 seconds",
+      "description": "Keep your core fully engaged and avoid letting your hips drop."
+    }
+  ],
+  "Advanced / Build Muscle": [
+    {
+      "name": "Decline Push Ups",
+      "sets": "4 x 12",
+      "description": "Place your feet on a stable elevated surface and perform controlled push-ups."
+    },
+    {
+      "name": "Bulgarian Split Squats",
+      "sets": "4 x 10 each leg",
+      "description": "Place your rear foot on a stable surface and lower your body under control."
+    },
+    {
+      "name": "Diamond Push Ups",
+      "sets": "4 x 10",
+      "description": "Place your hands close together and perform controlled push-ups."
+    },
+    {
+      "name": "Jump Squats",
+      "sets": "4 x 15",
+      "description": "Squat down and jump explosively. Land softly."
+    },
+    {
+      "name": "Single Leg Glute Bridges",
+      "sets": "4 x 15 each leg",
+      "description": "Drive your hips upward while using one leg."
+    },
+    {
+      "name": "Plank Shoulder Taps",
+      "sets": "4 x 20",
+      "description": "From a plank position, alternate tapping each shoulder while minimizing hip movement."
+    }
+  ],
+  "Advanced / Default": [
+    {
+      "name": "Decline Push Ups",
+      "sets": "4 x 12",
+      "description": "Keep your body straight and perform controlled decline push-ups."
+    },
+    {
+      "name": "Bulgarian Split Squats",
+      "sets": "4 x 10 each leg",
+      "description": "Perform controlled single-leg squats with your rear foot elevated."
+    },
+    {
+      "name": "Diamond Push Ups",
+      "sets": "4 x 10",
+      "description": "Keep your hands close together and maintain good form."
+    },
+    {
+      "name": "Jump Squats",
+      "sets": "4 x 15",
+      "description": "Explosively jump from the bottom of each squat."
+    },
+    {
+      "name": "Plank Shoulder Taps",
+      "sets": "4 x 20",
+      "description": "Alternate touching your shoulders from a stable plank position."
+    }
+  ]
+}

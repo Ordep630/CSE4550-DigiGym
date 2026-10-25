@@ -497,8 +497,8 @@ void main() {
       expect(tester.getRect(background), Rect.fromLTWH(0, 0, 1280 / 3, 952));
       final viewport = tester.getRect(find.byType(SingleChildScrollView));
       expect(viewport.top, 52);
-      expect(viewport.bottom, navigation.top);
-      expect(viewport.height, 796);
+      expect(viewport.bottom, 952);
+      expect(viewport.height, 900);
 
       final progressCard = find.byType(DashboardProgressCard);
       expect(progressCard, findsOneWidget);

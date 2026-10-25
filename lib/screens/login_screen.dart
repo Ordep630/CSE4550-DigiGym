@@ -279,73 +279,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ],
                               ),
                             ),
-                            const SizedBox(height: 36),
-                            const Text(
-                              'Demo Login',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Semantics(
-                              label: 'Demo credentials: demo@gym.com, password 123456',
-                              excludeSemantics: true,
-                              child: const Wrap(
-                                alignment: WrapAlignment.center,
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                spacing: 8,
-                                children: [
-                                  Text(
-                                    'demo@gym.com',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: DigiGymDarkColors.secondaryText,
-                                    ),
-                                  ),
-                                  Text(
-                                    '|',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: DigiGymDarkColors.secondaryText,
-                                    ),
-                                  ),
-                                  Text(
-                                    '123456',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: DigiGymDarkColors.electricGreen,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                           ],
                         ),
                         Padding(
                           padding: const EdgeInsets.only(top: 10, bottom: 12),
                           child: Column(
                             children: [
-                              const Row(
-                                children: [
-                                  Expanded(
-                                    child: Divider(color: Color(0x404F6157)),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 14,
-                                    ),
-                                    child: Text(
-                                      'or',
-                                      style: TextStyle(fontSize: 14),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Divider(color: Color(0x404F6157)),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 22),
                               Wrap(
                                 alignment: WrapAlignment.center,
                                 crossAxisAlignment: WrapCrossAlignment.center,

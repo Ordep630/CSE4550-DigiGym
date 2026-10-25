@@ -10,6 +10,20 @@ abstract final class DigiGymDarkColors {
   static const secondaryText = Color(0xFFABB5AF);
 }
 
+/// Semantic colors shared by saved fitness-level labels and indicators.
+abstract final class DigiGymFitnessLevelColors {
+  static const beginner = Color(0xFF45D98A);
+  static const intermediate = Color(0xFFF2A34A);
+  static const advanced = Color(0xFFF26B6B);
+
+  static Color forLevel(String level) => switch (level.trim().toLowerCase()) {
+    'beginner' => beginner,
+    'intermediate' => intermediate,
+    'advanced' => advanced,
+    _ => DigiGymDarkColors.primaryText,
+  };
+}
+
 /// Builds a scoped theme using semantic colors that widgets can also consume
 /// from a future application-wide dark or light theme.
 abstract final class DigiGymDashboardTheme {

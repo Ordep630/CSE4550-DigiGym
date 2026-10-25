@@ -49,6 +49,10 @@ class DashboardPage extends StatelessWidget {
     // A missing streak is neutral, never a fabricated workout count.
     final preview = DashboardHeaderPreview.enabled;
     final days = streakDays;
+    // HomeScreen supplies the measured pill + system inset through extendBody.
+    // Keep it in scroll content, not an outer SafeArea that clips glass/shadows
+    // along a rectangular boundary above the pill (especially visible on iOS).
+    final navigationInset = MediaQuery.paddingOf(context).bottom;
     return Theme(
       data: theme,
       child: AnnotatedRegion<SystemUiOverlayStyle>(
@@ -57,9 +61,9 @@ class DashboardPage extends StatelessWidget {
           backgroundColor: Colors.transparent,
           body: SizedBox.expand(
             child: SafeArea(
-              bottom: true,
+              bottom: false,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
+                padding: EdgeInsets.fromLTRB(20, 0, 20, 14 + navigationInset),
                 child: Align(
                   alignment: Alignment.topCenter,
                   child: ConstrainedBox(

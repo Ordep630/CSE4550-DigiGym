@@ -221,7 +221,14 @@ void main() {
           find.byType(FloatingBottomNavigationBar),
         );
         expect(viewport.top, configuration.$2.top);
-        expect(viewport.bottom, navigation.top);
+        expect(viewport.bottom, 952);
+        final scroll = tester.widget<SingleChildScrollView>(
+          find.byType(SingleChildScrollView),
+        );
+        expect(
+          (scroll.padding! as EdgeInsets).bottom,
+          14 + 952 - navigation.top,
+        );
         expect(navigation.bottom, 952);
         expect(tester.takeException(), isNull);
       }

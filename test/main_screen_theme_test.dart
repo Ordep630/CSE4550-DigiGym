@@ -1,18 +1,21 @@
 import 'dart:ui' as ui;
 
 import 'package:digigym/models/user_profile.dart';
+import 'package:digigym/models/workout_plan.dart';
 import 'package:digigym/utils/measurement_units.dart';
 import 'package:digigym/screens/edit_profile_screen.dart';
 import 'package:digigym/screens/home_screen.dart';
 import 'package:digigym/screens/login_screen.dart';
 import 'package:digigym/screens/meal_page.dart';
 import 'package:digigym/screens/profile_screen.dart';
+import 'package:digigym/screens/profile_details_screen.dart';
 import 'package:digigym/screens/workouts_screen.dart';
 import 'package:digigym/theme/digigym_dashboard_theme.dart';
 import 'package:digigym/widgets/dashboard_glass_card.dart';
 import 'package:digigym/widgets/digigym_atmospheric_background.dart';
 import 'package:digigym/widgets/floating_bottom_navigation_bar.dart';
 import 'package:digigym/widgets/profile_information.dart';
+import 'package:digigym/widgets/monthly_activity_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -135,17 +138,19 @@ void main() {
             Brightness.dark,
           );
           final viewport = tester.getRect(find.byType(Scrollable).first);
-          expect(viewport.bottom, label == 'Home' ? navigation.top : 952);
+          expect(viewport.bottom, 952);
           if (label != 'Home') {
             final appBar = tester.getRect(find.byType(AppBar));
             expect(appBar.height, 56 + configuration.$2.top);
             expect(viewport.top, appBar.bottom);
             expect(find.byType(Card), findsNothing);
-            for (final glass in tester.widgetList<DashboardGlassCard>(
-              find.byType(DashboardGlassCard),
-            )) {
-              expect(glass.cornerRadius, 12);
-              expect(glass.padding, EdgeInsets.zero);
+            if (label != 'Workout' && label != 'Profile') {
+              for (final glass in tester.widgetList<DashboardGlassCard>(
+                find.byType(DashboardGlassCard),
+              )) {
+                expect(glass.cornerRadius, 12);
+                expect(glass.padding, EdgeInsets.zero);
+              }
             }
           }
           expect(
@@ -155,6 +160,90 @@ void main() {
           );
         }
       }
+    },
+  );
+
+  testWidgets(
+    'iPhone Home glass continues behind navigation and Monthly Activity scrolls clear',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(420, 912);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        host(
+          platform: TargetPlatform.iOS,
+          insets: const EdgeInsets.only(top: 62, bottom: 34),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final navigation = tester.getRect(
+        find.byType(FloatingBottomNavigationBar),
+      );
+      final viewport = tester.getRect(find.byType(SingleChildScrollView));
+      final scroll = tester.state<ScrollableState>(find.byType(Scrollable));
+      expect(viewport.top, 62);
+      expect(viewport.bottom, 912);
+      expect(scroll.position.maxScrollExtent, greaterThan(0));
+      final padding =
+          tester
+                  .widget<SingleChildScrollView>(
+                    find.byType(SingleChildScrollView),
+                  )
+                  .padding!
+              as EdgeInsets;
+      expect(padding.bottom, 14 + 912 - navigation.top);
+      final calendar = find.byType(MonthlyActivityCalendar);
+      scroll.position.jumpTo(
+        (scroll.position.pixels +
+                tester.getRect(calendar).center.dy -
+                navigation.top)
+            .clamp(0, scroll.position.maxScrollExtent),
+      );
+      await tester.pumpAndSettle();
+      final card = tester.getRect(calendar);
+      expect(card.contains(Offset(24, navigation.top - 2)), isTrue);
+      expect(card.contains(Offset(24, navigation.top + 2)), isTrue);
+      final pixels = await tester.runAsync(() async {
+        final image = await captureImage(
+          tester.element(find.byType(DigiGymAtmosphericBackground)),
+        );
+        try {
+          final bytes = (await image.toByteData(
+            format: ui.ImageByteFormat.rawRgba,
+          ))!;
+          return [
+            for (final y in [
+              navigation.top.toInt() - 2,
+              navigation.top.toInt() + 2,
+            ])
+              [
+                for (var channel = 0; channel < 3; channel++)
+                  bytes.getUint8((y * image.width + 24) * 4 + channel),
+              ],
+          ];
+        } finally {
+          image.dispose();
+        }
+      });
+      for (var channel = 0; channel < 3; channel++) {
+        expect(
+          (pixels![0][channel] - pixels[1][channel]).abs(),
+          lessThan(12),
+          reason: 'Home must not clip its glass at a horizontal navigation boundary',
+        );
+      }
+      scroll.position.jumpTo(scroll.position.maxScrollExtent);
+      await tester.pumpAndSettle();
+      expect(
+        tester.getRect(calendar).bottom,
+        lessThanOrEqualTo(navigation.top),
+      );
+      expect(
+        tester.getRect(find.byType(FloatingBottomNavigationBar)),
+        navigation,
+      );
+      expect(tester.takeException(), isNull);
     },
   );
 
@@ -217,7 +306,8 @@ void main() {
     'a real workout card remains recognizable through the shared glass',
     (tester) async {
       tester.view.devicePixelRatio = 1;
-      tester.view.physicalSize = const Size(1280 / 3, 952);
+      // A shorter viewport puts the new compact Today content behind the pill.
+      tester.view.physicalSize = const Size(1280 / 3, 640);
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
@@ -257,7 +347,9 @@ void main() {
       await tester.pumpAndSettle();
       final pill = tester.getRect(find.byType(BackdropFilter));
       final scroll = tester.state<ScrollableState>(find.byType(Scrollable));
-      final card = find.byType(DashboardGlassCard).last;
+      final card = find.byKey(const ValueKey('workout-goal'));
+      await tester.scrollUntilVisible(card, 100);
+      await tester.pumpAndSettle();
       scroll.position.jumpTo(
         (scroll.position.pixels +
                 tester.getRect(card).center.dy -
@@ -266,7 +358,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       final cardBounds = tester.getRect(card);
-      final region = pill.deflate(8);
+      final region = pill.deflate(12);
       expect(cardBounds.contains(region.topLeft), isTrue);
       expect(cardBounds.contains(region.bottomRight), isTrue);
 
@@ -331,15 +423,19 @@ void main() {
     (tester) async {
       await tester.pumpWidget(host());
       await selectTab(tester, 'Workout');
-      expect(find.text('Goal: Build Muscle'), findsOneWidget);
-      expect(find.text('Workout time: 30 minutes'), findsOneWidget);
+      expect(find.text('Build Muscle'), findsOneWidget);
+      expect(find.text('Intermediate Plan'), findsOneWidget);
       expect(find.text('6 exercises'), findsOneWidget);
       expect(
         tester.widget<Text>(find.text('Intermediate')).style?.color,
-        Colors.orange,
+        DigiGymFitnessLevelColors.intermediate,
       );
-      final screen = tester.widget<WorkoutsScreen>(find.byType(WorkoutsScreen));
-      final firstExercise = screen.getExercises().first;
+      final firstExercise = WorkoutPlan.forUser(profile()).exercises.first;
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('workout-view-exercises')),
+      );
+      await tester.tap(find.byKey(const ValueKey('workout-view-exercises')));
+      await tester.pumpAndSettle();
       expect(find.text(firstExercise.description), findsNothing);
       await tester.tap(find.text(firstExercise.name));
       await tester.pumpAndSettle();
@@ -348,11 +444,13 @@ void main() {
       await tester.tap(find.text(firstExercise.name));
       await tester.pumpAndSettle();
       expect(find.text(firstExercise.description), findsNothing);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
       await tester.pumpWidget(host(user: profile(level: 'Advanced')));
       await tester.pumpAndSettle();
       expect(
         tester.widget<Text>(find.text('Advanced')).style?.color,
-        Colors.red,
+        DigiGymFitnessLevelColors.advanced,
       );
       expect(tester.takeException(), isNull);
     },
@@ -433,14 +531,22 @@ void main() {
       ),
     );
     await selectTab(tester, 'Profile');
-    expect(find.byType(ProfileInformation), findsNWidgets(8));
+    expect(find.byType(ProfileInformation), findsNothing);
     expect(find.text('Isaac'), findsOneWidget);
+    expect(find.text('Intermediate'), findsOneWidget);
+    expect(find.text('Build Muscle'), findsOneWidget);
+    expect(find.text('30 min'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('profile-user-card')));
+    await tester.pumpAndSettle();
+    expect(find.byType(ProfileDetailsScreen), findsOneWidget);
+    expect(find.byType(ProfileInformation), findsNWidgets(11));
     expect(find.text('19.2'), findsOneWidget);
     expect(find.text('127.9 lb'), findsOneWidget);
     expect(find.text('5 ft 8.5 in'), findsOneWidget);
-    expect(tester.widget<Text>(find.text('Isaac')).style?.fontSize, 24);
-    await tester.ensureVisible(find.text('EDIT PROFILE'));
-    await tester.tap(find.text('EDIT PROFILE'));
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Edit Profile'));
+    await tester.tap(find.text('Edit Profile'));
     await tester.pumpAndSettle();
     expect(find.byType(EditProfileScreen), findsOneWidget);
     expect(
@@ -454,13 +560,13 @@ void main() {
     expect(api.updateRequest?.name, 'Updated Isaac');
     expect(updated?.name, 'Updated Isaac');
     expect(find.byType(ProfilePage), findsOneWidget);
-    await tester.ensureVisible(find.text('LOGOUT'));
-    await tester.tap(find.text('LOGOUT'));
+    await tester.ensureVisible(find.text('Log Out'));
+    await tester.tap(find.text('Log Out'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     expect(logoutCalls, 0);
-    await tester.tap(find.text('LOGOUT'));
+    await tester.tap(find.text('Log Out'));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ElevatedButton, 'Logout'));
     await tester.pumpAndSettle();
@@ -529,7 +635,7 @@ void main() {
             final navigation = tester.getRect(
               find.byType(FloatingBottomNavigationBar),
             );
-            expect(viewport.bottom, tab == 'Home' ? navigation.top : 844);
+            expect(viewport.bottom, 844);
             final lastContent = switch (tab) {
               'Home' =>
                 find
@@ -545,7 +651,7 @@ void main() {
               'Workout' => find.byType(DashboardGlassCard).last,
               'Meals' => find.byType(DashboardGlassCard).last,
               'Groceries' => find.widgetWithText(CheckboxListTile, 'Cucumber'),
-              'Profile' => find.widgetWithText(OutlinedButton, 'LOGOUT'),
+              'Profile' => find.byKey(const ValueKey('profile-logout')),
               _ => throw StateError('Unexpected tab: $tab'),
             };
             expect(

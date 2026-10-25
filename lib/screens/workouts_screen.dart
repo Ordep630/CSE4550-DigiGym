@@ -1,493 +1,241 @@
 import 'package:flutter/material.dart';
 
 import '../models/user_profile.dart';
-import '../models/exercise.dart';
+import '../models/workout_plan.dart';
+import '../theme/digigym_dashboard_theme.dart';
+import '../widgets/workout_overview.dart';
+import '../widgets/workout_week_view.dart';
 import '../widgets/dashboard_glass_card.dart';
+import '../widgets/workout_app_bar.dart';
+import 'workout_exercises_screen.dart';
 
-class WorkoutsScreen extends StatelessWidget {
+enum WorkoutView { today, thisWeek, allWorkouts }
+
+class WorkoutsScreen extends StatefulWidget {
   final UserProfile user;
-
   const WorkoutsScreen({super.key, required this.user});
 
-  Exercise _exercise(String name, String sets, String description) {
-    return Exercise(name: name, sets: sets, description: description);
+  @override
+  State<WorkoutsScreen> createState() => _WorkoutsScreenState();
+}
+
+class _WorkoutsScreenState extends State<WorkoutsScreen> {
+  WorkoutView _view = WorkoutView.today;
+  bool _restored = false;
+
+  // Route-local presentation state only: no schedule, session or disk storage.
+  Object get _storageKey => ('workout-view', widget.user.email);
+
+  void _restoreView() {
+    final stored = PageStorage.maybeOf(context)
+        ?.readState(context, identifier: _storageKey);
+    _view = stored is WorkoutView ? stored : WorkoutView.today;
+    _restored = true;
   }
 
-  List<Exercise> beginnerWorkout() {
-    if (user.fitnessGoal == 'Lose Weight') {
-      return [
-        _exercise(
-          'Walking',
-          '10-15 minutes',
-          'Walk at a comfortable but consistent pace. '
-              'Keep your posture upright.',
-        ),
-        _exercise(
-          'Bodyweight Squats',
-          '2 x 10',
-          'Stand with your feet shoulder-width apart. '
-              'Lower your hips slowly and return to standing.',
-        ),
-        _exercise(
-          'Wall Push Ups',
-          '2 x 10',
-          'Place your hands against a wall and slowly '
-              'bend your elbows. Push yourself back.',
-        ),
-        _exercise(
-          'Step Ups',
-          '2 x 10 each leg',
-          'Step onto a stable platform and return to the '
-              'starting position.',
-        ),
-        _exercise(
-          'Plank',
-          '2 x 20 seconds',
-          'Keep your body straight while supporting '
-              'yourself on your forearms.',
-        ),
-      ];
-    }
-
-    if (user.fitnessGoal == 'Build Muscle') {
-      return [
-        _exercise(
-          'Bodyweight Squats',
-          '3 x 10',
-          'Keep your chest up and lower your hips '
-              'until your thighs are comfortable.',
-        ),
-        _exercise(
-          'Knee Push Ups',
-          '3 x 8',
-          'Keep your knees on the floor and lower '
-              'your chest toward the ground.',
-        ),
-        _exercise(
-          'Glute Bridges',
-          '3 x 12',
-          'Lie on your back and drive your hips upward '
-              'while squeezing your glutes.',
-        ),
-        _exercise(
-          'Bird Dog',
-          '3 x 8 each side',
-          'From your hands and knees, extend the opposite '
-              'arm and leg while keeping your core stable.',
-        ),
-        _exercise(
-          'Plank',
-          '3 x 20 seconds',
-          'Keep your core tight and your body in a '
-              'straight line.',
-        ),
-      ];
-    }
-
-    return [
-      _exercise(
-        'Bodyweight Squats',
-        '2 x 10',
-        'Keep your feet shoulder-width apart and '
-            'perform controlled squats.',
-      ),
-      _exercise(
-        'Wall Push Ups',
-        '2 x 10',
-        'Use a wall to perform an easier push-up variation.',
-      ),
-      _exercise(
-        'Glute Bridges',
-        '2 x 12',
-        'Lift your hips while lying on your back.',
-      ),
-      _exercise(
-        'Plank',
-        '2 x 20 seconds',
-        'Keep your core tight and maintain a straight body.',
-      ),
-    ];
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_restored) _restoreView();
   }
 
-  List<Exercise> intermediateWorkout() {
-    if (user.fitnessGoal == 'Lose Weight') {
-      return [
-        _exercise(
-          'Jumping Jacks',
-          '3 x 30 seconds',
-          'Perform jumping jacks at a steady pace. '
-              'Keep your movements controlled.',
-        ),
-        _exercise(
-          'Bodyweight Squats',
-          '3 x 15',
-          'Perform controlled squats while keeping '
-              'your knees aligned with your feet.',
-        ),
-        _exercise(
-          'Mountain Climbers',
-          '3 x 20',
-          'Start in a plank position and alternate '
-              'driving your knees toward your chest.',
-        ),
-        _exercise(
-          'Reverse Lunges',
-          '3 x 10 each leg',
-          'Step backward and lower your body until '
-              'your front leg is comfortably bent.',
-        ),
-        _exercise(
-          'Burpees',
-          '3 x 8',
-          'Perform a squat, move into a plank, return '
-              'to a squat and stand or jump.',
-        ),
-        _exercise(
-          'Plank',
-          '3 x 40 seconds',
-          'Keep your core engaged and maintain a '
-              'straight body position.',
-        ),
-      ];
-    }
-
-    if (user.fitnessGoal == 'Build Muscle') {
-      return [
-        _exercise(
-          'Push Ups',
-          '4 x 12',
-          'Keep your body straight and lower your chest '
-              'under control.',
-        ),
-        _exercise(
-          'Bodyweight Squats',
-          '4 x 15',
-          'Lower your hips while keeping your chest upright.',
-        ),
-        _exercise(
-          'Walking Lunges',
-          '3 x 12 each leg',
-          'Take controlled steps forward while lowering '
-              'your back knee.',
-        ),
-        _exercise(
-          'Pike Push Ups',
-          '3 x 8',
-          'Position your body in an inverted V and '
-              'perform a controlled push-up.',
-        ),
-        _exercise(
-          'Single Leg Glute Bridge',
-          '3 x 10 each leg',
-          'Lift your hips using one leg while keeping '
-              'your core stable.',
-        ),
-        _exercise(
-          'Plank',
-          '3 x 45 seconds',
-          'Maintain a strong core and neutral spine.',
-        ),
-      ];
-    }
-
-    return [
-      _exercise(
-        'Push Ups',
-        '3 x 12',
-        'Keep your body straight and perform controlled push-ups.',
-      ),
-      _exercise(
-        'Bodyweight Squats',
-        '3 x 15',
-        'Perform controlled squats through a comfortable '
-            'range of motion.',
-      ),
-      _exercise(
-        'Reverse Lunges',
-        '3 x 10 each leg',
-        'Step backward and lower your body under control.',
-      ),
-      _exercise(
-        'Plank',
-        '3 x 40 seconds',
-        'Keep your core tight and your hips level.',
-      ),
-    ];
+  @override
+  void didUpdateWidget(WorkoutsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.user.email != widget.user.email) _restoreView();
   }
 
-  List<Exercise> advancedWorkout() {
-    if (user.fitnessGoal == 'Lose Weight') {
-      return [
-        _exercise(
-          'Burpees',
-          '4 x 15',
-          'Perform each repetition with controlled '
-              'movement and good technique.',
-        ),
-        _exercise(
-          'Jump Squats',
-          '4 x 15',
-          'Perform a squat and explosively jump upward. '
-              'Land softly and repeat.',
-        ),
-        _exercise(
-          'Mountain Climbers',
-          '4 x 30',
-          'Maintain a strong plank position while '
-              'alternating your knees rapidly.',
-        ),
-        _exercise(
-          'Walking Lunges',
-          '4 x 15 each leg',
-          'Perform controlled walking lunges while '
-              'maintaining good balance.',
-        ),
-        _exercise(
-          'High Knees',
-          '4 x 45 seconds',
-          'Drive your knees upward while maintaining '
-              'a fast but controlled pace.',
-        ),
-        _exercise(
-          'Plank',
-          '4 x 60 seconds',
-          'Keep your core fully engaged and avoid '
-              'letting your hips drop.',
-        ),
-      ];
-    }
-
-    if (user.fitnessGoal == 'Build Muscle') {
-      return [
-        _exercise(
-          'Decline Push Ups',
-          '4 x 12',
-          'Place your feet on a stable elevated surface '
-              'and perform controlled push-ups.',
-        ),
-        _exercise(
-          'Bulgarian Split Squats',
-          '4 x 10 each leg',
-          'Place your rear foot on a stable surface '
-              'and lower your body under control.',
-        ),
-        _exercise(
-          'Diamond Push Ups',
-          '4 x 10',
-          'Place your hands close together and perform '
-              'controlled push-ups.',
-        ),
-        _exercise(
-          'Jump Squats',
-          '4 x 15',
-          'Squat down and jump explosively. Land softly.',
-        ),
-        _exercise(
-          'Single Leg Glute Bridges',
-          '4 x 15 each leg',
-          'Drive your hips upward while using one leg.',
-        ),
-        _exercise(
-          'Plank Shoulder Taps',
-          '4 x 20',
-          'From a plank position, alternate tapping '
-              'each shoulder while minimizing hip movement.',
-        ),
-      ];
-    }
-
-    return [
-      _exercise(
-        'Decline Push Ups',
-        '4 x 12',
-        'Keep your body straight and perform controlled '
-            'decline push-ups.',
-      ),
-      _exercise(
-        'Bulgarian Split Squats',
-        '4 x 10 each leg',
-        'Perform controlled single-leg squats with '
-            'your rear foot elevated.',
-      ),
-      _exercise(
-        'Diamond Push Ups',
-        '4 x 10',
-        'Keep your hands close together and maintain good form.',
-      ),
-      _exercise(
-        'Jump Squats',
-        '4 x 15',
-        'Explosively jump from the bottom of each squat.',
-      ),
-      _exercise(
-        'Plank Shoulder Taps',
-        '4 x 20',
-        'Alternate touching your shoulders from a '
-            'stable plank position.',
-      ),
-    ];
+  void _select(WorkoutView view) {
+    if (_view == view) return;
+    setState(() => _view = view);
+    PageStorage.maybeOf(context)
+        ?.writeState(context, view, identifier: _storageKey);
   }
 
-  List<Exercise> getExercises() {
-    switch (user.fitnessLevel) {
-      case 'Intermediate':
-        return intermediateWorkout();
-      case 'Advanced':
-        return advancedWorkout();
-      case 'Beginner':
-      default:
-        return beginnerWorkout();
-    }
-  }
-
-  String getLevelDescription() {
-    switch (user.fitnessLevel) {
-      case 'Intermediate':
-        return 'Moderate intensity with increased volume '
-            'and more challenging exercises.';
-      case 'Advanced':
-        return 'High intensity with challenging movements '
-            'and higher training volume.';
-      case 'Beginner':
-      default:
-        return 'Easy-to-follow exercises designed to build '
-            'strength, movement skills and consistency.';
-    }
-  }
-
-  Color getLevelColor() {
-    switch (user.fitnessLevel) {
-      case 'Intermediate':
-        return Colors.orange;
-      case 'Advanced':
-        return Colors.red;
-      case 'Beginner':
-      default:
-        return Colors.green;
-    }
+  void _openExercises(WorkoutPlan plan, {bool walkthrough = false}) {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) =>
+            WorkoutExercisesScreen(plan: plan, walkthrough: walkthrough),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final exercises = getExercises();
-    final colors = Theme.of(context).colorScheme;
-
+    final plan = WorkoutPlan.forUser(widget.user);
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark
-          ? Colors.transparent
-          : null,
-      appBar: AppBar(title: const Text('Workout Plan')),
+      backgroundColor: Colors.transparent,
+      appBar: workoutAppBar(context, title: 'Workout', large: true),
       body: SafeArea(
         top: false,
         bottom: false,
         child: ListView(
-          // Reserve the measured navigation inset inside the scroll content,
-          // so the viewport does not cut glass surfaces off above the pill.
+          key: PageStorageKey(('workout-scroll', widget.user.email, _view)),
+          // Reserve the shell's measured inset inside the scroll content.
+          // Cards can pass behind the frosted pill, then scroll clear of it.
           padding: EdgeInsets.fromLTRB(
-            16,
-            16,
-            16,
-            16 + MediaQuery.paddingOf(context).bottom,
+            20,
+            0,
+            20,
+            20 + MediaQuery.paddingOf(context).bottom,
           ),
           children: [
-            DashboardGlassCard(
-              margin: const EdgeInsets.all(4),
-              padding: EdgeInsets.zero,
-              cornerRadius: 12,
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+            Text(
+              '${plan.fitnessLevel} Plan',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: DigiGymFitnessLevelColors.forLevel(plan.fitnessLevel),
+              ),
+            ),
+            const SizedBox(height: 18),
+            _WorkoutSegments(selected: _view, onSelected: _select),
+            const SizedBox(height: 20),
+            switch (_view) {
+              WorkoutView.today => WorkoutOverview(
+                plan: plan,
+                onViewExercises: () => _openExercises(plan),
+                onStartWalkthrough: () =>
+                    _openExercises(plan, walkthrough: true),
+              ),
+              WorkoutView.thisWeek => WorkoutWeekView(
+                onBrowseWorkouts: () => _select(WorkoutView.allWorkouts),
+              ),
+              WorkoutView.allWorkouts => Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Your available plan',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Recommended from your saved fitness level and goal.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  DashboardGlassCard(
+                    key: const ValueKey('workout-library-plan'),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        CircleAvatar(
-                          backgroundColor: getLevelColor(),
-                          child: const Icon(
-                            Icons.fitness_center,
-                            color: Colors.white,
+                        Text(plan.title, style: theme.textTheme.titleLarge),
+                        const SizedBox(height: 8),
+                        Text(
+                          '${plan.durationMinutes} min • ${plan.exercises.length} exercises',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Fitness Level',
-                                style: TextStyle(
-                                  color: colors.onSurfaceVariant,
-                                ),
-                              ),
-                              Text(
-                                user.fitnessLevel,
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: getLevelColor(),
-                                ),
-                              ),
-                            ],
+                        const SizedBox(height: 8),
+                        Text(plan.fitnessGoal),
+                        const SizedBox(height: 16),
+                        OutlinedButton.icon(
+                          key: const ValueKey('workout-library-exercises'),
+                          onPressed: () => _openExercises(plan),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(48, 48),
+                            padding: const EdgeInsets.all(12),
                           ),
+                          icon: const Icon(Icons.format_list_bulleted_rounded),
+                          label: const Text('View Exercises'),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 15),
-                    Text(getLevelDescription()),
-                    const SizedBox(height: 15),
-                    const Divider(),
-                    const SizedBox(height: 10),
-                    Text('Goal: ${user.fitnessGoal}'),
-                    Text('Workout time: ${user.workoutTime} minutes'),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              '${user.fitnessLevel} Workout',
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              '${exercises.length} exercises',
-              style: TextStyle(color: colors.onSurfaceVariant),
-            ),
-            const SizedBox(height: 15),
-            ...exercises.asMap().entries.map((entry) {
-              final index = entry.key;
-              final exercise = entry.value;
+            },
+          ],
+        ),
+      ),
+    );
+  }
+}
 
-              return DashboardGlassCard(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: EdgeInsets.zero,
-                cornerRadius: 12,
-                child: Material(
-                  type: MaterialType.transparency,
-                  child: ExpansionTile(
-                    leading: CircleAvatar(child: Text('${index + 1}')),
-                    title: Text(
-                      exercise.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      exercise.sets,
-                      style: TextStyle(color: colors.onSurfaceVariant),
-                    ),
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(exercise.description),
+class _WorkoutSegments extends StatelessWidget {
+  final WorkoutView selected;
+  final ValueChanged<WorkoutView> onSelected;
+  const _WorkoutSegments({required this.selected, required this.onSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: .65),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(3),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final entry in const {
+                WorkoutView.today: 'Today',
+                WorkoutView.thisWeek: 'This Week',
+                WorkoutView.allWorkouts: 'All Workouts',
+              }.entries)
+                Expanded(
+                  child: Semantics(
+                    button: true,
+                    selected: selected == entry.key,
+                    label: '${entry.value} workout view',
+                    onTap: () => onSelected(entry.key),
+                    excludeSemantics: true,
+                    child: AnimatedContainer(
+                      duration: MediaQuery.disableAnimationsOf(context)
+                          ? Duration.zero
+                          : const Duration(milliseconds: 160),
+                      decoration: BoxDecoration(
+                        color: selected == entry.key
+                            ? theme.colorScheme.primary
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: InkWell(
+                          key: ValueKey('workout-view-${entry.key.name}'),
+                          borderRadius: BorderRadius.circular(25),
+                          onTap: () => onSelected(entry.key),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(minHeight: 48),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 10,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  entry.value,
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontSize: 12,
+                                    fontWeight: selected == entry.key
+                                        ? FontWeight.w600
+                                        : FontWeight.w400,
+                                    color: selected == entry.key
+                                        ? theme.colorScheme.onPrimary
+                                        : theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                    ],
+                    ),
                   ),
                 ),
-              );
-            }),
-          ],
+            ],
+          ),
         ),
       ),
     );

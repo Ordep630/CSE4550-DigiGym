@@ -33,16 +33,18 @@ Future<void> pumpLogin(
   Size size = const Size(1280 / 3, 952),
   double scale = 1,
   double keyboard = 0,
+  EdgeInsets safeArea = const EdgeInsets.only(top: 52, bottom: 24),
+  TargetPlatform platform = TargetPlatform.android,
   DigiGymApi? api,
   ValueChanged<UserProfile>? onLogin,
 }) async {
   tester.view.physicalSize = size;
   await tester.pumpWidget(
     MaterialApp(
-      theme: ThemeData(useMaterial3: true),
+      theme: ThemeData(useMaterial3: true, platform: platform),
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(context).copyWith(
-          padding: const EdgeInsets.only(top: 52, bottom: 24),
+          padding: safeArea,
           viewInsets: EdgeInsets.only(bottom: keyboard),
           textScaler: TextScaler.linear(scale),
         ),
@@ -119,10 +121,11 @@ void main() {
     expect(find.text('Your personal fitness companion'), findsNothing);
     expect(find.text('Welcome Back'), findsNothing);
     expect(find.byIcon(Icons.fitness_center), findsNothing);
-    expect(find.text('Demo Login'), findsOneWidget);
-    expect(find.text('demo@gym.com'), findsOneWidget);
-    expect(find.text('123456'), findsOneWidget);
-    expect(find.text('or'), findsOneWidget);
+    expect(find.text('Demo Login'), findsNothing);
+    expect(find.text('demo@gym.com'), findsNothing);
+    expect(find.text('123456'), findsNothing);
+    expect(find.text('or'), findsNothing);
+    expect(find.byType(Divider), findsNothing);
     expect(find.text('Forgot Password?'), findsOneWidget);
     expect(
       tester
@@ -143,6 +146,95 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'iPhone Air login fits without scrolling while keyboard and large text can scroll',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      const phone = Size(
+        420,
+        912,
+      ); // Measured physical device: 1260x2736 at 3x.
+      const safeArea = EdgeInsets.only(top: 62, bottom: 34);
+      await pumpLogin(
+        tester,
+        size: phone,
+        safeArea: safeArea,
+        platform: TargetPlatform.iOS,
+      );
+      final scroll = tester.state<ScrollableState>(
+        find.byType(Scrollable).first,
+      );
+      expect(scroll.position.maxScrollExtent, 0);
+      final dumbbell = tester.getRect(
+        find.byKey(const ValueKey('login-dumbbell')),
+      );
+      final wordmark = tester.getRect(
+        find.byKey(const ValueKey('login-wordmark')),
+      );
+      expect(dumbbell.width, closeTo(178.6, .001));
+      expect(wordmark.width, 228);
+      for (final target in [
+        email,
+        password,
+        loginButton,
+        find.widgetWithText(TextButton, 'Forgot Password?'),
+        find.widgetWithText(TextButton, 'Sign Up'),
+      ]) {
+        final rect = tester.getRect(target);
+        expect(rect.top, greaterThanOrEqualTo(safeArea.top));
+        expect(rect.bottom, lessThanOrEqualTo(phone.height - safeArea.bottom));
+      }
+      final recovery = tester.getRect(
+        find.widgetWithText(TextButton, 'Forgot Password?'),
+      );
+      expect(recovery.right, tester.getRect(password).right);
+      expect(
+        recovery.top,
+        greaterThanOrEqualTo(tester.getRect(password).bottom),
+      );
+      expect(recovery.bottom, lessThan(tester.getRect(loginButton).top));
+      expect(recovery.height, greaterThanOrEqualTo(48));
+      expect(find.bySemanticsLabel(RegExp('Demo credentials')), findsNothing);
+      for (final configuration in [(1.0, 340.0), (3.0, 0.0), (3.0, 340.0)]) {
+        await pumpLogin(
+          tester,
+          size: phone,
+          safeArea: safeArea,
+          platform: TargetPlatform.iOS,
+          scale: configuration.$1,
+          keyboard: configuration.$2,
+        );
+        expect(
+          tester
+              .state<ScrollableState>(find.byType(Scrollable).first)
+              .position
+              .maxScrollExtent,
+          greaterThan(0),
+        );
+        for (final target in [
+          email,
+          password,
+          find.widgetWithText(TextButton, 'Forgot Password?'),
+          loginButton,
+          find.widgetWithText(TextButton, 'Sign Up'),
+        ]) {
+          await tester.ensureVisible(target);
+          await tester.pumpAndSettle();
+          final rect = tester.getRect(target);
+          expect(
+            rect.bottom,
+            lessThanOrEqualTo(
+              phone.height - safeArea.bottom - configuration.$2 + .001,
+            ),
+          );
+        }
+        expect(tester.takeException(), isNull);
+      }
+    },
+  );
 
   testWidgets('glass fields and primary button keep matching bounds on focus', (
     tester,

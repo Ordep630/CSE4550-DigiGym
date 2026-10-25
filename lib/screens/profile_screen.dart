@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../models/user_profile.dart';
 import '../services/digigym_api.dart';
-import '../widgets/profile_information.dart';
-import '../utils/measurement_units.dart';
+import '../theme/digigym_dashboard_theme.dart';
+import '../widgets/dashboard_glass_card.dart';
+import '../widgets/profile_components.dart';
+import '../widgets/workout_app_bar.dart';
+import 'app_appearance_screen.dart';
+import 'coming_soon_screen.dart';
+import 'profile_details_screen.dart';
 import 'edit_profile_screen.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -90,136 +95,276 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  void openDetails() {
+    Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProfileDetailsScreen(user: widget.user),
+      ),
+    );
+  }
+
+  void openComingSoon(String feature) {
+    Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        settings: RouteSettings(name: '/profile/${feature.toLowerCase()}'),
+        builder: (_) => ComingSoonScreen(feature: feature),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      backgroundColor: theme.brightness == Brightness.dark
-          ? Colors.transparent
-          : null,
-      appBar: AppBar(title: const Text('My Profile')),
-
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: SingleChildScrollView(
-          // Reserve the measured navigation inset inside the scroll content,
-          // so the viewport does not cut glass surfaces off above the pill.
-          padding: EdgeInsets.fromLTRB(
-            20,
-            20,
-            20,
-            20 + MediaQuery.paddingOf(context).bottom,
-          ),
-
-          child: Column(
-            children: [
-              const CircleAvatar(
-                radius: 50,
-                child: Icon(Icons.person, size: 55),
+    final theme = DigiGymDashboardTheme.content(
+      DigiGymDashboardTheme.dark(Theme.of(context)),
+    );
+    return Theme(
+      data: theme,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: workoutAppBar(
+          context,
+          title: 'Profile',
+          large: true,
+          theme: theme,
+        ),
+        body: SizedBox.expand(
+          child: SafeArea(
+            top: false,
+            bottom: false,
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                20,
+                20,
+                20 + MediaQuery.paddingOf(context).bottom,
               ),
-
-              const SizedBox(height: 15),
-
-              Text(
-                widget.user.name,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ProfileUpperLighting(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        DashboardGlassCard(
+                          key: const ValueKey('profile-user-card'),
+                          padding: EdgeInsets.zero,
+                          child: ProfileGlassLighting(
+                            child: Semantics(
+                              button: true,
+                              enabled: !isLoggingOut,
+                              onTap: isLoggingOut ? null : openDetails,
+                              label:
+                                  'View profile details for ${widget.user.name}, ${widget.user.email}',
+                              excludeSemantics: true,
+                              child: Material(
+                                type: MaterialType.transparency,
+                                child: InkWell(
+                                  excludeFromSemantics: true,
+                                  onTap: isLoggingOut ? null : openDetails,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 19,
+                                    ),
+                                    child: LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        final identity = Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              widget.user.name,
+                                              style: const TextStyle(
+                                                fontSize: 19,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              widget.user.email,
+                                              style: const TextStyle(
+                                                fontSize: 13,
+                                                color: DigiGymDarkColors
+                                                    .secondaryText,
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                        const chevron = Icon(
+                                          Icons.chevron_right_rounded,
+                                          size: 20,
+                                          color:
+                                              DigiGymDarkColors.secondaryText,
+                                        );
+                                        // Give account text the full width at accessible
+                                        // scales instead of squeezing it beside an avatar.
+                                        if (MediaQuery.textScalerOf(context)
+                                                    .scale(19) >
+                                                28 &&
+                                            constraints.maxWidth < 400) {
+                                          return Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.stretch,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  ProfileAvatar(
+                                                    name: widget.user.name,
+                                                    size: 66,
+                                                  ),
+                                                  Spacer(),
+                                                  chevron,
+                                                ],
+                                              ),
+                                              const SizedBox(height: 12),
+                                              identity,
+                                            ],
+                                          );
+                                        }
+                                        return Row(
+                                          children: [
+                                            ProfileAvatar(
+                                              name: widget.user.name,
+                                              size: 66,
+                                            ),
+                                            const SizedBox(width: 14),
+                                            Expanded(child: identity),
+                                            const SizedBox(width: 8),
+                                            chevron,
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        DashboardGlassCard(
+                          key: const ValueKey('profile-statistics-panel'),
+                          padding: EdgeInsets.zero,
+                          child: ProfileGlassLighting(
+                            child: IntrinsicHeight(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Expanded(
+                                    child: ProfileSummaryStat.level(
+                                      value: widget.user.fitnessLevel,
+                                    ),
+                                  ),
+                                  const VerticalDivider(
+                                    width: 1,
+                                    thickness: .6,
+                                    indent: 16,
+                                    endIndent: 16,
+                                    color: Color(0x16F4F7F5),
+                                  ),
+                                  Expanded(
+                                    child: ProfileSummaryStat.goal(
+                                      value: widget.user.fitnessGoal,
+                                    ),
+                                  ),
+                                  const VerticalDivider(
+                                    width: 1,
+                                    thickness: .6,
+                                    indent: 16,
+                                    endIndent: 16,
+                                    color: Color(0x16F4F7F5),
+                                  ),
+                                  Expanded(
+                                    child: ProfileSummaryStat(
+                                      icon: Icons.bar_chart_outlined,
+                                      iconSize: 25.5,
+                                      value: '${widget.user.workoutTime}',
+                                      unit: 'min',
+                                      label: 'Duration',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  DashboardGlassCard(
+                    key: const ValueKey('profile-settings-menu'),
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      children: [
+                        ProfileMenuRow(
+                          label: 'Edit Profile',
+                          icon: Icons.edit_outlined,
+                          onTap: isLoggingOut
+                              ? null
+                              : () => editProfile(context),
+                        ),
+                        const Divider(height: 1, indent: 16, endIndent: 16),
+                        ProfileMenuRow(
+                          label: 'Preferences',
+                          icon: Icons.tune_rounded,
+                          onTap: isLoggingOut
+                              ? null
+                              : () => openComingSoon('Preferences'),
+                        ),
+                        const Divider(height: 1, indent: 16, endIndent: 16),
+                        ProfileMenuRow(
+                          label: 'Notifications',
+                          icon: Icons.notifications_none_rounded,
+                          onTap: isLoggingOut
+                              ? null
+                              : () => openComingSoon('Notifications'),
+                        ),
+                        const Divider(height: 1, indent: 16, endIndent: 16),
+                        ProfileMenuRow(
+                          label: 'App Appearance',
+                          icon: Icons.dark_mode_outlined,
+                          onTap: isLoggingOut
+                              ? null
+                              : () {
+                                  Navigator.push<void>(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const AppAppearanceScreen(),
+                                    ),
+                                  );
+                                },
+                        ),
+                        const Divider(height: 1, indent: 16, endIndent: 16),
+                        ProfileMenuRow(
+                          label: 'Help & Support',
+                          icon: Icons.help_outline_rounded,
+                          onTap: isLoggingOut
+                              ? null
+                              : () => openComingSoon('Help & Support'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  DashboardGlassCard(
+                    padding: EdgeInsets.zero,
+                    child: ProfileMenuRow(
+                      key: const ValueKey('profile-logout'),
+                      label: 'Log Out',
+                      icon: Icons.logout_rounded,
+                      color: const Color(0xFFFF5F68),
+                      glow: true,
+                      loading: isLoggingOut,
+                      onTap: isLoggingOut ? null : logout,
+                    ),
+                  ),
+                ],
               ),
-
-              Text(
-                widget.user.email,
-                style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-              ),
-
-              const SizedBox(height: 30),
-
-              ProfileInformation(
-                title: 'Age',
-                value: '${widget.user.age} years',
-              ),
-
-              ProfileInformation(
-                title: 'Height',
-                value: MeasurementUnits.formatHeight(widget.user.height),
-              ),
-
-              ProfileInformation(
-                title: 'Weight',
-                value: MeasurementUnits.formatWeight(widget.user.weight),
-              ),
-
-              ProfileInformation(
-                title: 'BMI',
-                value: widget.user.bmi.toStringAsFixed(1),
-              ),
-
-              ProfileInformation(
-                title: 'Fitness Level',
-                value: widget.user.fitnessLevel,
-              ),
-
-              ProfileInformation(
-                title: 'Fitness Goal',
-                value: widget.user.fitnessGoal,
-              ),
-
-              ProfileInformation(
-                title: 'Workout Time',
-                value: '${widget.user.workoutTime} minutes',
-              ),
-
-              ProfileInformation(
-                title: 'Diet',
-                value: widget.user.dietaryPreference,
-              ),
-
-              const SizedBox(height: 20),
-
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-
-                child: ElevatedButton.icon(
-                  onPressed: isLoggingOut
-                      ? null
-                      : () {
-                          editProfile(context);
-                        },
-
-                  icon: const Icon(Icons.edit),
-
-                  label: const Text('EDIT PROFILE'),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-
-                child: OutlinedButton.icon(
-                  onPressed: isLoggingOut
-                      ? null
-                      : () {
-                          logout();
-                        },
-
-                  icon: isLoggingOut
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.logout),
-
-                  label: Text(isLoggingOut ? 'LOGGING OUT...' : 'LOGOUT'),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
