@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import '../models/session.dart';
 import '../services/digigym_api.dart';
+import '../widgets/digigym_form_components.dart';
 
 class AssessmentScreen extends StatefulWidget {
   final DigiGymApi api;
@@ -46,6 +47,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
   }
 
   Future<void> createPlan() async {
+    if (isCreatingPlan) return;
     final name = nameController.text.trim();
     final age = int.tryParse(ageController.text.trim());
     final height = double.tryParse(heightController.text.trim());
@@ -139,59 +141,54 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Fitness Assessment')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Tell us about yourself',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            TextField(
+    return DigiGymFormPage(
+      title: 'Fitness Assessment',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const DigiGymFormBranding(),
+          const Text(
+            'Tell us about yourself',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 20),
+          DigiGymGlassField(
+            child: TextField(
               controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Name',
-                border: OutlineInputBorder(),
-              ),
+              decoration: digiGymFormDecoration('Name'),
             ),
-            const SizedBox(height: 15),
-            TextField(
+          ),
+          const SizedBox(height: 15),
+          DigiGymGlassField(
+            child: TextField(
               controller: ageController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Age',
-                border: OutlineInputBorder(),
-              ),
+              decoration: digiGymFormDecoration('Age'),
             ),
-            const SizedBox(height: 15),
-            TextField(
+          ),
+          const SizedBox(height: 15),
+          DigiGymGlassField(
+            child: TextField(
               controller: heightController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Height (cm)',
-                border: OutlineInputBorder(),
-              ),
+              decoration: digiGymFormDecoration('Height (cm)'),
             ),
-            const SizedBox(height: 15),
-            TextField(
+          ),
+          const SizedBox(height: 15),
+          DigiGymGlassField(
+            child: TextField(
               controller: weightController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Weight (kg)',
-                border: OutlineInputBorder(),
-              ),
+              decoration: digiGymFormDecoration('Weight (kg)'),
             ),
-            const SizedBox(height: 20),
-            DropdownButtonFormField<String>(
+          ),
+          const SizedBox(height: 20),
+          DigiGymGlassField(
+            child: DropdownButtonFormField<String>(
+              isExpanded: true,
+              itemHeight: null,
               initialValue: fitnessLevel,
-              decoration: const InputDecoration(
-                labelText: 'Fitness Level',
-                border: OutlineInputBorder(),
-              ),
+              decoration: digiGymFormDecoration('Fitness Level'),
               items: ['Beginner', 'Intermediate', 'Advanced']
                   .map(
                     (value) =>
@@ -204,13 +201,14 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                 });
               },
             ),
-            const SizedBox(height: 15),
-            DropdownButtonFormField<String>(
+          ),
+          const SizedBox(height: 15),
+          DigiGymGlassField(
+            child: DropdownButtonFormField<String>(
+              isExpanded: true,
+              itemHeight: null,
               initialValue: goal,
-              decoration: const InputDecoration(
-                labelText: 'Fitness Goal',
-                border: OutlineInputBorder(),
-              ),
+              decoration: digiGymFormDecoration('Fitness Goal'),
               items:
                   [
                         'Lose Weight',
@@ -229,13 +227,14 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                 });
               },
             ),
-            const SizedBox(height: 15),
-            DropdownButtonFormField<String>(
+          ),
+          const SizedBox(height: 15),
+          DigiGymGlassField(
+            child: DropdownButtonFormField<String>(
+              isExpanded: true,
+              itemHeight: null,
               initialValue: diet,
-              decoration: const InputDecoration(
-                labelText: 'Diet',
-                border: OutlineInputBorder(),
-              ),
+              decoration: digiGymFormDecoration('Diet'),
               items: ['No Restrictions', 'Vegetarian', 'Vegan', 'High Protein']
                   .map(
                     (value) =>
@@ -248,13 +247,14 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                 });
               },
             ),
-            const SizedBox(height: 15),
-            DropdownButtonFormField<String>(
+          ),
+          const SizedBox(height: 15),
+          DigiGymGlassField(
+            child: DropdownButtonFormField<String>(
+              isExpanded: true,
+              itemHeight: null,
               initialValue: bodyType,
-              decoration: const InputDecoration(
-                labelText: 'Body Type',
-                border: OutlineInputBorder(),
-              ),
+              decoration: digiGymFormDecoration('Body Type'),
               items: ['Slim', 'Average', 'Athletic', 'Heavy']
                   .map(
                     (value) =>
@@ -267,13 +267,14 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                 });
               },
             ),
-            const SizedBox(height: 15),
-            DropdownButtonFormField<int>(
+          ),
+          const SizedBox(height: 15),
+          DigiGymGlassField(
+            child: DropdownButtonFormField<int>(
+              isExpanded: true,
+              itemHeight: null,
               initialValue: workoutTime,
-              decoration: const InputDecoration(
-                labelText: 'Available Workout Time',
-                border: OutlineInputBorder(),
-              ),
+              decoration: digiGymFormDecoration('Available Workout Time'),
               items: [15, 30, 45, 60]
                   .map(
                     (value) => DropdownMenuItem(
@@ -288,26 +289,14 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
                 });
               },
             ),
-            const SizedBox(height: 30),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: isCreatingPlan ? null : createPlan,
-                child: isCreatingPlan
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text(
-                        'Create My Plan',
-                        style: TextStyle(fontSize: 16),
-                      ),
-              ),
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 30),
+          DigiGymPrimaryButton(
+            label: 'Create My Plan',
+            loading: isCreatingPlan,
+            onPressed: createPlan,
+          ),
+        ],
       ),
     );
   }

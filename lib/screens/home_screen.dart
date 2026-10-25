@@ -11,6 +11,7 @@ import 'workouts_screen.dart';
 import 'meal_page.dart';
 import 'grocery_screen.dart';
 import 'profile_screen.dart';
+import 'edit_profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final UserProfile user;
@@ -37,6 +38,20 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int selectedIndex = 0;
 
+  void selectTab(int index) {
+    setState(() => selectedIndex = index);
+  }
+
+  Future<void> editProfile() async {
+    final updatedUser = await Navigator.push<UserProfile>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EditProfileScreen(user: widget.user, api: widget.api),
+      ),
+    );
+    if (mounted && updatedUser != null) widget.onUpdateProfile(updatedUser);
+  }
+
   @override
   Widget build(BuildContext context) {
     final pages = [
@@ -44,6 +59,8 @@ class _HomeScreenState extends State<HomeScreen> {
         user: widget.user,
         motivationalMessage: widget.motivationalMessage,
         clock: widget.clock,
+        onSelectTab: selectTab,
+        onEditProfile: editProfile,
       ),
       WorkoutsScreen(user: widget.user),
       MealPage(user: widget.user),
@@ -70,11 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           bottomNavigationBar: FloatingBottomNavigationBar(
             selectedIndex: selectedIndex,
-            onDestinationSelected: (index) {
-              setState(() {
-                selectedIndex = index;
-              });
-            },
+            onDestinationSelected: selectTab,
           ),
         ),
       ),

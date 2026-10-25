@@ -427,37 +427,46 @@ void main() {
     },
   );
 
-  testWidgets(
-    'plan cards remain informational without new navigation actions',
-    (tester) async {
-      await tester.pumpWidget(host(profile()));
-      await tester.pumpAndSettle();
-      for (final label in [
-        "Today's Workout",
-        "Today's Nutrition",
-        'Grocery List',
-      ]) {
-        await tester.ensureVisible(find.text(label));
-        await tester.tap(find.text(label));
-        await tester.pumpAndSettle();
-        expect(find.byType(DashboardPage), findsOneWidget);
-        expect(
-          tester
-              .widget<FloatingBottomNavigationBar>(
-                find.byType(FloatingBottomNavigationBar),
-              )
-              .selectedIndex,
-          0,
-        );
-      }
-      expect(
-        find.descendant(
-          of: find.byType(PlanCard),
-          matching: find.byType(InkWell),
-        ),
-        findsNothing,
+  testWidgets('plan cards open their existing main tabs', (tester) async {
+    await tester.pumpWidget(host(profile()));
+    await tester.pumpAndSettle();
+    for (final destination in [
+      ("Today's Workout", 1, "workout"),
+      ("Today's Nutrition", 2, "nutrition"),
+      ('Grocery List', 3, 'grocery'),
+    ]) {
+      await tester.ensureVisible(
+        find.byKey(ValueKey("dashboard-plan-${destination.$3}-action")),
       );
-      expect(tester.takeException(), isNull);
-    },
-  );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(ValueKey("dashboard-plan-${destination.$3}-action")),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<FloatingBottomNavigationBar>(
+              find.byType(FloatingBottomNavigationBar),
+            )
+            .selectedIndex,
+        destination.$2,
+      );
+      await tester.tap(
+        find.descendant(
+          of: find.byType(FloatingBottomNavigationBar),
+          matching: find.text('Home'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(DashboardPage), findsOneWidget);
+    }
+    expect(
+      find.descendant(
+        of: find.byType(PlanCard),
+        matching: find.byType(InkWell),
+      ),
+      findsNothing,
+    );
+    expect(tester.takeException(), isNull);
+  });
 }

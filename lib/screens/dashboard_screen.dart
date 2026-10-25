@@ -12,6 +12,7 @@ import '../widgets/stat_card.dart';
 import '../widgets/dashboard_greeting.dart';
 import '../widgets/daily_streak_indicator.dart';
 import '../widgets/dashboard_notification_button.dart';
+import '../widgets/dashboard_card_action.dart';
 
 /// Opt-in visual review only. The flag cannot enable samples in profile/release.
 abstract final class DashboardHeaderPreview {
@@ -25,6 +26,8 @@ class DashboardPage extends StatelessWidget {
   final DateTime Function()? clock;
   final int? streakDays;
   final VoidCallback? onNotifications;
+  final ValueChanged<int>? onSelectTab;
+  final VoidCallback? onEditProfile;
 
   const DashboardPage({
     super.key,
@@ -33,6 +36,8 @@ class DashboardPage extends StatelessWidget {
     this.clock,
     this.streakDays,
     this.onNotifications,
+    this.onSelectTab,
+    this.onEditProfile,
   }) : assert(streakDays == null || streakDays >= 0);
 
   @override
@@ -63,14 +68,19 @@ class DashboardPage extends StatelessWidget {
                         final stacked =
                             constraints.maxWidth < 320 ||
                             MediaQuery.textScalerOf(context).scale(14) > 18.2;
-                        final goal = FitnessGoalCard(
-                          goal: user.fitnessGoal,
-                          // Match the reference proportion at a 390px-wide
-                          // display. This is a minimum, never a clipping height.
-                          minimumHeight:
-                              MediaQuery.sizeOf(context).width
-                                  .clamp(320.0, 430.0) *
-                              (190 / 390),
+                        final goal = DashboardCardAction(
+                          key: const ValueKey('dashboard-goal-action'),
+                          label: 'Edit fitness goal: ${user.fitnessGoal}',
+                          onTap: onEditProfile,
+                          child: FitnessGoalCard(
+                            goal: user.fitnessGoal,
+                            // Match the reference proportion at a 390px-wide
+                            // display. This is a minimum, never a clipping height.
+                            minimumHeight:
+                                MediaQuery.sizeOf(context).width
+                                    .clamp(320.0, 430.0) *
+                                (190 / 390),
+                          ),
                         );
                         final statistics = DashboardGlassCard(
                           key: const ValueKey('dashboard-statistics-panel'),
@@ -79,33 +89,65 @@ class DashboardPage extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              StatCard(
-                                title: 'Daily calorie target',
-                                value: '${user.estimatedCalories}',
-                                icon: Icons.local_fire_department,
-                                iconColor: const Color(0xFFFFD35B),
-                                embedded: true,
+                              DashboardCardAction(
+                                key: const ValueKey(
+                                  'dashboard-calories-action',
+                                ),
+                                label:
+                                    'Daily calorie target: ${user.estimatedCalories}. Open Meals',
+                                onTap: onSelectTab == null
+                                    ? null
+                                    : () => onSelectTab!(2),
+                                child: StatCard(
+                                  title: 'Daily calorie target',
+                                  value: '${user.estimatedCalories}',
+                                  icon: Icons.local_fire_department,
+                                  iconColor: const Color(0xFFFFD35B),
+                                  embedded: true,
+                                ),
                               ),
                               const SizedBox(height: 16),
-                              StatCard(
-                                title: 'Workout',
-                                value: '${user.workoutTime} min',
-                                icon: Icons.fitness_center,
-                                embedded: true,
-                                dotted: false,
+                              DashboardCardAction(
+                                key: const ValueKey('dashboard-workout-action'),
+                                label:
+                                    'Workout duration: ${user.workoutTime} minutes. Open Workout',
+                                onTap: onSelectTab == null
+                                    ? null
+                                    : () => onSelectTab!(1),
+                                child: StatCard(
+                                  title: 'Workout',
+                                  value: '${user.workoutTime} min',
+                                  icon: Icons.fitness_center,
+                                  embedded: true,
+                                  dotted: false,
+                                ),
                               ),
                             ],
                           ),
                         );
-                        final bmi = StatCard(
-                          title: 'BMI',
-                          value: user.bmi.toStringAsFixed(1),
-                          icon: Icons.monitor_weight_outlined,
+                        final bmi = DashboardCardAction(
+                          key: const ValueKey('dashboard-bmi-action'),
+                          label:
+                              'BMI: ${user.bmi.toStringAsFixed(1)}. Open Profile',
+                          onTap: onSelectTab == null
+                              ? null
+                              : () => onSelectTab!(4),
+                          child: StatCard(
+                            title: 'BMI',
+                            value: user.bmi.toStringAsFixed(1),
+                            icon: Icons.monitor_weight_outlined,
+                          ),
                         );
-                        final weight = StatCard(
-                          title: 'Weight',
-                          value: '${user.weight} kg',
-                          icon: Icons.scale_outlined,
+                        final weight = DashboardCardAction(
+                          key: const ValueKey('dashboard-weight-action'),
+                          label:
+                              'Weight: ${user.weight} kilograms. Edit Profile',
+                          onTap: onEditProfile,
+                          child: StatCard(
+                            title: 'Weight',
+                            value: '${user.weight} kg',
+                            icon: Icons.scale_outlined,
+                          ),
                         );
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -306,25 +348,55 @@ class DashboardPage extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 10),
-                            PlanCard(
-                              icon: Icons.fitness_center,
-                              title: "Today's Workout",
-                              description:
-                                  '${user.fitnessLevel} '
-                                  '${user.workoutTime}-minute workout',
+                            DashboardCardAction(
+                              key: const ValueKey(
+                                'dashboard-plan-workout-action',
+                              ),
+                              label: "Today's Workout. Open Workout",
+                              onTap: onSelectTab == null
+                                  ? null
+                                  : () => onSelectTab!(1),
+                              bottomGap: 8,
+                              child: PlanCard(
+                                icon: Icons.fitness_center,
+                                title: "Today's Workout",
+                                description:
+                                    '${user.fitnessLevel} '
+                                    '${user.workoutTime}-minute workout',
+                              ),
                             ),
-                            PlanCard(
-                              icon: Icons.restaurant,
-                              title: "Today's Nutrition",
-                              description:
-                                  'Target approximately '
-                                  '${user.estimatedCalories} calories',
+                            DashboardCardAction(
+                              key: const ValueKey(
+                                'dashboard-plan-nutrition-action',
+                              ),
+                              label: "Today's Nutrition. Open Meals",
+                              onTap: onSelectTab == null
+                                  ? null
+                                  : () => onSelectTab!(2),
+                              bottomGap: 8,
+                              child: PlanCard(
+                                icon: Icons.restaurant,
+                                title: "Today's Nutrition",
+                                description:
+                                    'Target approximately '
+                                    '${user.estimatedCalories} calories',
+                              ),
                             ),
-                            const PlanCard(
-                              icon: Icons.shopping_cart_outlined,
-                              title: 'Grocery List',
-                              description:
-                                  'View ingredients for your meal plan',
+                            DashboardCardAction(
+                              key: const ValueKey(
+                                'dashboard-plan-grocery-action',
+                              ),
+                              label: 'Grocery List. Open Groceries',
+                              onTap: onSelectTab == null
+                                  ? null
+                                  : () => onSelectTab!(3),
+                              bottomGap: 8,
+                              child: const PlanCard(
+                                icon: Icons.shopping_cart_outlined,
+                                title: 'Grocery List',
+                                description:
+                                    'View ingredients for your meal plan',
+                              ),
                             ),
                           ],
                         );

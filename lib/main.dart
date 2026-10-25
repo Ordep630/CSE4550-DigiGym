@@ -12,6 +12,8 @@ import 'screens/home_screen.dart';
 import 'screens/meals_screen.dart';
 import 'screens/grocery_screen.dart';
 import 'screens/verify_email_screen.dart';
+import 'widgets/digigym_page_shell.dart';
+import 'widgets/digigym_form_components.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -205,7 +207,7 @@ class _DigiGymAppState extends State<DigiGymApp> with WidgetsBindingObserver {
         '/register': (_) => RegisterScreen(api: widget.api),
         '/assessment': (_) => AssessmentScreen(api: widget.api),
         '/meals': (_) => const MealsScreen(),
-        '/groceries': (_) => const GroceryScreen(),
+        '/groceries': (_) => const DigiGymPageShell(child: GroceryScreen()),
       },
     );
   }
@@ -216,16 +218,17 @@ class _SessionLoadingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Restoring your session...'),
-          ],
-        ),
+    return const DigiGymFormPage(
+      title: 'DigiGym',
+      showBack: false,
+      child: Column(
+        children: [
+          DigiGymFormBranding(),
+          SizedBox(height: 40),
+          CircularProgressIndicator(semanticsLabel: 'Restoring your session'),
+          SizedBox(height: 16),
+          Text('Restoring your session...'),
+        ],
       ),
     );
   }
@@ -246,36 +249,35 @@ class _SessionRestoreErrorScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.cloud_off, size: 64),
-                const SizedBox(height: 16),
-                Text(message, textAlign: TextAlign.center),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: isClearingSession ? null : onRetry,
-                  child: const Text('Retry'),
-                ),
-                TextButton(
-                  onPressed: isClearingSession ? null : onSignOut,
-                  child: isClearingSession
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Sign out on this device'),
-                ),
-              ],
-            ),
+    return DigiGymFormPage(
+      title: 'Session connection',
+      showBack: false,
+      child: Column(
+        children: [
+          const DigiGymFormBranding(),
+          const Icon(Icons.cloud_off_outlined, size: 56),
+          const SizedBox(height: 16),
+          Semantics(
+            liveRegion: true,
+            child: Text(message, textAlign: TextAlign.center),
           ),
-        ),
+          const SizedBox(height: 24),
+          DigiGymPrimaryButton(
+            label: 'Retry',
+            onPressed: isClearingSession ? null : onRetry,
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: isClearingSession ? null : onSignOut,
+            style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+            child: isClearingSession
+                ? const SizedBox.square(
+                    dimension: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Sign out on this device'),
+          ),
+        ],
       ),
     );
   }

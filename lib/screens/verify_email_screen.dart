@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/session.dart';
 import '../services/digigym_api.dart';
+import '../widgets/digigym_form_components.dart';
 
 class VerifyEmailScreen extends StatefulWidget {
   final DigiGymApi api;
@@ -27,6 +28,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
   }
 
   Future<void> verifyEmail() async {
+    if (isVerifying) return;
     final code = codeController.text.trim();
     final requestId = DigiGymSession.registrationRequestId;
     final user = DigiGymSession.pendingUser;
@@ -76,38 +78,43 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Verify Email')),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            const Text('Enter the verification code for your email.'),
-            const SizedBox(height: 20),
-            TextField(
+    return DigiGymFormPage(
+      title: 'Verify Email',
+      child: Column(
+        children: [
+          const DigiGymFormBranding(),
+          const Text('Enter the verification code for your email.'),
+          if (DigiGymSession.pendingUser?.email case final String email)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(email, textAlign: TextAlign.center),
+            ),
+          const SizedBox(height: 20),
+          DigiGymGlassField(
+            child: TextField(
+              key: const ValueKey('verification-code'),
               controller: codeController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Verification Code',
-                border: OutlineInputBorder(),
+              readOnly: isVerifying,
+              // Serverpod's default email codes include letters and digits.
+              keyboardType: TextInputType.text,
+              autocorrect: false,
+              enableSuggestions: false,
+              textInputAction: TextInputAction.done,
+              autofillHints: const [AutofillHints.oneTimeCode],
+              onSubmitted: (_) => verifyEmail(),
+              decoration: digiGymFormDecoration(
+                'Verification Code',
+                icon: Icons.verified_user_outlined,
               ),
             ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: isVerifying ? null : verifyEmail,
-                child: isVerifying
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Verify'),
-              ),
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 20),
+          DigiGymPrimaryButton(
+            label: 'Verify',
+            loading: isVerifying,
+            onPressed: verifyEmail,
+          ),
+        ],
       ),
     );
   }

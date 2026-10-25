@@ -462,28 +462,29 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('login keeps the inherited light theme outside the tab shell', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+  testWidgets(
+    'login receives its own dark theme outside the approved tab shell',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+          ),
+          home: LoginScreen(onLogin: (_) {}, api: FakeDigiGymApi()),
         ),
-        home: LoginScreen(onLogin: (_) {}, api: FakeDigiGymApi()),
-      ),
-    );
-    await tester.pumpAndSettle();
-    final theme = Theme.of(tester.element(find.byType(LoginScreen)));
-    expect(theme.brightness, Brightness.light);
-    expect(
-      theme.textTheme.bodyMedium?.fontFamily,
-      isNot(DigiGymDashboardTheme.textFont),
-    );
-    expect(find.byType(DigiGymAtmosphericBackground), findsNothing);
-    expect(tester.takeException(), isNull);
-  });
+      );
+      await tester.pumpAndSettle();
+      final theme = Theme.of(tester.element(find.byType(TextField).first));
+      expect(theme.brightness, Brightness.dark);
+      expect(
+        theme.textTheme.bodyMedium?.fontFamily,
+        DigiGymDashboardTheme.textFont,
+      );
+      expect(find.byType(DigiGymAtmosphericBackground), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets(
     'main tabs retain scrolling on narrow screens and enlarged text',

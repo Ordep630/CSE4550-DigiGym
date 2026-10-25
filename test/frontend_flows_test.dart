@@ -43,8 +43,10 @@ class _MessageStorage implements KeyValueStorage {
 Future<void> _login(WidgetTester tester, String email) async {
   await tester.enterText(find.byType(TextField).at(0), email);
   await tester.enterText(find.byType(TextField).at(1), 'secret12');
-  await tester.ensureVisible(find.widgetWithText(ElevatedButton, 'LOGIN'));
-  await tester.tap(find.widgetWithText(ElevatedButton, 'LOGIN'));
+  await tester.pumpAndSettle();
+  await tester.ensureVisible(find.widgetWithText(ElevatedButton, 'Login'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
   await tester.pumpAndSettle();
 }
 
@@ -65,6 +67,75 @@ void main() {
   });
 
   testWidgets(
+    'complete registration verification assessment and login retains the existing flow',
+    (tester) async {
+      final api = FakeDigiGymApi();
+      await tester.pumpWidget(DigiGymApp(api: api));
+      await tester.pumpAndSettle();
+      final signup = find.widgetWithText(TextButton, 'Sign Up');
+      await tester.ensureVisible(signup);
+      await tester.pumpAndSettle();
+      await tester.tap(signup);
+      await tester.pumpAndSettle();
+      for (final entry in [
+        'New User',
+        'new@example.com',
+        'secret12',
+        'secret12',
+      ].asMap().entries) {
+        await tester.enterText(
+          find.byType(TextField).at(entry.key),
+          entry.value,
+        );
+      }
+      await tester.pumpAndSettle();
+      final register = find.widgetWithText(ElevatedButton, 'Register');
+      await tester.ensureVisible(register);
+      await tester.pumpAndSettle();
+      await tester.tap(register);
+      await tester.pumpAndSettle();
+      expect(find.byType(VerifyEmailScreen), findsOneWidget);
+      await tester.enterText(find.byType(TextField), 'a1b2c3d4');
+      await tester.pumpAndSettle();
+      final verify = find.widgetWithText(ElevatedButton, 'Verify');
+      await tester.ensureVisible(verify);
+      await tester.pumpAndSettle();
+      await tester.tap(verify);
+      await tester.pumpAndSettle();
+      expect(find.byType(AssessmentScreen), findsOneWidget);
+      expect(DigiGymSession.pendingRegistrationPassword, isNull);
+      await tester.enterText(find.byType(TextField).at(1), '31');
+      await tester.enterText(find.byType(TextField).at(2), '180');
+      await tester.enterText(find.byType(TextField).at(3), '80');
+      await tester.pumpAndSettle();
+      final create = find.widgetWithText(ElevatedButton, 'Create My Plan');
+      await tester.ensureVisible(create);
+      await tester.pumpAndSettle();
+      await tester.tap(create);
+      await tester.pumpAndSettle();
+      expect(find.byType(LoginScreen), findsOneWidget);
+      expect(api.signOutCalls, 1);
+      expect(api.updateRequest!.name, 'New User');
+      expect(api.updateRequest!.email, 'new@example.com');
+      expect(api.verifiedCode, 'a1b2c3d4');
+      api.restoredProfile = api.updateRequest;
+      ScaffoldMessenger.of(tester.element(find.byType(LoginScreen)))
+          .removeCurrentSnackBar();
+      await tester.pumpAndSettle();
+      await _login(tester, 'new@example.com');
+      expect(find.byType(HomeScreen), findsOneWidget);
+      expect(
+        tester.widget<DashboardPage>(find.byType(DashboardPage)).user.weight,
+        80,
+      );
+      expect(
+        tester.widget<DashboardPage>(find.byType(DashboardPage)).user.name,
+        'New User',
+      );
+    },
+  );
+
+  testWidgets(
     'registration submits once and keeps password only for verification',
     (tester) async {
       final api = FakeDigiGymApi();
@@ -81,6 +152,12 @@ void main() {
       await tester.enterText(find.byType(TextField).at(0), 'New User');
       await tester.enterText(find.byType(TextField).at(1), 'new@example.com');
       await tester.enterText(find.byType(TextField).at(2), 'secret12');
+      await tester.enterText(find.byType(TextField).at(3), 'secret12');
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.widgetWithText(ElevatedButton, 'Register'),
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(ElevatedButton, 'Register'));
       await tester.pumpAndSettle();
 
@@ -134,7 +211,7 @@ void main() {
 
     await tester.enterText(find.byType(TextField).at(0), 'test@example.com');
     await tester.enterText(find.byType(TextField).at(1), 'secret12');
-    await tester.tap(find.widgetWithText(ElevatedButton, 'LOGIN'));
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
     await tester.pumpAndSettle();
 
     expect(api.loginEmail, 'test@example.com');
@@ -219,9 +296,11 @@ void main() {
     await tester.enterText(find.byType(TextField).at(1), '31');
     await tester.enterText(find.byType(TextField).at(2), '180');
     await tester.enterText(find.byType(TextField).at(3), '80');
+    await tester.pumpAndSettle();
     await tester.ensureVisible(
       find.widgetWithText(ElevatedButton, 'Create My Plan'),
     );
+    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ElevatedButton, 'Create My Plan'));
     await tester.pumpAndSettle();
 
@@ -240,6 +319,9 @@ void main() {
 
     await tester.pumpWidget(MaterialApp(home: AssessmentScreen(api: api)));
     final goalDropdown = find.byType(DropdownButtonFormField<String>).at(1);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(goalDropdown);
+    await tester.pumpAndSettle();
     await tester.tap(goalDropdown);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Maintain Weight').last);
@@ -248,9 +330,11 @@ void main() {
     await tester.enterText(find.byType(TextField).at(1), '31');
     await tester.enterText(find.byType(TextField).at(2), '180');
     await tester.enterText(find.byType(TextField).at(3), '80');
+    await tester.pumpAndSettle();
     await tester.ensureVisible(
       find.widgetWithText(ElevatedButton, 'Create My Plan'),
     );
+    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ElevatedButton, 'Create My Plan'));
     await tester.pumpAndSettle();
 
@@ -284,7 +368,9 @@ void main() {
     await tester.tap(find.text('Open editor'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).at(0), 'Updated User');
+    await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('SAVE CHANGES'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('SAVE CHANGES'));
     await tester.pumpAndSettle();
 
@@ -313,7 +399,7 @@ void main() {
     api.loginError = null;
     api.loginWait = gate.future;
     api.restoredProfile = testUser();
-    await tester.tap(find.widgetWithText(ElevatedButton, 'LOGIN'));
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
     await tester.pump();
     expect(storage.writes, 0);
     expect(find.byType(HomeScreen), findsNothing);
@@ -466,8 +552,10 @@ void main() {
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField).at(0), 'demo@gym.com');
       await tester.enterText(find.byType(TextField).at(1), '123456');
-      await tester.ensureVisible(find.widgetWithText(ElevatedButton, 'LOGIN'));
-      await tester.tap(find.widgetWithText(ElevatedButton, 'LOGIN'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.widgetWithText(ElevatedButton, 'Login'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
       await tester.pumpAndSettle();
       expect(find.byType(HomeScreen), findsOneWidget);
       expect(api.loginEmail, isNull);
@@ -495,7 +583,9 @@ void main() {
       ),
     );
 
+    await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('LOGOUT'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('LOGOUT'));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ElevatedButton, 'Logout'));

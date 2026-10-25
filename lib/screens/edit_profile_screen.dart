@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/user_profile.dart';
 import '../services/digigym_api.dart';
+import '../widgets/digigym_form_components.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserProfile user;
@@ -63,6 +64,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> saveProfile() async {
+    if (isSaving) return;
     final name = nameController.text.trim();
     final age = int.tryParse(ageController.text.trim());
     final height = double.tryParse(heightController.text.trim());
@@ -137,57 +139,54 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Edit Profile')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            TextField(
+    return DigiGymFormPage(
+      title: 'Edit Profile',
+      child: Column(
+        children: [
+          const DigiGymFormBranding(),
+          DigiGymGlassField(
+            child: TextField(
               controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Name',
-                prefixIcon: Icon(Icons.person),
-                border: OutlineInputBorder(),
-              ),
+              decoration: digiGymFormDecoration('Name', icon: Icons.person),
             ),
-            const SizedBox(height: 15),
-            TextField(
+          ),
+          const SizedBox(height: 15),
+          DigiGymGlassField(
+            child: TextField(
               controller: ageController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Age',
-                prefixIcon: Icon(Icons.cake),
-                border: OutlineInputBorder(),
-              ),
+              decoration: digiGymFormDecoration('Age', icon: Icons.cake),
             ),
-            const SizedBox(height: 15),
-            TextField(
+          ),
+          const SizedBox(height: 15),
+          DigiGymGlassField(
+            child: TextField(
               controller: heightController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Height (cm)',
-                prefixIcon: Icon(Icons.height),
-                border: OutlineInputBorder(),
+              decoration: digiGymFormDecoration(
+                'Height (cm)',
+                icon: Icons.height,
               ),
             ),
-            const SizedBox(height: 15),
-            TextField(
+          ),
+          const SizedBox(height: 15),
+          DigiGymGlassField(
+            child: TextField(
               controller: weightController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Weight (kg)',
-                prefixIcon: Icon(Icons.monitor_weight),
-                border: OutlineInputBorder(),
+              decoration: digiGymFormDecoration(
+                'Weight (kg)',
+                icon: Icons.monitor_weight,
               ),
             ),
-            const SizedBox(height: 15),
-            DropdownButtonFormField<String>(
+          ),
+          const SizedBox(height: 15),
+          DigiGymGlassField(
+            child: DropdownButtonFormField<String>(
+              isExpanded: true,
+              itemHeight: null,
               initialValue: fitnessLevel,
-              decoration: const InputDecoration(
-                labelText: 'Fitness Level',
-                border: OutlineInputBorder(),
-              ),
+              decoration: digiGymFormDecoration('Fitness Level'),
               items: const [
                 DropdownMenuItem(value: 'Beginner', child: Text('Beginner')),
                 DropdownMenuItem(
@@ -202,13 +201,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 }
               },
             ),
-            const SizedBox(height: 15),
-            DropdownButtonFormField<String>(
+          ),
+          const SizedBox(height: 15),
+          DigiGymGlassField(
+            child: DropdownButtonFormField<String>(
+              isExpanded: true,
+              itemHeight: null,
               initialValue: fitnessGoal,
-              decoration: const InputDecoration(
-                labelText: 'Fitness Goal',
-                border: OutlineInputBorder(),
-              ),
+              decoration: digiGymFormDecoration('Fitness Goal'),
               items: const [
                 DropdownMenuItem(
                   value: 'Lose Weight',
@@ -233,23 +233,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 }
               },
             ),
-            const SizedBox(height: 15),
-            TextField(
+          ),
+          const SizedBox(height: 15),
+          DigiGymGlassField(
+            child: TextField(
               controller: workoutTimeController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Available Workout Time (minutes)',
-                prefixIcon: Icon(Icons.timer),
-                border: OutlineInputBorder(),
+              decoration: digiGymFormDecoration(
+                'Available Workout Time (minutes)',
+                icon: Icons.timer,
               ),
             ),
-            const SizedBox(height: 15),
-            DropdownButtonFormField<String>(
+          ),
+          const SizedBox(height: 15),
+          DigiGymGlassField(
+            child: DropdownButtonFormField<String>(
+              isExpanded: true,
+              itemHeight: null,
               initialValue: dietaryPreference,
-              decoration: const InputDecoration(
-                labelText: 'Dietary Preference',
-                border: OutlineInputBorder(),
-              ),
+              decoration: digiGymFormDecoration('Dietary Preference'),
               items: const [
                 DropdownMenuItem(
                   value: 'No Preference',
@@ -271,13 +273,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 }
               },
             ),
-            const SizedBox(height: 15),
-            DropdownButtonFormField<String>(
+          ),
+          const SizedBox(height: 15),
+          DigiGymGlassField(
+            child: DropdownButtonFormField<String>(
+              isExpanded: true,
+              itemHeight: null,
               initialValue: bodyType,
-              decoration: const InputDecoration(
-                labelText: 'Body Type',
-                border: OutlineInputBorder(),
-              ),
+              decoration: digiGymFormDecoration('Body Type'),
               items: const [
                 DropdownMenuItem(value: 'Slim', child: Text('Slim')),
                 DropdownMenuItem(value: 'Average', child: Text('Average')),
@@ -290,27 +293,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 }
               },
             ),
-            const SizedBox(height: 25),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton.icon(
-                onPressed: isSaving ? null : saveProfile,
-                icon: isSaving
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.save),
-                label: Text(
-                  isSaving ? 'SAVING...' : 'SAVE CHANGES',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 25),
+          DigiGymPrimaryButton(
+            label: isSaving ? 'SAVING...' : 'SAVE CHANGES',
+            loading: isSaving,
+            onPressed: saveProfile,
+            icon: Icons.save,
+          ),
+        ],
       ),
     );
   }
