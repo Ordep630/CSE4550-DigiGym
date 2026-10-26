@@ -2,159 +2,235 @@ import 'package:flutter/material.dart';
 
 import '../models/user_profile.dart';
 import '../models/meal.dart';
-import '../utils/measurement_units.dart';
+import '../services/meal_recommendation_service.dart';
+import '../theme/digigym_dashboard_theme.dart';
 import '../widgets/dashboard_glass_card.dart';
+import '../widgets/dashboard_card_action.dart';
+import '../widgets/dashboard_number.dart';
+import '../widgets/meal_nutrition_summary.dart';
+import '../widgets/soft_glow_icon.dart';
+import '../widgets/workout_app_bar.dart';
+import 'meal_details_screen.dart';
 
 class MealPage extends StatelessWidget {
   final UserProfile user;
+  final List<Meal>? recommendations;
+  const MealPage({super.key, required this.user, this.recommendations});
 
-  const MealPage({super.key, required this.user});
-
-  List<Meal> getMeals() {
-    if (user.fitnessGoal == 'Build Muscle') {
-      return [
-        Meal(
-          name: 'Chicken Rice Bowl',
-          calories: 650,
-          protein: '45g protein',
-          portion: '150g chicken + 200g rice',
-        ),
-        Meal(
-          name: 'Greek Yogurt & Oats',
-          calories: 400,
-          protein: '25g protein',
-          portion: '250g yogurt + 50g oats',
-        ),
-        Meal(
-          name: 'Egg & Avocado Toast',
-          calories: 450,
-          protein: '22g protein',
-          portion: '2 eggs + 2 slices toast',
-        ),
-      ];
-    }
-
-    if (user.fitnessGoal == 'Lose Weight') {
-      return [
-        Meal(
-          name: 'Grilled Chicken Salad',
-          calories: 350,
-          protein: '35g protein',
-          portion: '120g chicken + vegetables',
-        ),
-        Meal(
-          name: 'Tuna Wrap',
-          calories: 400,
-          protein: '30g protein',
-          portion: '1 whole wheat wrap',
-        ),
-        Meal(
-          name: 'Vegetable Omelette',
-          calories: 300,
-          protein: '24g protein',
-          portion: '2 eggs + vegetables',
-        ),
-      ];
-    }
-
-    return [
-      Meal(
-        name: 'Oatmeal & Banana',
-        calories: 400,
-        protein: '12g protein',
-        portion: '60g oats + 1 banana',
-      ),
-      Meal(
-        name: 'Chicken Sandwich',
-        calories: 500,
-        protein: '35g protein',
-        portion: '1 sandwich',
-      ),
-      Meal(
-        name: 'Salmon & Vegetables',
-        calories: 550,
-        protein: '40g protein',
-        portion: '150g salmon + vegetables',
-      ),
-    ];
-  }
+  List<Meal> getMeals() =>
+      recommendations ?? const MealRecommendationService().recommend(user);
 
   @override
   Widget build(BuildContext context) {
     final meals = getMeals();
-
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark
-          ? Colors.transparent
-          : null,
-      appBar: AppBar(title: const Text('Meal Plan')),
+      backgroundColor: Colors.transparent,
+      appBar: workoutAppBar(context, title: 'Meals', large: true),
       body: SafeArea(
         top: false,
         bottom: false,
         child: ListView(
-          // Reserve the measured navigation inset inside the scroll content,
-          // so the viewport does not cut glass surfaces off above the pill.
+          key: PageStorageKey(('meals', user.email)),
           padding: EdgeInsets.fromLTRB(
-            16,
-            16,
-            16,
-            16 + MediaQuery.paddingOf(context).bottom,
+            20,
+            20,
+            20,
+            20 + MediaQuery.paddingOf(context).bottom,
           ),
           children: [
             DashboardGlassCard(
-              margin: const EdgeInsets.all(4),
-              padding: EdgeInsets.zero,
-              cornerRadius: 12,
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Daily Nutrition',
-                      style: TextStyle(
-                        fontSize: 21,
-                        fontWeight: FontWeight.bold,
+              key: const ValueKey('daily-nutrition'),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final title = ConstrainedBox(
+                        constraints: const BoxConstraints(minHeight: 24),
+                        child: Text(
+                          'DAILY CALORIE TARGET',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            letterSpacing: 1.1,
+                          ),
+                        ),
+                      );
+                      final target = DashboardNumber(
+                        key: const ValueKey('meal-calorie-target'),
+                        value: '${_grouped(user.estimatedCalories)} kcal',
+                        fontSize: 45,
+                        dotWeight: 860,
+                        unitFontSize: 18,
+                        fitToWidth: true,
+                      );
+                      // Retain the approved layout slot so only the artwork
+                      // shrinks and moves 7px nearer the card's top-right edges.
+                      const flame = Padding(
+                        padding: EdgeInsets.only(top: 6, right: 14),
+                        child: SizedBox.square(
+                          dimension: 68,
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Positioned(
+                                top: -7,
+                                right: -7,
+                                child: SoftGlowIcon(
+                                  key: ValueKey('meal-target-flame'),
+                                  icon: Icons.local_fire_department,
+                                  color: SoftGlowIcon.warmAmber,
+                                  size: 61.2,
+                                  iconSize: 46.8,
+                                  glowIntensity: .74,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                      final stacked =
+                          constraints.maxWidth < 300 ||
+                          MediaQuery.textScalerOf(context).scale(12) > 15.6;
+                      if (stacked) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(child: title),
+                                const SizedBox(width: 8),
+                                flame,
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            target,
+                          ],
+                        );
+                      }
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                title,
+                                const SizedBox(height: 12),
+                                target,
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          flame,
+                        ],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${user.fitnessGoal} · ${user.dietaryPreference}',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Estimated daily target. Meal options below do not constitute a full-day plan.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Recommended for you',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Approximate nutrition per serving. Open a meal for ingredients.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            if (meals.isEmpty)
+              const DashboardGlassCard(
+                key: ValueKey('meals-empty'),
+                child: Text(
+                  'No meals match your saved goal and dietary preference. You can review your preferences in Edit Profile.',
+                ),
+              ),
+            for (final meal in meals) ...[
+              DashboardCardAction(
+                key: ValueKey('meal-${meal.id}'),
+                label:
+                    '${meal.name}. Approximately ${meal.calories} calories. '
+                    'Protein ${meal.proteinGrams} grams, carbohydrates ${meal.carbohydrateGrams} grams, '
+                    'fat ${meal.fatGrams} grams. ${meal.serving}. View meal details',
+                onTap: () => Navigator.of(context).push<void>(
+                  MaterialPageRoute(
+                    builder: (_) => MealDetailsScreen(meal: meal),
+                  ),
+                ),
+                child: DashboardGlassCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              meal.name,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            color: DigiGymDarkColors.secondaryText,
+                            size: 20,
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Estimated target: '
-                      '${user.estimatedCalories} calories',
-                    ),
-                    Text('Goal: ${user.fitnessGoal}'),
-                    Text('Diet: ${user.dietaryPreference}'),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 15),
-            ...meals.map(
-              (meal) => DashboardGlassCard(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: EdgeInsets.zero,
-                cornerRadius: 12,
-                child: ListTile(
-                  leading: const CircleAvatar(child: Icon(Icons.restaurant)),
-                  title: Text(
-                    meal.name,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    '${MeasurementUnits.formatFoodPortion(meal.portion)}\n${meal.protein}',
-                  ),
-                  isThreeLine: true,
-                  trailing: Text(
-                    '${meal.calories}\n kcal',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                      const SizedBox(height: 8),
+                      DashboardNumber(
+                        value: '${meal.calories} kcal',
+                        dotted: false,
+                        fontSize: 30,
+                        unitFontSize: 16,
+                        fitToWidth: true,
+                      ),
+                      const SizedBox(height: 8),
+                      MealNutritionSummary(meal: meal),
+                      const SizedBox(height: 10),
+                      Text(
+                        meal.serving,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
+              const SizedBox(height: 14),
+            ],
           ],
         ),
       ),
     );
   }
+
+  static String _grouped(int value) => value.toString().replaceAllMapped(
+    RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+    (match) => '${match[1]},',
+  );
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Fixed 5x7 digits with a shared pitch and a compact, one-third-height %.
-/// Used only for the progress percentage and the large local calendar date.
+/// Shared by progress, calendar dates, and the featured workout duration.
 class DotMatrixText extends StatelessWidget {
   final String text;
   final double height;
@@ -9,6 +9,7 @@ class DotMatrixText extends StatelessWidget {
   final String? semanticLabel;
   final bool softenedDigits;
   final bool scaleWithText;
+  final double fillRatio;
 
   DotMatrixText({
     super.key,
@@ -18,12 +19,20 @@ class DotMatrixText extends StatelessWidget {
     this.semanticLabel,
     this.softenedDigits = false,
     this.scaleWithText = true,
+    this.fillRatio = DotMatrixPainter.dotRatio,
   }) {
     if (!height.isFinite || height <= 0) {
       throw ArgumentError.value(
         height,
         'height',
         'Use a positive finite height',
+      );
+    }
+    if (!fillRatio.isFinite || fillRatio <= 0 || fillRatio >= 1) {
+      throw ArgumentError.value(
+        fillRatio,
+        'fillRatio',
+        'Keep dots separate, between 0 and 1',
       );
     }
     if (text.isEmpty ||
@@ -45,13 +54,18 @@ class DotMatrixText extends StatelessWidget {
       label: semanticLabel ?? text,
       excludeSemantics: true,
       child: SizedBox(
-        width: DotMatrixPainter.widthFor(text, scaledHeight),
+        width: DotMatrixPainter.widthFor(
+          text,
+          scaledHeight,
+          fillRatio: fillRatio,
+        ),
         height: scaledHeight,
         child: CustomPaint(
           painter: DotMatrixPainter(
             text: text,
             color: color ?? Theme.of(context).colorScheme.onSurface,
             softenedDigits: softenedDigits,
+            fillRatio: fillRatio,
           ),
         ),
       ),
@@ -63,6 +77,7 @@ class DotMatrixPainter extends CustomPainter {
   final String text;
   final Color color;
   final bool softenedDigits;
+  final double fillRatio;
   static const dotRatio = .68;
   static const percentScale = 1 / 3;
   static const glyphs = <String, List<String>>{
@@ -84,6 +99,7 @@ class DotMatrixPainter extends CustomPainter {
     required this.text,
     required this.color,
     this.softenedDigits = false,
+    this.fillRatio = dotRatio,
   });
 
   // Preserve the already-approved large calendar date when refining only the
@@ -98,20 +114,24 @@ class DotMatrixPainter extends CustomPainter {
     '9': ['11111', '10001', '10001', '11111', '00001', '00001', '11111'],
   };
 
-  static double widthFor(String text, double height) {
-    final pitch = height / (6 + dotRatio);
+  static double widthFor(
+    String text,
+    double height, {
+    double fillRatio = dotRatio,
+  }) {
+    final pitch = height / (6 + fillRatio);
     return text
             .split('')
             .fold(
               0.0,
               (width, char) =>
                   width +
-                  (glyphs[char]!.first.length - 1 + dotRatio) *
+                  (glyphs[char]!.first.length - 1 + fillRatio) *
                       pitch *
                       (char == '%' ? percentScale : 1) +
-                  pitch * (2 - dotRatio),
+                  pitch * (2 - fillRatio),
             ) -
-        pitch * (2 - dotRatio);
+        pitch * (2 - fillRatio);
   }
 
   /// Digits use one lattice. The compact % uses the same round dot style at 1/3
@@ -120,8 +140,9 @@ class DotMatrixPainter extends CustomPainter {
     String text,
     double height, {
     bool softenedDigits = false,
+    double fillRatio = dotRatio,
   }) {
-    final pitch = height / (6 + dotRatio);
+    final pitch = height / (6 + fillRatio);
     final dots = <DotMatrixDot>[];
     var left = 0.0;
     for (final char in text.split('')) {
@@ -129,7 +150,7 @@ class DotMatrixPainter extends CustomPainter {
           (!softenedDigits ? _dateGlyphs[char] : null) ?? glyphs[char]!;
       final scale = char == '%' ? percentScale : 1.0;
       final glyphPitch = pitch * scale;
-      final radius = glyphPitch * dotRatio / 2;
+      final radius = glyphPitch * fillRatio / 2;
       final top = height * (1 - scale);
       for (var y = 0; y < rows.length; y++) {
         for (var x = 0; x < rows[y].length; x++) {
@@ -147,8 +168,8 @@ class DotMatrixPainter extends CustomPainter {
         }
       }
       left +=
-          (rows.first.length - 1 + dotRatio) * glyphPitch +
-          pitch * (2 - dotRatio);
+          (rows.first.length - 1 + fillRatio) * glyphPitch +
+          pitch * (2 - fillRatio);
     }
     return dots;
   }
@@ -163,6 +184,7 @@ class DotMatrixPainter extends CustomPainter {
       text,
       size.height,
       softenedDigits: softenedDigits,
+      fillRatio: fillRatio,
     )) {
       canvas.drawCircle(dot.center, dot.radius, paint);
     }
@@ -172,6 +194,7 @@ class DotMatrixPainter extends CustomPainter {
   bool shouldRepaint(DotMatrixPainter oldDelegate) =>
       text != oldDelegate.text ||
       color != oldDelegate.color ||
+      fillRatio != oldDelegate.fillRatio ||
       softenedDigits != oldDelegate.softenedDigits;
 }
 

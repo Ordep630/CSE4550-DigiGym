@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'dashboard_glass_card.dart';
 import 'dashboard_number.dart';
+import 'soft_glow_icon.dart';
 
 class StatCard extends StatelessWidget {
   final String title;
@@ -12,6 +13,7 @@ class StatCard extends StatelessWidget {
   final bool dotted;
   final Color? iconColor;
   final bool fitNumber;
+  final bool iconGlowOnly;
 
   /// Retain compact numerical typography when embedding a former small card.
   final bool? compactNumber;
@@ -26,6 +28,7 @@ class StatCard extends StatelessWidget {
     this.dotted = true,
     this.iconColor,
     this.fitNumber = false,
+    this.iconGlowOnly = false,
     this.compactNumber,
   });
 
@@ -37,12 +40,18 @@ class StatCard extends StatelessWidget {
     final numberScale = !dotted ? 1.0 : (compact ? 1.17 : 1.15);
     final content = Row(
       children: [
-        DashboardIconBadge(
-          icon: icon,
-          size: 32,
-          color: iconColor,
-          luminous: false,
-        ),
+        if (iconGlowOnly)
+          SoftGlowIcon(
+            icon: icon,
+            color: iconColor ?? theme.colorScheme.primary,
+          )
+        else
+          DashboardIconBadge(
+            icon: icon,
+            size: 32,
+            color: iconColor,
+            luminous: false,
+          ),
         const SizedBox(width: 10),
         Expanded(
           child: Column(

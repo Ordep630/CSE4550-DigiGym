@@ -5,6 +5,7 @@ import '../theme/digigym_dashboard_theme.dart';
 import '../widgets/dashboard_glass_card.dart';
 import '../widgets/digigym_atmospheric_background.dart';
 import '../widgets/workout_app_bar.dart';
+import '../widgets/workout_exercise_list.dart';
 
 /// Existing ordered instructions, or a read-only step-by-step walkthrough.
 /// Navigation between steps does not mean an exercise has been completed.
@@ -27,8 +28,18 @@ class _WorkoutExercisesScreenState extends State<WorkoutExercisesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = DigiGymDashboardTheme.content(
+    final baseTheme = DigiGymDashboardTheme.content(
       DigiGymDashboardTheme.dark(Theme.of(context)),
+    );
+    final theme = baseTheme.copyWith(
+      expansionTileTheme: baseTheme.expansionTileTheme.copyWith(
+        textColor: DigiGymDarkColors.softGreen,
+        iconColor: DigiGymDarkColors.softGreen,
+      ),
+      colorScheme: baseTheme.colorScheme.copyWith(
+        primary: DigiGymDarkColors.softGreen,
+        primaryContainer: DigiGymDarkColors.softGreen.withValues(alpha: .12),
+      ),
     );
     final plan = widget.plan;
     return Theme(
@@ -53,13 +64,13 @@ class _WorkoutExercisesScreenState extends State<WorkoutExercisesScreen> {
                 Text(plan.title, style: theme.textTheme.titleLarge),
                 const SizedBox(height: 8),
                 Text(
-                  '${plan.durationMinutes} min • ${plan.exercises.length} exercises',
+                  'Estimated ${plan.durationMinutes} min • ${plan.exercises.length} exercises',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 20),
-                if (widget.walkthrough) ...[
+                if (widget.walkthrough && plan.exercises.isNotEmpty) ...[
                   Text(
                     'Follow the instructions at your own pace. No workout session or completions are recorded.',
                     key: const ValueKey('workout-walkthrough-notice'),
@@ -125,37 +136,7 @@ class _WorkoutExercisesScreenState extends State<WorkoutExercisesScreen> {
                     ),
                   ),
                 ] else ...[
-                  for (var index = 0; index < plan.exercises.length; index++)
-                    DashboardGlassCard(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: EdgeInsets.zero,
-                      child: Material(
-                        type: MaterialType.transparency,
-                        child: ExpansionTile(
-                          key: PageStorageKey('exercise-$index'),
-                          leading: CircleAvatar(
-                            radius: 18,
-                            backgroundColor: theme.colorScheme.primaryContainer,
-                            foregroundColor: theme.colorScheme.primary,
-                            child: Text('${index + 1}'),
-                          ),
-                          title: Text(
-                            plan.exercises[index].name,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          subtitle: Text(plan.exercises[index].sets),
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(plan.exercises[index].description),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                  WorkoutExerciseList(plan: plan),
                 ],
               ],
             ),

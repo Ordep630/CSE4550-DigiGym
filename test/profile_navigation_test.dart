@@ -274,7 +274,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(tester.widget<Text>(find.text(level)).style?.color, color);
+      expect(find.text(level), findsNothing);
       expect(tester.widget<Text>(find.text('$level Plan')).style?.color, color);
     }
     expect(
@@ -353,7 +353,7 @@ void main() {
   });
 
   testWidgets(
-    'one continuous statistics panel has equal sections and two subtle dividers',
+    'neutral statistics panel keeps equal sections, dimensions and dividers',
     (tester) async {
       await profile(tester);
       final stats = tester
@@ -371,8 +371,30 @@ void main() {
       );
       expect(
         find.descendant(of: panel, matching: find.byType(ProfileGlassLighting)),
+        findsNothing,
+      );
+      expect(
+        find.ancestor(of: panel, matching: find.byType(ProfileUpperLighting)),
+        findsNothing,
+      );
+      final identity = find.byKey(const ValueKey('profile-user-card'));
+      expect(
+        find.descendant(
+          of: identity,
+          matching: find.byType(ProfileGlassLighting),
+        ),
         findsOneWidget,
       );
+      expect(
+        find.ancestor(
+          of: identity,
+          matching: find.byType(ProfileUpperLighting),
+        ),
+        findsOneWidget,
+      );
+      final glass = tester.widget<DashboardGlassCard>(panel);
+      expect(glass.padding, EdgeInsets.zero);
+      expect(glass.cornerRadius, DigiGymDashboardTheme.cardRadius);
       expect(
         find.descendant(of: panel, matching: find.byType(VerticalDivider)),
         findsNWidgets(2),
@@ -395,10 +417,10 @@ void main() {
       expect(duration.style?.fontFamily, DigiGymDashboardTheme.textFont);
       final spans = (duration.textSpan! as TextSpan).children!.cast<TextSpan>();
       expect(spans.first.text, '45');
-      expect(spans.first.style?.fontSize, 20);
+      expect(spans.first.style?.fontSize, 18);
       expect(spans.first.style?.fontWeight, FontWeight.w700);
       expect(spans.last.text, ' min');
-      expect(spans.last.style?.fontSize, 13);
+      expect(spans.last.style?.fontSize, 12);
       expect(spans.last.style?.fontWeight, FontWeight.w500);
       expect(
         find.descendant(of: panel, matching: find.byType(DashboardNumber)),
@@ -532,12 +554,12 @@ void main() {
         for (final value in [entry.key, 'Build Muscle']) {
           final text = tester.widget<Text>(find.text(value));
           expect(text.style?.fontFamily, DigiGymDashboardTheme.textFont);
-          expect(text.style?.fontSize, 15);
+          expect(text.style?.fontSize, 14);
           expect(text.style?.fontWeight, FontWeight.w600);
-          expect(text.style?.height, 22 / 15);
+          expect(text.style?.height, 22 / 14);
         }
         for (final label in ['Level', 'Goal', 'Duration']) {
-          expect(tester.widget<Text>(find.text(label)).style?.fontSize, 12);
+          expect(tester.widget<Text>(find.text(label)).style?.fontSize, 11);
           expect(
             tester.widget<Text>(find.text(label)).style?.color,
             DigiGymDarkColors.secondaryText,
@@ -583,9 +605,10 @@ void main() {
         expect(levelImage.fit, BoxFit.contain);
         expect(levelImage.color, ProfileSummaryStat.iconColor);
         expect(levelImage.colorBlendMode, BlendMode.srcIn);
-        expect(stats[0].iconSize / 24, inInclusiveRange(1.2, 1.25));
-        expect(stats[1].iconSize, goal == 'Build Muscle' ? 28 : 30);
-        expect(stats[2].iconSize / 24, inInclusiveRange(1.05, 1.08));
+        expect(stats[0].iconSize, 28.5);
+        expect(stats[0].iconWidth, 38);
+        expect(stats[1].iconSize, goal == 'Build Muscle' ? 25.5 : 27);
+        expect(stats[2].iconSize, 23);
         expect(stats[1].value, goal);
         if (goal == 'Build Muscle') {
           final bicep = tester.widget<Image>(
@@ -598,8 +621,8 @@ void main() {
             (bicep.image as AssetImage).assetName,
             'assets/icons/biceps_flexed.png',
           );
-          expect(bicep.width, 28);
-          expect(bicep.height, 28);
+          expect(bicep.width, 25.5);
+          expect(bicep.height, 25.5);
           expect(bicep.color, ProfileSummaryStat.iconColor);
           final filter = tester.widget<ImageFiltered>(
             find.descendant(

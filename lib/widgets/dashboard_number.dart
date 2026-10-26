@@ -12,6 +12,9 @@ class DashboardNumber extends StatelessWidget {
   final Color? color;
   final bool fitToWidth;
 
+  /// Native Doto weight axis; other numerical displays retain their default.
+  final double dotWeight;
+
   const DashboardNumber({
     super.key,
     required this.value,
@@ -21,7 +24,8 @@ class DashboardNumber extends StatelessWidget {
     this.dotted = true,
     this.color,
     this.fitToWidth = false,
-  });
+    this.dotWeight = 840,
+  }) : assert(dotWeight >= 100 && dotWeight <= 900);
 
   @override
   Widget build(BuildContext context) {
@@ -48,9 +52,9 @@ class DashboardNumber extends StatelessWidget {
                   height: lineHeight,
                   fontWeight: FontWeight.w600,
                   fontVariations: dotted
-                      ? const [
-                          FontVariation('ROND', 100),
-                          FontVariation('wght', 840),
+                      ? [
+                          const FontVariation('ROND', 100),
+                          FontVariation('wght', dotWeight),
                         ]
                       : null,
                   fontFeatures: const [FontFeature.tabularFigures()],

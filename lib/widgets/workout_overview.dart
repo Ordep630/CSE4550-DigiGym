@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../models/workout_plan.dart';
-import '../theme/digigym_dashboard_theme.dart';
 import 'dashboard_glass_card.dart';
-import 'dashboard_number.dart';
+import '../theme/digigym_dashboard_theme.dart';
+import 'dot_matrix_text.dart';
 
-/// Read-only recommendation and real actions; never creates a workout session.
+/// The authoritative recommendation, with no completion or session side effects.
 class WorkoutOverview extends StatelessWidget {
   final WorkoutPlan plan;
   final VoidCallback onViewExercises;
   final VoidCallback onStartWalkthrough;
-
   const WorkoutOverview({
     super.key,
     required this.plan,
@@ -21,197 +20,135 @@ class WorkoutOverview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final secondary = theme.colorScheme.onSurfaceVariant;
-    final intensity = DigiGymFitnessLevelColors.forLevel(plan.fitnessLevel);
-    final start = _QuickAction(
-      actionKey: const ValueKey('workout-start'),
-      title: 'Start Workout',
-      subtitle: 'Guided walkthrough',
-      icon: Icons.play_arrow_rounded,
-      onTap: onStartWalkthrough,
-    );
-    final exercises = _QuickAction(
-      actionKey: const ValueKey('workout-view-exercises'),
-      title: 'View Exercises',
-      subtitle: '${plan.exercises.length} exercises',
-      icon: Icons.format_list_bulleted_rounded,
-      onTap: onViewExercises,
-    );
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        DashboardGlassCard(
-          key: const ValueKey('workout-featured'),
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                "TODAY'S WORKOUT",
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: secondary,
-                  letterSpacing: 1.1,
-                ),
-              ),
-              const SizedBox(height: 18),
-              DashboardNumber(
-                key: const ValueKey('workout-duration'),
-                value: '${plan.durationMinutes} MIN',
-                fontSize: 48,
-                unitFontSize: 22,
-                fitToWidth: true,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                plan.title,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      plan.fitnessLevel,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: intensity,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  IconButton.filled(
-                    key: const ValueKey('workout-featured-exercises'),
-                    onPressed: onViewExercises,
-                    tooltip: "View today's exercises",
-                    style: IconButton.styleFrom(
-                      minimumSize: const Size(48, 48),
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: theme.colorScheme.onPrimary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    icon: const Icon(Icons.arrow_forward_rounded),
-                  ),
-                ],
-              ),
-            ],
+    if (plan.exercises.isEmpty) {
+      return DashboardGlassCard(
+        key: const ValueKey('workout-time-empty'),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'No workout fits your current time budget.',
+              style: theme.textTheme.titleLarge,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              plan.minimumMinutes == 0
+                  ? 'No recommendation is available for the saved profile. Review your fitness preferences in Edit Profile.'
+                  : 'Allow at least ${plan.minimumMinutes} minutes, including a brief warm-up and cool-down. Update your available time in Edit Profile.',
+            ),
+          ],
+        ),
+      );
+    }
+    return DashboardGlassCard(
+      key: const ValueKey('workout-featured'),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'RECOMMENDED WORKOUT',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              letterSpacing: 1.1,
+            ),
           ),
-        ),
-        const SizedBox(height: 24),
-        const _Heading('Quick Actions'),
-        const SizedBox(height: 12),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            if (constraints.maxWidth < 320 ||
-                MediaQuery.textScalerOf(context).scale(14) > 20) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [start, const SizedBox(height: 12), exercises],
-              );
-            }
-            return IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(child: start),
-                  const SizedBox(width: 12),
-                  Expanded(child: exercises),
-                ],
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 24),
-        const _Heading('Your Goals'),
-        const SizedBox(height: 12),
-        DashboardGlassCard(
-          key: const ValueKey('workout-goal'),
-          child: Row(
-            children: [
-              const DashboardIconBadge(icon: Icons.flag_outlined, size: 42),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  plan.fitnessGoal,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
+          const SizedBox(height: 16),
+          WorkoutDurationDisplay(
+            key: const ValueKey('workout-duration'),
+            minutes: plan.durationMinutes,
           ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          plan.description,
-          style: theme.textTheme.bodySmall?.copyWith(color: secondary),
-        ),
-      ],
+          const SizedBox(height: 12),
+          Text(
+            plan.title,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${plan.exercises.length} exercises · ${plan.fitnessGoal}',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            key: const ValueKey('workout-featured-exercises'),
+            onPressed: onViewExercises,
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(48, 48),
+              padding: const EdgeInsets.all(12),
+            ),
+            icon: const Icon(Icons.arrow_forward_rounded),
+            label: const Text('View Plan'),
+          ),
+          TextButton(
+            key: const ValueKey('workout-start'),
+            onPressed: onStartWalkthrough,
+            style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+            child: const Text('Guided walkthrough'),
+          ),
+        ],
+      ),
     );
   }
 }
 
-class _Heading extends StatelessWidget {
-  final String text;
-  const _Heading(this.text);
+/// Shared corrected glyphs, retaining the former 48sp number's line box.
+class WorkoutDurationDisplay extends StatelessWidget {
+  final int minutes;
+  const WorkoutDurationDisplay({super.key, required this.minutes});
 
   @override
-  Widget build(BuildContext context) => Text(
-    text,
-    style: Theme.of(context).textTheme.titleMedium
-        ?.copyWith(fontSize: 19, fontWeight: FontWeight.w600),
-  );
-}
-
-class _QuickAction extends StatelessWidget {
-  final Key actionKey;
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final VoidCallback onTap;
-  const _QuickAction({
-    required this.actionKey,
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) => DashboardGlassCard(
-    padding: EdgeInsets.zero,
-    child: Material(
-      type: MaterialType.transparency,
-      child: InkWell(
-        key: actionKey,
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              DashboardIconBadge(icon: icon, size: 46),
-              const SizedBox(height: 16),
-              Text(
-                title,
-                style: Theme.of(context).textTheme.titleSmall
-                    ?.copyWith(fontSize: 16, fontWeight: FontWeight.w600),
+  Widget build(BuildContext context) {
+    final scaler = MediaQuery.textScalerOf(context);
+    final color = Theme.of(context).colorScheme.onSurface;
+    // Doto's bundled cap height is 700/1000: 48sp drew ~33.6px numerals.
+    // 43.2px custom dots are ~29% taller without growing the card's line box.
+    final digitHeight = scaler.scale(43.2);
+    return Semantics(
+      label: '$minutes minutes',
+      excludeSemantics: true,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: scaler.scale(57)),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: SizedBox(
+            // Match the previous text paragraph's logical-pixel rounding.
+            height: scaler.scale(48 * 1.2).ceilToDouble(),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  DotMatrixText(
+                    text: '$minutes',
+                    height: digitHeight,
+                    color: color,
+                    softenedDigits: true,
+                    scaleWithText: false,
+                    fillRatio: .74,
+                  ),
+                  SizedBox(width: scaler.scale(12)),
+                  Text(
+                    'MIN',
+                    style: TextStyle(
+                      fontFamily: DigiGymDashboardTheme.textFont,
+                      fontSize: 22,
+                      height: 1.2,
+                      fontWeight: FontWeight.w500,
+                      color: color,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 5),
-              Text(
-                subtitle,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }

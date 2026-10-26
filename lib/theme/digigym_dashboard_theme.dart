@@ -6,6 +6,8 @@ abstract final class DigiGymDarkColors {
   static const graphite = Color(0xFF0C1010);
   static const charcoal = Color(0xFF1A201E);
   static const electricGreen = Color(0xFF70FF45);
+  // Softer right-hand stop of the approved Login button gradient.
+  static const softGreen = Color(0xFF67E780);
   static const primaryText = Color(0xFFF4F7F5);
   static const secondaryText = Color(0xFFABB5AF);
 }

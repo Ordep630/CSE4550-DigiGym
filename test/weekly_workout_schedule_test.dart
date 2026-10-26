@@ -44,6 +44,23 @@ void expectSelected(WidgetTester tester, DateTime date) {
   final decoration =
       tester.widget<Container>(badge(date)).decoration! as BoxDecoration;
   expect(decoration.boxShadow, isNotEmpty);
+  for (final day in WeeklyWorkoutSchedule.weekDates(date)) {
+    final label = tester.widget<Text>(
+      find.byKey(
+        ValueKey('week-label-${day.toIso8601String().split('T').first}'),
+      ),
+    );
+    expect(
+      label.style!.color,
+      day == DateUtils.dateOnly(date)
+          ? const Color(0xFF67E780)
+          : DigiGymDarkColors.secondaryText,
+    );
+    expect(
+      label.style!.shadows,
+      day == DateUtils.dateOnly(date) ? isNotEmpty : isNull,
+    );
+  }
 }
 
 void main() {
@@ -108,6 +125,51 @@ void main() {
       semantics.dispose();
     },
   );
+
+  for (final rest in [false, true]) {
+    testWidgets(
+      'shared current-day initial glows on ${rest ? 'rest' : 'workout'} days without changing its circle',
+      (tester) async {
+        final now = DateTime(2026, 10, 28, 12);
+        final current = WorkoutScheduleDay(
+          date: now,
+          isRestDay: rest,
+          workoutType: rest ? null : ScheduledWorkoutType.fullBody,
+        );
+        await tester.pumpWidget(week(clock: () => now));
+        final circle = tester.widget<Container>(badge(current.date));
+        final oldBounds = tester.getRect(badge(current.date));
+        final before = circle.decoration;
+        await tester.pumpWidget(week(clock: () => now, days: [current]));
+        expect(tester.getRect(badge(current.date)), oldBounds);
+        expect(
+          tester.widget<Container>(badge(current.date)).decoration,
+          before,
+        );
+        for (final date in WeeklyWorkoutSchedule.weekDates(now)) {
+          final label = tester.widget<Text>(
+            find.byKey(
+              ValueKey('week-label-${date.toIso8601String().split('T').first}'),
+            ),
+          );
+          expect(label.style!.fontSize, 13);
+          if (date == current.date) {
+            expect(label.style!.color, DigiGymDarkColors.softGreen);
+            expect(label.style!.shadows, [
+              Shadow(
+                color: const Color(0xFF67E780).withValues(alpha: .30),
+                blurRadius: 6,
+              ),
+            ]);
+          } else {
+            expect(label.style!.color, DigiGymDarkColors.secondaryText);
+            expect(label.style!.shadows, isNull);
+          }
+        }
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
 
   testWidgets(
     'midnight moves highlight and Saturday to Sunday starts a new week',

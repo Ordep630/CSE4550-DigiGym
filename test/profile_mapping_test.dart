@@ -68,6 +68,7 @@ void main() {
     );
 
     expect(profile.name, 'Test User');
+    expect(profile.accountId, backendProfile.authUserId.toString());
     expect(profile.email, 'test@example.com');
     expect(profile.fitnessLevel, 'Intermediate');
     expect(profile.fitnessGoal, 'Build Muscle');

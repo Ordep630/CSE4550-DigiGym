@@ -34,6 +34,7 @@ UserProfile userProfileFromBackend(
   DigiGymUser profile, {
   required String email,
 }) => UserProfile(
+  accountId: profile.authUserId.toString(),
   name: profile.name,
   email: email,
   age: profile.age,

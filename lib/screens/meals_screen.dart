@@ -16,7 +16,7 @@ class MealsScreen extends StatelessWidget {
     final profile = user ?? DigiGymSession.currentUser;
     if (profile == null) {
       return const DigiGymFormPage(
-        title: 'Meal Plan',
+        title: 'Meals',
         child: Column(
           children: [
             DigiGymFormBranding(),

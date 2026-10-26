@@ -9,7 +9,11 @@ import 'package:digigym/screens/workouts_screen.dart';
 import 'package:digigym/screens/profile_screen.dart';
 import 'package:digigym/theme/digigym_dashboard_theme.dart';
 import 'package:digigym/widgets/dashboard_card_action.dart';
+import 'package:digigym/widgets/dashboard_glass_card.dart';
+import 'package:digigym/widgets/dot_matrix_text.dart';
 import 'package:digigym/widgets/floating_bottom_navigation_bar.dart';
+import 'package:digigym/widgets/monthly_activity_calendar.dart';
+import 'package:digigym/widgets/soft_glow_icon.dart';
 import 'package:digigym/widgets/stat_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -94,6 +98,198 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+
+  testWidgets(
+    'Home statistic icons use larger glyphs and faint borderless wells',
+    (tester) async {
+      await startDashboard(tester);
+      final rows = find.byType(StatCard);
+      expect(rows, findsNWidgets(4));
+      for (final row in rows.evaluate()) {
+        final card = row.widget as StatCard;
+        final content = find.byWidget(card);
+        final glow = find.descendant(
+          of: content,
+          matching: find.byType(SoftGlowIcon),
+        );
+        expect(glow, findsOneWidget);
+        expect(
+          find.descendant(
+            of: content,
+            matching: find.byType(DashboardIconBadge),
+          ),
+          findsNothing,
+        );
+        expect(tester.getSize(glow), const Size(32, 32));
+        expect(tester.widget<SoftGlowIcon>(glow).glowIntensity, .82);
+        final icon = tester.widget<Icon>(
+          find.descendant(of: glow, matching: find.byType(Icon)),
+        );
+        expect(icon.icon, card.icon);
+        expect(icon.size, closeTo(32 * .64, .001));
+        expect(icon.size! / (32 * .52), inInclusiveRange(1.20, 1.25));
+        expect(
+          icon.color,
+          card.title == 'Daily calorie target'
+              ? SoftGlowIcon.warmAmber
+              : DigiGymDarkColors.softGreen,
+        );
+        expect(icon.shadows, isNotEmpty);
+        expect(icon.shadows!.first.color.a, closeTo(.22 * .82, .005));
+        final well =
+            tester
+                    .widget<DecoratedBox>(
+                      find.descendant(
+                        of: glow,
+                        matching: find.byType(DecoratedBox),
+                      ),
+                    )
+                    .decoration
+                as BoxDecoration;
+        expect(well.shape, BoxShape.circle);
+        expect(well.border, isNull);
+        expect(well.color, isNull);
+        expect(well.gradient!.colors.every((color) => color.a <= .17), isTrue);
+        expect(well.gradient!.colors.last.a, 0);
+        expect(well.boxShadow!.every((shadow) => shadow.color.a <= .1), isTrue);
+        expect(well.boxShadow!.single.color.a, closeTo(.09 * .82, .005));
+        expect(
+          tester
+              .widget<IgnorePointer>(
+                find.descendant(of: glow, matching: find.byType(IgnorePointer)),
+              )
+              .ignoring,
+          isTrue,
+        );
+      }
+    },
+  );
+
+  testWidgets('glow opt-in preserves stat geometry and the default badge', (
+    tester,
+  ) async {
+    Future<(Rect, Offset)> render(bool glowOnly) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: DigiGymDashboardTheme.dark(ThemeData(useMaterial3: true)),
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 200,
+                child: StatCard(
+                  title: 'Workout',
+                  value: '30 min',
+                  icon: Icons.fitness_center,
+                  dotted: false,
+                  iconGlowOnly: glowOnly,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byType(DashboardIconBadge),
+        glowOnly ? findsNothing : findsOneWidget,
+      );
+      return (
+        tester.getRect(find.byType(StatCard)),
+        tester.getCenter(find.byIcon(Icons.fitness_center)),
+      );
+    }
+
+    final original = await render(false);
+    expect(await render(true), original);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('only requested Home calendar accents use the Login soft green', (
+    tester,
+  ) async {
+    await startDashboard(tester);
+    expect(DigiGymDarkColors.softGreen, const Color(0xFF67E780));
+    final seeAll = tester.widget<TextButton>(
+      find.byKey(const ValueKey('dashboard-week-see-all')),
+    );
+    expect(
+      seeAll.style!.foregroundColor!.resolve({}),
+      DigiGymDarkColors.softGreen,
+    );
+    expect(
+      seeAll.style!.foregroundColor!.resolve({WidgetState.disabled}),
+      DigiGymDarkColors.softGreen,
+    );
+    final monthly = find.byType(MonthlyActivityCalendar);
+    expect(
+      tester
+          .widget<DotMatrixText>(
+            find.descendant(
+              of: monthly,
+              matching: find.byKey(const ValueKey('activity-date')),
+            ),
+          )
+          .color,
+      DigiGymDarkColors.softGreen,
+    );
+    final today = find.byKey(const ValueKey('month-day-2026-10-24'));
+    final well =
+        tester
+                .widget<Container>(
+                  find.descendant(of: today, matching: find.byType(Container)),
+                )
+                .decoration
+            as BoxDecoration;
+    expect(
+      (well.border! as Border).top.color,
+      DigiGymDarkColors.softGreen.withValues(alpha: .45),
+    );
+    expect(well.color, DigiGymDarkColors.softGreen.withValues(alpha: .06));
+    // The current-day ring uses the softer green without a brighter fill.
+    final weekBadge =
+        tester
+                .widget<Container>(
+                  find.byKey(const ValueKey('week-badge-2026-10-24')),
+                )
+                .decoration
+            as BoxDecoration;
+    expect(
+      (weekBadge.border! as Border).top.color,
+      DigiGymDarkColors.softGreen.withValues(alpha: .65),
+    );
+    expect((weekBadge.border! as Border).top.width, 1);
+    expect(
+      weekBadge.color,
+      DigiGymDarkColors.primaryText.withValues(alpha: .035),
+    );
+    expect(
+      weekBadge.boxShadow!.single.color,
+      DigiGymDarkColors.softGreen.withValues(alpha: .09),
+    );
+    expect(weekBadge.boxShadow!.single.blurRadius, 12);
+    final initial = tester.widget<Text>(
+      find.byKey(const ValueKey('week-label-2026-10-24')),
+    );
+    expect(initial.style!.color, DigiGymDarkColors.softGreen);
+    expect(initial.style!.shadows, isNotEmpty);
+    expect(
+      tester.getSize(find.byKey(const ValueKey('week-badge-2026-10-24'))),
+      const Size(34, 34),
+    );
+    final otherDay =
+        tester
+                .widget<Container>(
+                  find.byKey(const ValueKey('week-badge-2026-10-23')),
+                )
+                .decoration
+            as BoxDecoration;
+    expect(otherDay.boxShadow, isNull);
+    expect(
+      (otherDay.border! as Border).top.color,
+      DigiGymDarkColors.primaryText.withValues(alpha: .10),
+    );
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('Your Week See All opens the existing Workout tab', (
     tester,

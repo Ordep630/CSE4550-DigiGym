@@ -4,6 +4,9 @@ import 'package:flutter/services.dart';
 
 import '../models/user_profile.dart';
 import '../services/dashboard_personalization.dart';
+import '../services/workout_schedule_controller.dart';
+import '../services/workout_scheduling.dart';
+import '../models/workout_schedule_day.dart';
 import '../theme/digigym_dashboard_theme.dart';
 import '../widgets/dashboard_glass_card.dart';
 import '../widgets/dashboard_progress_card.dart';
@@ -30,6 +33,9 @@ class DashboardPage extends StatelessWidget {
   final VoidCallback? onNotifications;
   final ValueChanged<int>? onSelectTab;
   final VoidCallback? onEditProfile;
+  final WorkoutScheduleController? workoutSchedule;
+  final VoidCallback? onSeeWeek;
+  final ValueChanged<WorkoutScheduleDay>? onScheduleDay;
 
   const DashboardPage({
     super.key,
@@ -40,6 +46,9 @@ class DashboardPage extends StatelessWidget {
     this.onNotifications,
     this.onSelectTab,
     this.onEditProfile,
+    this.workoutSchedule,
+    this.onSeeWeek,
+    this.onScheduleDay,
   }) : assert(streakDays == null || streakDays >= 0);
 
   @override
@@ -112,6 +121,8 @@ class DashboardPage extends StatelessWidget {
                               : () => onSelectTab!(1),
                           child: StatCard(
                             title: 'Workout',
+                            iconGlowOnly: true,
+                            iconColor: DigiGymDarkColors.softGreen,
                             value: '${user.workoutTime} min',
                             icon: Icons.fitness_center,
                             dotted: false,
@@ -136,6 +147,7 @@ class DashboardPage extends StatelessWidget {
                                     : () => onSelectTab!(2),
                                 child: StatCard(
                                   title: 'Daily calorie target',
+                                  iconGlowOnly: true,
                                   value: '${user.estimatedCalories}',
                                   icon: Icons.local_fire_department,
                                   iconColor: const Color(0xFFFFD35B),
@@ -151,6 +163,7 @@ class DashboardPage extends StatelessWidget {
                                 onTap: onEditProfile,
                                 child: StatCard(
                                   title: 'Weight',
+                                  iconGlowOnly: true,
                                   value: MeasurementUnits.formatWeight(
                                     user.weight,
                                   ),
@@ -158,6 +171,7 @@ class DashboardPage extends StatelessWidget {
                                   embedded: true,
                                   compactNumber: true,
                                   icon: Icons.scale_outlined,
+                                  iconColor: DigiGymDarkColors.softGreen,
                                 ),
                               ),
                               const SizedBox(height: 14),
@@ -170,8 +184,10 @@ class DashboardPage extends StatelessWidget {
                                     : () => onSelectTab!(4),
                                 child: StatCard(
                                   title: 'BMI',
+                                  iconGlowOnly: true,
                                   value: user.bmi.toStringAsFixed(1),
                                   icon: Icons.monitor_weight_outlined,
+                                  iconColor: DigiGymDarkColors.softGreen,
                                   embedded: true,
                                   compactNumber: true,
                                   fitNumber: true,
@@ -361,12 +377,28 @@ class DashboardPage extends StatelessWidget {
                             const SizedBox(height: 18),
                             WeeklyWorkoutSchedule(
                               clock: clock,
-                              onSeeAll: onSelectTab == null
+                              daysForWeek: workoutSchedule == null
                                   ? null
-                                  : () => onSelectTab!(1),
+                                  : (date) => WorkoutScheduling.week(
+                                      user: user,
+                                      workoutDays: workoutSchedule!.workoutDays,
+                                      date: date,
+                                    ).map((day) => day.presentation).toList(),
+                              onDaySelected: onScheduleDay,
+                              scheduledColor: DigiGymDarkColors.softGreen,
+                              seeAllColor: DigiGymDarkColors.softGreen,
+                              currentDayColor: DigiGymDarkColors.softGreen,
+                              onSeeAll:
+                                  onSeeWeek ??
+                                  (onSelectTab == null
+                                      ? null
+                                      : () => onSelectTab!(1)),
                             ),
                             const SizedBox(height: 18),
-                            MonthlyActivityCalendar(clock: clock),
+                            MonthlyActivityCalendar(
+                              clock: clock,
+                              highlightColor: DigiGymDarkColors.softGreen,
+                            ),
                           ],
                         );
                       },

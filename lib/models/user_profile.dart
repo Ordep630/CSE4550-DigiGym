@@ -1,4 +1,6 @@
 class UserProfile {
+  /// Stable Serverpod auth UUID, used only to scope device-local preferences.
+  final String? accountId;
   String name;
   String email;
 
@@ -15,6 +17,7 @@ class UserProfile {
   final bool isDemo;
 
   UserProfile({
+    this.accountId,
     required this.name,
     required this.email,
     this.age = 20,

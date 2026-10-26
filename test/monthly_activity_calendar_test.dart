@@ -127,6 +127,65 @@ void main() {
     },
   );
 
+  testWidgets(
+    'date outline and number share the cell center across months widths and text scales',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      for (final date in [
+        DateTime(2026, 2, 1),
+        DateTime(2026, 2, 9),
+        DateTime(2026, 4, 10),
+        DateTime(2026, 8, 31),
+        DateTime(2026, 10, 25),
+        DateTime(2028, 2, 29),
+      ]) {
+        for (final width in [280.0, 320.0, 420.0]) {
+          tester.view.physicalSize = Size(width, 912);
+          for (final scale in [1.0, 2.0, 3.0]) {
+            for (final activity in [false, true]) {
+              await tester.pumpWidget(
+                calendar(
+                  clock: () => date,
+                  scale: scale,
+                  days: activity
+                      ? [WorkoutScheduleDay(date: date, isCompleted: true)]
+                      : [],
+                ),
+              );
+              final key = date.toIso8601String().split('T').first;
+              final cell = tester.getRect(day(date));
+              final outline = tester.getRect(
+                find.descendant(
+                  of: find.byKey(ValueKey('month-outline-$key')),
+                  matching: find.byType(DecoratedBox),
+                ),
+              );
+              final number = tester.getRect(
+                find.byKey(ValueKey('month-number-$key')),
+              );
+              expect((outline.center - cell.center).distance, closeTo(0, .001));
+              expect(
+                (number.center - outline.center).distance,
+                closeTo(0, .001),
+              );
+              expect(number.left, greaterThanOrEqualTo(outline.left));
+              expect(number.right, lessThanOrEqualTo(outline.right));
+              expect(number.top, greaterThanOrEqualTo(outline.top));
+              expect(number.bottom, lessThanOrEqualTo(outline.bottom));
+              expect(
+                tester.takeException(),
+                isNull,
+                reason: '$date $width $scale',
+              );
+            }
+          }
+        }
+      }
+    },
+  );
+
   testWidgets('only explicit shared schedule inputs produce activity states', (
     tester,
   ) async {

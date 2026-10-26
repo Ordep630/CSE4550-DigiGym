@@ -64,6 +64,56 @@ void main() {
     }
   });
 
+  test('workout uses shared 3 and 0 patterns with fuller dots that remain separated and bounded', () {
+    for (final value in ['0', '3', '30', '125']) {
+      const height = 43.2;
+      const fill = .74;
+      final dots = DotMatrixPainter.dotsFor(
+        value,
+        height,
+        softenedDigits: true,
+        fillRatio: fill,
+      );
+      final width = DotMatrixPainter.widthFor(value, height, fillRatio: fill);
+      final pitch = height / (6 + fill);
+      expect(
+        dots,
+        hasLength(
+          value
+              .split('')
+              .fold<int>(
+                0,
+                (sum, digit) =>
+                    sum +
+                    DotMatrixPainter.glyphs[digit]!
+                        .join()
+                        .split('')
+                        .where((bit) => bit == '1')
+                        .length,
+              ),
+        ),
+      );
+      expect(
+        dots.first.radius,
+        greaterThan(
+          DotMatrixPainter.dotsFor(
+            value,
+            height,
+            softenedDigits: true,
+          ).first.radius,
+        ),
+      );
+      expect(dots.first.radius * 2, lessThan(pitch));
+      for (final dot in dots) {
+        expect(dot.center.dx - dot.radius, greaterThanOrEqualTo(-.001));
+        expect(dot.center.dx + dot.radius, lessThanOrEqualTo(width + .001));
+        expect(dot.center.dy - dot.radius, greaterThanOrEqualTo(-.001));
+        expect(dot.center.dy + dot.radius, lessThanOrEqualTo(height + .001));
+      }
+    }
+    expect(() => DotMatrixText(text: '30', fillRatio: 1), throwsArgumentError);
+  });
+
   test('calendar date keeps its approved digit shapes and geometry', () {
     const oldTwo = [
       '11111',

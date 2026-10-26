@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart' show DateUtils;
 
-/// Presentation input for a future shared workout schedule, not persistence.
+/// Dated presentation of shared scheduling data. Completion is always explicit.
 enum ScheduledWorkoutType {
   upperBody,
   lowerBody,

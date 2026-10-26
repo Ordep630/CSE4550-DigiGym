@@ -12,8 +12,14 @@ import 'dot_matrix_text.dart';
 class MonthlyActivityCalendar extends StatefulWidget {
   final List<WorkoutScheduleDay> days;
   final DateTime Function()? clock;
+  final Color? highlightColor;
 
-  const MonthlyActivityCalendar({super.key, this.days = const [], this.clock});
+  const MonthlyActivityCalendar({
+    super.key,
+    this.days = const [],
+    this.clock,
+    this.highlightColor,
+  });
 
   static List<DateTime?> monthDates(DateTime date) {
     final local = date.toLocal();
@@ -158,7 +164,8 @@ class _MonthlyActivityCalendarState extends State<MonthlyActivityCalendar>
                         key: const ValueKey('activity-date'),
                         text: '${_today.day}',
                         height: 48,
-                        color: theme.colorScheme.primary,
+                        color:
+                            widget.highlightColor ?? theme.colorScheme.primary,
                       ),
                     ),
                   ],
@@ -238,6 +245,9 @@ class _MonthlyActivityCalendarState extends State<MonthlyActivityCalendar>
                             today: _today,
                             activity: supplied[dates[row * 7 + col]],
                             monthName: _monthNames[_today.month - 1],
+                            highlightColor:
+                                widget.highlightColor ??
+                                theme.colorScheme.primary,
                           ),
                   ),
                 ),
@@ -253,11 +263,13 @@ class _CalendarDate extends StatelessWidget {
   final DateTime today;
   final WorkoutScheduleDay? activity;
   final String monthName;
+  final Color highlightColor;
   const _CalendarDate({
     required this.date,
     required this.today,
     required this.activity,
     required this.monthName,
+    required this.highlightColor,
   });
 
   @override
@@ -301,25 +313,35 @@ class _CalendarDate extends StatelessWidget {
       selected: current,
       excludeSemantics: true,
       child: Container(
+        key: ValueKey(
+          'month-outline-${date.toIso8601String().split('T').first}',
+        ),
         margin: const EdgeInsets.symmetric(horizontal: 1),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(5),
           border: current
               ? Border.all(
-                  color: colors.primary.withValues(alpha: .6),
+                  color: highlightColor.withValues(alpha: .45),
                   width: .8,
                 )
               : null,
-          color: current ? colors.primary.withValues(alpha: .06) : null,
+          color: current ? highlightColor.withValues(alpha: .06) : null,
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        // A missing activity indicator must not reserve space below the date.
+        // Center the number in the full cell and overlay explicit activity at
+        // its bottom edge, independently of the outline and text constraints.
+        child: Stack(
+          fit: StackFit.expand,
           children: [
-            Flexible(
+            Center(
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
                   '${date.day}',
+                  key: ValueKey(
+                    'month-number-${date.toIso8601String().split('T').first}',
+                  ),
+                  textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontSize: 11,
                     height: 1.15,
@@ -333,17 +355,19 @@ class _CalendarDate extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(
-              height: 4,
-              child: indicator == null
-                  ? null
-                  : Icon(
-                      indicator,
-                      key: ValueKey('activity-state-${date.day}'),
-                      size: 4,
-                      color: tone,
-                    ),
-            ),
+            if (indicator != null)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: .5,
+                height: 4,
+                child: Icon(
+                  indicator,
+                  key: ValueKey('activity-state-${date.day}'),
+                  size: 4,
+                  color: tone,
+                ),
+              ),
           ],
         ),
       ),

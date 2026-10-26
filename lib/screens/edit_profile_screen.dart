@@ -124,6 +124,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     try {
       var updatedUser = UserProfile(
+        accountId: widget.user.accountId,
         name: name,
         email: widget.user.email,
         age: age,

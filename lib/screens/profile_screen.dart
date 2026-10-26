@@ -143,11 +143,11 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  ProfileUpperLighting(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        DashboardGlassCard(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ProfileUpperLighting(
+                        child: DashboardGlassCard(
                           key: const ValueKey('profile-user-card'),
                           padding: EdgeInsets.zero,
                           child: ProfileGlassLighting(
@@ -243,55 +243,53 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        DashboardGlassCard(
-                          key: const ValueKey('profile-statistics-panel'),
-                          padding: EdgeInsets.zero,
-                          child: ProfileGlassLighting(
-                            child: IntrinsicHeight(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Expanded(
-                                    child: ProfileSummaryStat.level(
-                                      value: widget.user.fitnessLevel,
-                                    ),
-                                  ),
-                                  const VerticalDivider(
-                                    width: 1,
-                                    thickness: .6,
-                                    indent: 16,
-                                    endIndent: 16,
-                                    color: Color(0x16F4F7F5),
-                                  ),
-                                  Expanded(
-                                    child: ProfileSummaryStat.goal(
-                                      value: widget.user.fitnessGoal,
-                                    ),
-                                  ),
-                                  const VerticalDivider(
-                                    width: 1,
-                                    thickness: .6,
-                                    indent: 16,
-                                    endIndent: 16,
-                                    color: Color(0x16F4F7F5),
-                                  ),
-                                  Expanded(
-                                    child: ProfileSummaryStat(
-                                      icon: Icons.bar_chart_outlined,
-                                      iconSize: 25.5,
-                                      value: '${widget.user.workoutTime}',
-                                      unit: 'min',
-                                      label: 'Duration',
-                                    ),
-                                  ),
-                                ],
+                      ),
+                      const SizedBox(height: 16),
+                      DashboardGlassCard(
+                        key: const ValueKey('profile-statistics-panel'),
+                        padding: EdgeInsets.zero,
+                        child: IntrinsicHeight(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(
+                                child: ProfileSummaryStat.level(
+                                  value: widget.user.fitnessLevel,
+                                ),
                               ),
-                            ),
+                              const VerticalDivider(
+                                width: 1,
+                                thickness: .6,
+                                indent: 16,
+                                endIndent: 16,
+                                color: Color(0x16F4F7F5),
+                              ),
+                              Expanded(
+                                child: ProfileSummaryStat.goal(
+                                  value: widget.user.fitnessGoal,
+                                ),
+                              ),
+                              const VerticalDivider(
+                                width: 1,
+                                thickness: .6,
+                                indent: 16,
+                                endIndent: 16,
+                                color: Color(0x16F4F7F5),
+                              ),
+                              Expanded(
+                                child: ProfileSummaryStat(
+                                  icon: Icons.bar_chart_outlined,
+                                  iconSize: 23,
+                                  value: '${widget.user.workoutTime}',
+                                  unit: 'min',
+                                  label: 'Duration',
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 24),
                   DashboardGlassCard(

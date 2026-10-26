@@ -4,6 +4,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../models/workout_schedule_day.dart';
+import '../services/workout_scheduling.dart';
+import '../theme/digigym_dashboard_theme.dart';
 import 'dashboard_glass_card.dart';
 
 /// A date-based view only. Missing input stays unassigned; no plan is invented.
@@ -11,26 +13,35 @@ class WeeklyWorkoutSchedule extends StatefulWidget {
   final List<WorkoutScheduleDay> days;
   final VoidCallback? onSeeAll;
   final DateTime Function()? clock;
+  final Color? seeAllColor;
+  final Color? currentDayColor;
+  final Color? scheduledColor;
+  final ValueChanged<WorkoutScheduleDay>? onDaySelected;
+  final List<WorkoutScheduleDay> Function(DateTime)? daysForWeek;
+  final String title;
+  final String actionLabel;
+  final Key actionKey;
+  final bool showAction;
 
   const WeeklyWorkoutSchedule({
     super.key,
     this.days = const [],
     this.onSeeAll,
     this.clock,
+    this.seeAllColor,
+    this.currentDayColor,
+    this.scheduledColor,
+    this.onDaySelected,
+    this.daysForWeek,
+    this.title = 'Your Week',
+    this.actionLabel = 'See All',
+    this.actionKey = const ValueKey('dashboard-week-see-all'),
+    this.showAction = true,
   });
 
   /// Calendar arithmetic, rather than 24-hour subtraction, also handles DST.
   static List<DateTime> weekDates(DateTime date) {
-    final local = date.toLocal();
-    final sunday = DateTime(
-      local.year,
-      local.month,
-      local.day - local.weekday % 7,
-    );
-    return List.generate(
-      7,
-      (i) => DateTime(sunday.year, sunday.month, sunday.day + i),
-    );
+    return WorkoutScheduling.weekDates(date);
   }
 
   @override
@@ -101,7 +112,10 @@ class _WeeklyWorkoutScheduleState extends State<WeeklyWorkoutSchedule>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final dates = WeeklyWorkoutSchedule.weekDates(_today);
-    final supplied = {for (final day in widget.days) day.date: day};
+    final supplied = {
+      for (final day in widget.daysForWeek?.call(_today) ?? widget.days)
+        day.date: day,
+    };
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -111,7 +125,7 @@ class _WeeklyWorkoutScheduleState extends State<WeeklyWorkoutSchedule>
           spacing: 12,
           children: [
             Text(
-              'Your Week',
+              widget.title,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontSize: 20,
                 height: 1.25,
@@ -119,18 +133,21 @@ class _WeeklyWorkoutScheduleState extends State<WeeklyWorkoutSchedule>
                 letterSpacing: -0.3,
               ),
             ),
-            TextButton(
-              key: const ValueKey('dashboard-week-see-all'),
-              onPressed: widget.onSeeAll,
-              style: TextButton.styleFrom(
-                minimumSize: const Size(48, 48),
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                foregroundColor: theme.colorScheme.primary,
-                disabledForegroundColor: theme.colorScheme.primary,
-                textStyle: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
+            if (widget.showAction)
+              TextButton(
+                key: widget.actionKey,
+                onPressed: widget.onSeeAll,
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(48, 48),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  foregroundColor:
+                      widget.seeAllColor ?? theme.colorScheme.primary,
+                  disabledForegroundColor:
+                      widget.seeAllColor ?? theme.colorScheme.primary,
+                  textStyle: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
+                ),
+                child: Text(widget.actionLabel),
               ),
-              child: const Text('See All'),
-            ),
           ],
         ),
         const SizedBox(height: 4),
@@ -150,6 +167,11 @@ class _WeeklyWorkoutScheduleState extends State<WeeklyWorkoutSchedule>
                   label: _labels[i],
                   name: _names[i],
                   isToday: date == _today,
+                  currentDayColor: widget.currentDayColor,
+                  scheduledColor: widget.scheduledColor,
+                  onTap: widget.onDaySelected == null
+                      ? null
+                      : () => widget.onDaySelected!(day),
                 ),
               );
             }),
@@ -165,6 +187,9 @@ class _DayColumn extends StatelessWidget {
   final String label;
   final String name;
   final bool isToday;
+  final Color? currentDayColor;
+  final Color? scheduledColor;
+  final VoidCallback? onTap;
 
   const _DayColumn({
     super.key,
@@ -172,6 +197,9 @@ class _DayColumn extends StatelessWidget {
     required this.label,
     required this.name,
     required this.isToday,
+    this.currentDayColor,
+    this.scheduledColor,
+    this.onTap,
   });
 
   static const _workoutNames = {
@@ -196,6 +224,7 @@ class _DayColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final ringColor = currentDayColor ?? colors.primary;
     final state = day.isRestDay
         ? 'Rest Day'
         : _workoutNames[day.workoutType] ?? 'Unassigned Day';
@@ -204,11 +233,13 @@ class _DayColumn extends StatelessWidget {
       label:
           '$name, $date${isToday ? ', Today' : ''}, $state${day.isCompleted ? ', Completed Workout' : ''}',
       selected: isToday,
+      button: onTap == null ? null : true,
+      onTap: onTap,
       excludeSemantics: true,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final size = math.min(34.0, math.max(0.0, constraints.maxWidth - 6));
-          return Column(
+          final content = Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               // Only a single letter scales down if it exceeds its seventh of
@@ -219,13 +250,24 @@ class _DayColumn extends StatelessWidget {
                   fit: BoxFit.scaleDown,
                   child: Text(
                     label,
+                    key: ValueKey('week-label-$date'),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontSize: 13,
                       height: 1.2,
                       fontWeight: isToday ? FontWeight.w600 : FontWeight.w400,
                       color: isToday
-                          ? colors.onSurface
+                          ? DigiGymDarkColors.softGreen
                           : colors.onSurfaceVariant,
+                      shadows: isToday
+                          ? [
+                              Shadow(
+                                color: DigiGymDarkColors.softGreen.withValues(
+                                  alpha: .30,
+                                ),
+                                blurRadius: 6,
+                              ),
+                            ]
+                          : null,
                     ),
                   ),
                 ),
@@ -240,14 +282,14 @@ class _DayColumn extends StatelessWidget {
                   color: colors.onSurface.withValues(alpha: .035),
                   border: Border.all(
                     color: isToday
-                        ? colors.primary.withValues(alpha: .65)
+                        ? ringColor.withValues(alpha: .65)
                         : colors.onSurface.withValues(alpha: .10),
                   ),
                   boxShadow: isToday
                       ? [
                           BoxShadow(
-                            color: colors.primary.withValues(alpha: .09),
-                            blurRadius: 9,
+                            color: ringColor.withValues(alpha: .09),
+                            blurRadius: currentDayColor == null ? 9 : 12,
                           ),
                         ]
                       : null,
@@ -271,11 +313,20 @@ class _DayColumn extends StatelessWidget {
                           size: size * .5,
                           color: day.workoutType == null
                               ? colors.onSurfaceVariant.withValues(alpha: .5)
-                              : colors.onSurfaceVariant,
+                              : scheduledColor ?? colors.onSurfaceVariant,
                         ),
                 ),
               ),
             ],
+          );
+          if (onTap == null) return content;
+          return Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: onTap,
+              child: content,
+            ),
           );
         },
       ),

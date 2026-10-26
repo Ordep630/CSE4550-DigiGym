@@ -1,46 +1,221 @@
+import 'dart:math' as math;
+
 import 'exercise.dart';
 import 'user_profile.dart';
+import 'workout_schedule_day.dart';
 
-/// The existing profile-based exercise recommendation, with no session state.
-/// Duration remains the saved assessment preference, as in the original screen.
+/// Profile-based recommendation; all durations are workload estimates, not time
+/// preferences relabelled as estimates. No session/completion state is created.
 class WorkoutPlan {
   final String title;
   final String fitnessLevel;
   final String fitnessGoal;
-  final int durationMinutes;
+  final int availableMinutes;
+  final int warmUpSeconds = 120;
+  final int coolDownSeconds = 60;
+  final int minimumMinutes;
   final String description;
   final List<Exercise> exercises;
+  final ScheduledWorkoutType workoutType;
+  final bool isRecovery;
 
   WorkoutPlan._({
     required this.title,
     required this.fitnessLevel,
     required this.fitnessGoal,
-    required this.durationMinutes,
+    required this.availableMinutes,
     required this.description,
+    required this.minimumMinutes,
     required List<Exercise> exercises,
+    this.workoutType = ScheduledWorkoutType.fullBody,
+    this.isRecovery = false,
   }) : exercises = List.unmodifiable(exercises);
+
+  int get estimatedSeconds => exercises.isEmpty ? 0 : _duration(exercises);
+  int get durationMinutes => (estimatedSeconds / 60).ceil();
+  bool get fitsTimeBudget =>
+      exercises.isNotEmpty && estimatedSeconds <= availableMinutes * 60;
+  static int _duration(List<Exercise> exercises) => exercises.isEmpty
+      ? 0
+      : 180 +
+            exercises.fold<int>(
+              0,
+              (total, exercise) => total + exercise.estimatedSeconds,
+            ) +
+            exercises
+                .skip(1)
+                .fold<int>(
+                  0,
+                  (total, exercise) => total + exercise.transitionSeconds,
+                );
 
   factory WorkoutPlan.forUser(UserProfile user) {
     final library = _WorkoutExerciseLibrary(user);
+    return _fit(
+      user,
+      title: user.fitnessGoal == 'Lose Weight'
+          ? 'Cardio & Strength'
+          : 'Full Body Strength',
+      templates: library.getExercises(),
+      description: library.getLevelDescription(),
+    );
+  }
+
+  /// Curated variants of the same level-appropriate catalogue. The same fitter
+  /// and original volume ceilings apply to all alternatives and scheduled days.
+  static List<WorkoutPlan> alternativesForUser(UserProfile user) {
+    final originals = _WorkoutExerciseLibrary(user).getExercises();
+    if (originals.isEmpty) return const [];
+    final lower = originals.where(
+      (e) => RegExp(
+        'Squat|Lunge|Bridge|Step',
+        caseSensitive: false,
+      ).hasMatch(e.name),
+    );
+    final upper = originals.where(
+      (e) => RegExp(
+        'Push|Plank|Bird Dog|Shoulder',
+        caseSensitive: false,
+      ).hasMatch(e.name),
+    );
+    return List.unmodifiable(
+      [
+        _fit(
+          user,
+          title: 'Lower Body Strength',
+          templates: lower.toList(),
+          description:
+              'Controlled lower-body movements from your recommended level.',
+          workoutType: ScheduledWorkoutType.lowerBody,
+        ),
+        _fit(
+          user,
+          title: 'Upper Body & Core',
+          templates: upper.toList(),
+          description:
+              'Upper-body strength and core stability at your saved level.',
+          workoutType: ScheduledWorkoutType.upperBody,
+        ),
+        _fit(
+          user,
+          title: 'Recovery & Mobility',
+          isRecovery: true,
+          description: 'A lighter option between strength days. Move comfortably; no completions are recorded.',
+          templates: [
+            Exercise(
+              name: 'Easy Walking',
+              sets: '5 minutes',
+              restSeconds: 20,
+              description: 'Walk at an easy conversational pace. Keep your posture upright and shoulders relaxed.',
+            ),
+            Exercise(
+              name: 'Standing Shoulder Circles',
+              sets: '1 x 30 seconds',
+              restSeconds: 20,
+              description: 'Stand tall with arms relaxed. Slowly roll your shoulders forward, then backward, without forcing the movement.',
+            ),
+            Exercise(
+              name: 'Gentle Standing March',
+              sets: '1 x 60 seconds',
+              restSeconds: 20,
+              description: 'March slowly in place with comfortable knee lifts. Use a stable support if needed and keep breathing evenly.',
+            ),
+          ],
+        ),
+      ].where((plan) => plan.fitsTimeBudget),
+    );
+  }
+
+  static WorkoutPlan _fit(
+    UserProfile user, {
+    required String title,
+    required List<Exercise> templates,
+    required String description,
+    ScheduledWorkoutType workoutType = ScheduledWorkoutType.fullBody,
+    bool isRecovery = false,
+  }) {
+    final budget = math.max(0, user.workoutTime) * 60;
+    Exercise minimum(Exercise exercise) => exercise.withVolume(
+      count: 1,
+      timedSeconds: exercise.secondsPerSet == null
+          ? null
+          : math.min(120, exercise.secondsPerSet!),
+    );
+    final minimumSeconds = templates.isEmpty
+        ? 0
+        : templates
+              .map((exercise) => _duration([minimum(exercise)]))
+              .reduce(math.min);
+    final selected = <Exercise>[];
+    final originals = <Exercise>[];
+    for (final template in templates) {
+      final exercise = minimum(template);
+      if (_duration([...selected, exercise]) <= budget) {
+        selected.add(exercise);
+        originals.add(template);
+      }
+    }
+    // Restore prescribed sets/timed intervals in rounds while budget permits.
+    // Do not invent extra volume beyond the existing level/goal template just
+    // to fill a long time preference.
+    var changed = true;
+    while (changed) {
+      changed = false;
+      for (var i = 0; i < selected.length; i++) {
+        final current = selected[i];
+        final original = originals[i];
+        Exercise? upgrade;
+        if (current.secondsPerSet != null &&
+            current.secondsPerSet! < original.secondsPerSet!) {
+          upgrade = current.withVolume(
+            count: current.setCount,
+            timedSeconds: math.min(
+              original.secondsPerSet!,
+              current.secondsPerSet! + 60,
+            ),
+          );
+        } else if (current.setCount < original.setCount) {
+          upgrade = current.withVolume(count: current.setCount + 1);
+        }
+        if (upgrade == null) continue;
+        final candidate = [...selected]..[i] = upgrade;
+        if (_duration(candidate) <= budget) {
+          selected[i] = upgrade;
+          changed = true;
+        }
+      }
+    }
     return WorkoutPlan._(
-      title: '${user.fitnessLevel} Workout',
+      title: title,
       fitnessLevel: user.fitnessLevel,
       fitnessGoal: user.fitnessGoal,
-      durationMinutes: user.workoutTime,
-      description: library.getLevelDescription(),
-      exercises: library.getExercises(),
+      availableMinutes: user.workoutTime,
+      description: description,
+      workoutType: workoutType,
+      isRecovery: isRecovery,
+      minimumMinutes: (minimumSeconds / 60).ceil(),
+      exercises: selected,
     );
   }
 }
 
-// Moved verbatim from WorkoutsScreen. Keep these instructions, sets and ordering
-// until a shared backend exercise catalogue is explicitly introduced.
+// Original instructions and exercise order are preserved. The fitter adjusts
+// workload within these prescriptions; this remains the sole frontend engine.
 class _WorkoutExerciseLibrary {
   final UserProfile user;
   _WorkoutExerciseLibrary(this.user);
 
   Exercise _exercise(String name, String sets, String description) {
-    return Exercise(name: name, sets: sets, description: description);
+    return Exercise(
+      name: name,
+      sets: sets,
+      description: description,
+      restSeconds: switch (user.fitnessLevel) {
+        'Advanced' => 75,
+        'Intermediate' => 60,
+        _ => 45,
+      },
+    );
   }
 
   List<Exercise> beginnerWorkout() {
@@ -79,7 +254,8 @@ class _WorkoutExerciseLibrary {
       ];
     }
 
-    if (user.fitnessGoal == 'Build Muscle') {
+    if (user.fitnessGoal == 'Build Muscle' ||
+        user.fitnessGoal == 'Gain Weight') {
       return [
         _exercise(
           'Bodyweight Squats',
@@ -181,7 +357,8 @@ class _WorkoutExerciseLibrary {
       ];
     }
 
-    if (user.fitnessGoal == 'Build Muscle') {
+    if (user.fitnessGoal == 'Build Muscle' ||
+        user.fitnessGoal == 'Gain Weight') {
       return [
         _exercise(
           'Push Ups',
@@ -287,7 +464,8 @@ class _WorkoutExerciseLibrary {
       ];
     }
 
-    if (user.fitnessGoal == 'Build Muscle') {
+    if (user.fitnessGoal == 'Build Muscle' ||
+        user.fitnessGoal == 'Gain Weight') {
       return [
         _exercise(
           'Decline Push Ups',
@@ -359,6 +537,16 @@ class _WorkoutExerciseLibrary {
   }
 
   List<Exercise> getExercises() {
+    // Maintain Weight uses the balanced template; Gain Weight intentionally
+    // shares strength-oriented movements with Build Muscle.
+    if (!{
+      'Lose Weight',
+      'Maintain Weight',
+      'Gain Weight',
+      'Build Muscle',
+    }.contains(user.fitnessGoal)) {
+      return [];
+    }
     switch (user.fitnessLevel) {
       case 'Intermediate':
         return intermediateWorkout();

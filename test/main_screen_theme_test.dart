@@ -2,7 +2,8 @@ import 'dart:ui' as ui;
 
 import 'package:digigym/models/user_profile.dart';
 import 'package:digigym/models/workout_plan.dart';
-import 'package:digigym/utils/measurement_units.dart';
+import 'package:digigym/screens/grocery_screen.dart';
+import 'package:digigym/widgets/dashboard_number.dart';
 import 'package:digigym/screens/edit_profile_screen.dart';
 import 'package:digigym/screens/home_screen.dart';
 import 'package:digigym/screens/login_screen.dart';
@@ -144,13 +145,15 @@ void main() {
             expect(appBar.height, 56 + configuration.$2.top);
             expect(viewport.top, appBar.bottom);
             expect(find.byType(Card), findsNothing);
-            if (label != 'Workout' && label != 'Profile') {
-              for (final glass in tester.widgetList<DashboardGlassCard>(
-                find.byType(DashboardGlassCard),
-              )) {
-                expect(glass.cornerRadius, 12);
-                expect(glass.padding, EdgeInsets.zero);
-              }
+            if (label == 'Meals' || label == 'Groceries') {
+              expect(
+                tester
+                    .widget<AppBar>(find.byType(AppBar))
+                    .titleTextStyle
+                    ?.fontSize,
+                30,
+              );
+              expect(find.byType(DashboardGlassCard), findsWidgets);
             }
           }
           expect(
@@ -260,7 +263,10 @@ void main() {
         find.byType(FloatingBottomNavigationBar),
       );
       final scroll = tester.state<ScrollableState>(find.byType(Scrollable));
-      final card = tester.getRect(find.byType(DashboardGlassCard).last);
+      final goal = find.byKey(const PageStorageKey('exercise-2'));
+      await tester.scrollUntilVisible(goal, 150);
+      await tester.pumpAndSettle();
+      final card = tester.getRect(goal);
       // Put a glass card across the old cutoff, in the gap above the pill.
       scroll.position.jumpTo(
         (scroll.position.pixels + card.center.dy - navigation.top).clamp(
@@ -347,7 +353,7 @@ void main() {
       await tester.pumpAndSettle();
       final pill = tester.getRect(find.byType(BackdropFilter));
       final scroll = tester.state<ScrollableState>(find.byType(Scrollable));
-      final card = find.byKey(const ValueKey('workout-goal'));
+      final card = find.byKey(const PageStorageKey('exercise-2'));
       await tester.scrollUntilVisible(card, 100);
       await tester.pumpAndSettle();
       scroll.position.jumpTo(
@@ -423,17 +429,18 @@ void main() {
     (tester) async {
       await tester.pumpWidget(host());
       await selectTab(tester, 'Workout');
-      expect(find.text('Build Muscle'), findsOneWidget);
+      expect(find.text('6 exercises · Build Muscle'), findsOneWidget);
       expect(find.text('Intermediate Plan'), findsOneWidget);
-      expect(find.text('6 exercises'), findsOneWidget);
+      expect(find.text('Intermediate'), findsNothing);
       expect(
-        tester.widget<Text>(find.text('Intermediate')).style?.color,
+        tester.widget<Text>(find.text('Intermediate Plan')).style?.color,
         DigiGymFitnessLevelColors.intermediate,
       );
       final firstExercise = WorkoutPlan.forUser(profile()).exercises.first;
       await tester.ensureVisible(
         find.byKey(const ValueKey('workout-view-exercises')),
       );
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('workout-view-exercises')));
       await tester.pumpAndSettle();
       expect(find.text(firstExercise.description), findsNothing);
@@ -444,74 +451,102 @@ void main() {
       await tester.tap(find.text(firstExercise.name));
       await tester.pumpAndSettle();
       expect(find.text(firstExercise.description), findsNothing);
-      await tester.pageBack();
-      await tester.pumpAndSettle();
       await tester.pumpWidget(host(user: profile(level: 'Advanced')));
       await tester.pumpAndSettle();
       expect(
-        tester.widget<Text>(find.text('Advanced')).style?.color,
+        tester.widget<Text>(find.text('Advanced Plan')).style?.color,
         DigiGymFitnessLevelColors.advanced,
       );
       expect(tester.takeException(), isNull);
     },
   );
 
-  testWidgets('meal data, card margins and existing type sizes are preserved', (
-    tester,
-  ) async {
-    await tester.pumpWidget(host());
-    await selectTab(tester, 'Meals');
-    expect(find.text('Estimated target: 1818 calories'), findsOneWidget);
-    expect(find.text('Goal: Build Muscle'), findsOneWidget);
-    expect(find.text('Diet: No Preference'), findsOneWidget);
-    expect(
-      tester.widget<Text>(find.text('Daily Nutrition')).style?.fontSize,
-      21,
-    );
-    final page = tester.widget<MealPage>(find.byType(MealPage));
-    for (final meal in page.getMeals()) {
-      expect(find.text(meal.name), findsOneWidget);
+  testWidgets(
+    'meal options use complete macros and a real estimated calorie target',
+    (tester) async {
+      await tester.pumpWidget(host());
+      await selectTab(tester, 'Meals');
+      expect(find.text('DAILY CALORIE TARGET'), findsOneWidget);
       expect(
-        find.text(
-          '${MeasurementUnits.formatFoodPortion(meal.portion)}\n${meal.protein}',
-        ),
-        findsOneWidget,
+        tester
+            .widget<DashboardNumber>(
+              find.byKey(const ValueKey('meal-calorie-target')),
+            )
+            .value,
+        '1,818 kcal',
       );
-      expect(find.text('${meal.calories}\n kcal'), findsOneWidget);
-    }
-    final glass = tester
-        .widgetList<DashboardGlassCard>(find.byType(DashboardGlassCard))
-        .toList();
-    expect(glass.length, 4);
-    expect(glass.first.margin, const EdgeInsets.all(4));
-    for (final mealCard in glass.skip(1)) {
-      expect(mealCard.margin, const EdgeInsets.only(bottom: 12));
-    }
-    expect(tester.takeException(), isNull);
-  });
+      expect(find.text('Build Muscle · No Preference'), findsOneWidget);
+      final page = tester.widget<MealPage>(find.byType(MealPage));
+      for (final meal in page.getMeals()) {
+        final card = find.byKey(ValueKey('meal-${meal.id}'));
+        await tester.scrollUntilVisible(card, 250);
+        expect(
+          find.descendant(of: card, matching: find.text(meal.name)),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: card,
+            matching: find.text('Protein ${meal.proteinGrams} g'),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: card,
+            matching: find.text('Carbs ${meal.carbohydrateGrams} g'),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: card,
+            matching: find.text('Fat ${meal.fatGrams} g'),
+          ),
+          findsOneWidget,
+        );
+      }
+      expect(tester.takeException(), isNull);
+    },
+  );
 
-  testWidgets('grocery rows still toggle and the final row clears navigation', (
-    tester,
-  ) async {
-    await tester.pumpWidget(host());
-    await selectTab(tester, 'Groceries');
-    final chicken = find.widgetWithText(CheckboxListTile, 'Chicken breast');
-    expect(tester.widget<CheckboxListTile>(chicken).value, isFalse);
-    await tester.tap(find.text('Chicken breast'));
-    await tester.pumpAndSettle();
-    expect(tester.widget<CheckboxListTile>(chicken).value, isTrue);
-    await tester.tap(find.text('Chicken breast'));
-    await tester.pumpAndSettle();
-    expect(tester.widget<CheckboxListTile>(chicken).value, isFalse);
-    expect(find.byType(DashboardGlassCard), findsNothing);
-    await tester.scrollUntilVisible(find.text('Cucumber'), 250);
-    await tester.pumpAndSettle();
-    expect(
-      tester.getRect(find.text('Cucumber')).bottom,
-      lessThan(tester.getRect(find.byType(FloatingBottomNavigationBar)).top),
-    );
-    expect(tester.takeException(), isNull);
-  });
+  testWidgets(
+    'generated grocery rows toggle and the final row clears navigation',
+    (tester) async {
+      await tester.pumpWidget(host());
+      await selectTab(tester, 'Groceries');
+      final controller = tester
+          .widget<GroceryScreen>(find.byType(GroceryScreen))
+          .controller!;
+      final first = find.byKey(
+        ValueKey('grocery-check-${controller.items.first.id}'),
+      );
+      await tester.scrollUntilVisible(first, 250);
+      expect(tester.widget<CheckboxListTile>(first).value, isFalse);
+      await tester.tap(first);
+      await tester.pumpAndSettle();
+      expect(tester.widget<CheckboxListTile>(first).value, isTrue);
+      await tester.tap(first);
+      await tester.pumpAndSettle();
+      expect(tester.widget<CheckboxListTile>(first).value, isFalse);
+      final last = find.byKey(
+        ValueKey('grocery-row-${controller.items.last.id}'),
+      );
+      await tester.scrollUntilVisible(last, 250);
+      final scroll = tester.state<ScrollableState>(
+        find.byType(Scrollable).first,
+      );
+      for (var i = 0; i < 10; i++) {
+        scroll.position.jumpTo(scroll.position.maxScrollExtent);
+        await tester.pumpAndSettle();
+      }
+      expect(
+        tester.getRect(last).bottom,
+        lessThan(tester.getRect(find.byType(FloatingBottomNavigationBar)).top),
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('profile values, edit route and logout callbacks remain intact', (
     tester,
@@ -598,75 +633,78 @@ void main() {
     },
   );
 
-  testWidgets(
-    'main tabs retain scrolling on narrow screens and enlarged text',
-    (tester) async {
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      for (final width in [320.0, 390.0]) {
-        tester.view.physicalSize = Size(width, 844);
-        for (final scale in [1.0, 1.5, 2.0]) {
-          await tester.pumpWidget(host(scale: scale));
-          await tester.pumpAndSettle();
-          for (final tab in [
-            'Home',
-            'Workout',
-            'Meals',
-            'Groceries',
-            'Profile',
-          ]) {
-            await selectTab(tester, tab);
-            expect(
-              tester.takeException(),
-              isNull,
-              reason: '$tab $width at $scale',
-            );
-            final scroll = tester.state<ScrollableState>(
-              find.byType(Scrollable).first,
-            );
-            // Lazy lists refine their extent as wrapped rows are laid out.
-            for (var attempt = 0; attempt < 5; attempt++) {
-              scroll.position.jumpTo(scroll.position.maxScrollExtent);
-              await tester.pumpAndSettle();
-              if (scroll.position.extentAfter < 0.01) break;
-            }
-            final viewport = tester.getRect(find.byType(Scrollable).first);
-            final navigation = tester.getRect(
-              find.byType(FloatingBottomNavigationBar),
-            );
-            expect(viewport.bottom, 844);
-            final lastContent = switch (tab) {
-              'Home' =>
-                find
-                    .byWidgetPredicate(
-                      (w) =>
-                          w is Semantics &&
-                          w.key is ValueKey<String> &&
-                          (w.key! as ValueKey<String>).value.startsWith(
-                            'month-day-',
-                          ),
-                    )
-                    .last,
-              'Workout' => find.byType(DashboardGlassCard).last,
-              'Meals' => find.byType(DashboardGlassCard).last,
-              'Groceries' => find.widgetWithText(CheckboxListTile, 'Cucumber'),
-              'Profile' => find.byKey(const ValueKey('profile-logout')),
-              _ => throw StateError('Unexpected tab: $tab'),
-            };
-            expect(
-              tester.getRect(lastContent).bottom,
-              lessThanOrEqualTo(navigation.top),
-              reason: '$tab content clears navigation at $width / $scale',
-            );
-            expect(
-              tester.takeException(),
-              isNull,
-              reason: '$tab $width at $scale',
-            );
+  testWidgets('main tabs retain scrolling on narrow screens and enlarged text', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    for (final width in [320.0, 390.0]) {
+      tester.view.physicalSize = Size(width, 844);
+      for (final scale in [1.0, 1.5, 2.0]) {
+        await tester.pumpWidget(host(scale: scale));
+        await tester.pumpAndSettle();
+        for (final tab in [
+          'Home',
+          'Workout',
+          'Meals',
+          'Groceries',
+          'Profile',
+        ]) {
+          await selectTab(tester, tab);
+          expect(
+            tester.takeException(),
+            isNull,
+            reason: '$tab $width at $scale',
+          );
+          final scroll = tester.state<ScrollableState>(
+            find.byType(Scrollable).first,
+          );
+          // Lazy lists refine their extent as wrapped rows are laid out.
+          for (var attempt = 0; attempt < 5; attempt++) {
+            scroll.position.jumpTo(scroll.position.maxScrollExtent);
+            await tester.pumpAndSettle();
+            if (scroll.position.extentAfter < 0.01) break;
           }
+          final viewport = tester.getRect(find.byType(Scrollable).first);
+          final navigation = tester.getRect(
+            find.byType(FloatingBottomNavigationBar),
+          );
+          expect(viewport.bottom, 844);
+          final lastContent = switch (tab) {
+            'Home' =>
+              find
+                  .byWidgetPredicate(
+                    (w) =>
+                        w is Semantics &&
+                        w.key is ValueKey<String> &&
+                        (w.key! as ValueKey<String>).value.startsWith(
+                          'month-day-',
+                        ),
+                  )
+                  .last,
+            'Workout' => find.byType(DashboardGlassCard).last,
+            'Meals' => find.byType(DashboardGlassCard).last,
+            'Groceries' => find.byKey(
+              ValueKey(
+                'grocery-row-${tester.widget<GroceryScreen>(find.byType(GroceryScreen)).controller!.items.last.id}',
+              ),
+            ),
+            'Profile' => find.byKey(const ValueKey('profile-logout')),
+            _ => throw StateError('Unexpected tab: $tab'),
+          };
+          expect(
+            tester.getRect(lastContent).bottom,
+            lessThanOrEqualTo(navigation.top),
+            reason: '$tab content clears navigation at $width / $scale',
+          );
+          expect(
+            tester.takeException(),
+            isNull,
+            reason: '$tab $width at $scale',
+          );
         }
       }
-    },
-  );
+    }
+  });
 }

@@ -321,9 +321,9 @@ class ProfileSummaryStat extends StatelessWidget {
   }) => ProfileSummaryStat(
     key: key,
     iconAsset: 'assets/images/digigym_workout_icon.png',
-    iconSize: 30,
+    iconSize: 28.5,
     // The official artwork is wide; retain the approved icon's aspect ratio.
-    iconWidth: 40,
+    iconWidth: 38,
     pixelated: true,
     value: value,
     label: 'Level',
@@ -344,7 +344,7 @@ class ProfileSummaryStat extends StatelessWidget {
                 'Gain Weight' => Icons.trending_up_rounded,
                 _ => Icons.track_changes_outlined,
               },
-        iconSize: value == 'Build Muscle' ? 28 : 30,
+        iconSize: value == 'Build Muscle' ? 25.5 : 27,
         value: value,
         label: 'Goal',
       );
@@ -393,10 +393,10 @@ class ProfileSummaryStat extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontFamily: DigiGymDashboardTheme.textFont,
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
                   // Preserve the approved 22px value line box and 120px panel.
-                  height: 22 / 15,
+                  height: 22 / 14,
                   color: valueColor ?? DigiGymDarkColors.primaryText,
                 ),
               ),
@@ -404,8 +404,11 @@ class ProfileSummaryStat extends StatelessWidget {
             Text(
               label,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 12,
+              style: TextStyle(
+                fontSize: 11,
+                // Keep the previous 12sp label line box as the glyphs shrink.
+                height:
+                    (DefaultTextStyle.of(context).style.height ?? 1) * 12 / 11,
                 color: DigiGymDarkColors.secondaryText,
               ),
             ),
@@ -449,11 +452,11 @@ class ProfileSummaryStat extends StatelessWidget {
       children: [
         TextSpan(
           text: value,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
         ),
         TextSpan(
           text: ' $unit',
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
         ),
       ],
     );
@@ -468,9 +471,9 @@ class ProfileSummaryStat extends StatelessWidget {
       TextSpan(
         text: 'M',
         style: effectiveStyle.copyWith(
-          fontSize: 15,
+          fontSize: 14,
           fontWeight: FontWeight.w600,
-          height: 22 / 15,
+          height: 22 / 14,
         ),
       ),
     );

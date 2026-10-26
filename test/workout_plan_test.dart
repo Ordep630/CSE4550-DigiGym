@@ -17,7 +17,7 @@ void main() {
       'Gain Weight',
     ]) {
       test(
-        '$level / $goal preserves every existing exercise and instruction',
+        '$level / $goal preserves level-appropriate exercises and original instructions',
         () {
           final user = UserProfile(
             name: 'Test',
@@ -27,25 +27,30 @@ void main() {
             workoutTime: 75,
           );
           final plan = WorkoutPlan.forUser(user);
-          final branch = ['Lose Weight', 'Build Muscle'].contains(goal)
-              ? goal
-              : 'Default';
+          final branch = goal == 'Gain Weight'
+              ? 'Build Muscle'
+              : (['Lose Weight', 'Build Muscle'].contains(goal)
+                    ? goal
+                    : 'Default');
           expect(
             plan.exercises
+                .map((e) => {'name': e.name, 'description': e.description})
+                .toList(),
+            (original['$level / $branch'] as List)
                 .map(
-                  (e) => {
-                    'name': e.name,
-                    'sets': e.sets,
-                    'description': e.description,
-                  },
+                  (e) => {'name': e['name'], 'description': e['description']},
                 )
                 .toList(),
-            original['$level / $branch'],
           );
           expect(plan.fitnessLevel, level);
           expect(plan.fitnessGoal, goal);
-          expect(plan.title, '$level Workout');
-          expect(plan.durationMinutes, 75);
+          expect(
+            plan.title,
+            goal == 'Lose Weight' ? 'Cardio & Strength' : 'Full Body Strength',
+          );
+          expect(plan.durationMinutes, lessThanOrEqualTo(75));
+          expect(plan.fitsTimeBudget, isTrue);
+          expect(plan.estimatedSeconds, greaterThan(0));
           expect(plan.description, isNotEmpty);
           expect(() => plan.exercises.clear(), throwsUnsupportedError);
         },

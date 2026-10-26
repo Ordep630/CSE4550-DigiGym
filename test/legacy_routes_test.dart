@@ -30,10 +30,10 @@ void main() {
       await tester.pumpAndSettle();
       final plan = tester.widget<MealPage>(find.byType(MealPage));
       expect(plan.user.fitnessGoal, 'Build Muscle');
-      expect(find.text('Chicken Rice Bowl'), findsOneWidget);
-      expect(find.text('Daily Nutrition'), findsOneWidget);
+      expect(find.byKey(const ValueKey('daily-nutrition')), findsOneWidget);
+      expect(find.text('DAILY CALORIE TARGET'), findsOneWidget);
       expect(
-        Theme.of(tester.element(find.text('Daily Nutrition'))).brightness,
+        Theme.of(tester.element(find.text('DAILY CALORIE TARGET'))).brightness,
         Brightness.dark,
       );
       expect(find.byType(DigiGymAtmosphericBackground), findsOneWidget);
@@ -65,14 +65,27 @@ void main() {
           .pushNamed('/groceries');
       await tester.pumpAndSettle();
       expect(find.byType(GroceryScreen), findsOneWidget);
+      final screen = tester.widget<GroceryScreen>(find.byType(GroceryScreen));
+      expect(
+        screen.controller,
+        isNull,
+      ); // Standalone compatibility route owns its list.
+      await tester.scrollUntilVisible(find.byType(CheckboxListTile).first, 250);
       final first = find.byType(CheckboxListTile).first;
       expect(Theme.of(tester.element(first)).brightness, Brightness.dark);
       expect(tester.widget<CheckboxListTile>(first).value, isFalse);
       await tester.tap(first);
       await tester.pumpAndSettle();
       expect(tester.widget<CheckboxListTile>(first).value, isTrue);
+      final scroll = tester.state<ScrollableState>(
+        find.byType(Scrollable).first,
+      );
+      for (var i = 0; i < 10; i++) {
+        scroll.position.jumpTo(scroll.position.maxScrollExtent);
+        await tester.pumpAndSettle();
+      }
       final last = find.byType(CheckboxListTile).last;
-      await tester.scrollUntilVisible(last, 300);
+      await tester.ensureVisible(last);
       await tester.pumpAndSettle();
       await tester.tap(last);
       await tester.pumpAndSettle();
