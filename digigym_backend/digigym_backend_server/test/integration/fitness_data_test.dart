@@ -85,5 +85,44 @@ void main() {
         expect(updatedProfile.fitnessGoal, equals(FitnessGoal.buildMuscle));
       },
     );
+    test(
+      'handles an authenticated user without a fitness profile',
+      () async {
+        final session = sessionBuilder.build();
+
+        final authUser = await AuthUser.db.insertRow(
+          session,
+          AuthUser(scopeNames: {'user'}),
+        );
+        final authUserId = authUser.id!;
+
+        final authenticatedSession = sessionBuilder.copyWith(
+          authentication: AuthenticationOverride.authenticationInfo(
+            authUserId.toString(),
+            {Scope('user')},
+          ),
+        );
+
+        final fitnessData = await endpoints.profile.getMyFitnessData(
+          authenticatedSession,
+        );
+        expect(fitnessData, isNull);
+
+        await expectLater(
+          endpoints.profile.updateMyFitnessData(
+            authenticatedSession,
+            FitnessLevel.intermediate,
+            FitnessGoal.buildMuscle,
+          ),
+          throwsA(
+            isA<StateError>().having(
+              (error) => error.message,
+              'message',
+              'User profile not found.',
+            ),
+          ),
+        );
+      },
+    );
   });
 }
