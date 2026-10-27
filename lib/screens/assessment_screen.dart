@@ -31,13 +31,45 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
   int workoutTime = 30;
 
   bool isCreatingPlan = false;
+  late final UserProfile? _assessmentUser;
+  String? _initialFeet;
+  String? _initialInches;
+  String? _initialWeight;
+  double? _originalHeight;
+  double? _originalWeight;
 
   @override
   void initState() {
     super.initState();
-    nameController = TextEditingController(
-      text: DigiGymSession.pendingUser?.name ?? '',
-    );
+    _assessmentUser = DigiGymSession.pendingUser;
+    nameController = TextEditingController(text: _assessmentUser?.name ?? '');
+    // Only a recovered server draft has an auth UUID. Fresh registration keeps
+    // its existing blank inputs. Never replace recovered values with defaults.
+    final draft = _assessmentUser;
+    if (draft != null && draft.accountId != null) {
+      ageController.text = draft.age > 0 ? '${draft.age}' : '';
+      if (draft.height.isFinite && draft.height > 0) {
+        final height = MeasurementUnits.centimetersToFeetInches(
+          draft.height,
+          fractionDigits: 1,
+        );
+        _originalHeight = draft.height;
+        feetController.text = _initialFeet = '${height.feet}';
+        inchesController.text = _initialInches = '${height.inches}';
+      }
+      if (draft.weight.isFinite && draft.weight > 0) {
+        _originalWeight = draft.weight;
+        weightController.text = _initialWeight =
+            MeasurementUnits.kilogramsToPounds(draft.weight).toStringAsFixed(1);
+      }
+      fitnessLevel = draft.fitnessLevel;
+      goal = draft.fitnessGoal;
+      diet = draft.dietaryPreference == 'No Preference'
+          ? 'No Restrictions'
+          : draft.dietaryPreference;
+      bodyType = draft.bodyType;
+      workoutTime = draft.workoutTime;
+    }
   }
 
   @override
@@ -54,14 +86,26 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
     if (isCreatingPlan) return;
     final name = nameController.text.trim();
     final age = int.tryParse(ageController.text.trim());
-    final height = MeasurementUnits.parseHeight(
+    final parsedHeight = MeasurementUnits.parseHeight(
       feetController.text,
       inchesController.text,
     );
-    final weight = MeasurementUnits.parseWeight(weightController.text);
-    final user = DigiGymSession.pendingUser;
+    final parsedWeight = MeasurementUnits.parseWeight(weightController.text);
+    // Imperial display rounding must not rewrite a recovered metric value.
+    final height =
+        parsedHeight != null &&
+            feetController.text.trim() == _initialFeet &&
+            inchesController.text.trim() == _initialInches
+        ? _originalHeight
+        : parsedHeight;
+    final weight =
+        parsedWeight != null && weightController.text.trim() == _initialWeight
+        ? _originalWeight
+        : parsedWeight;
+    final user = _assessmentUser;
 
     if (user == null ||
+        !identical(user, DigiGymSession.pendingUser) ||
         name.isEmpty ||
         age == null ||
         age <= 0 ||
@@ -88,6 +132,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
 
       final savedUser = await widget.api.updateProfile(
         UserProfile(
+          accountId: user.accountId,
           name: name,
           email: user.email,
           age: age,
@@ -100,6 +145,11 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           bodyType: bodyType,
         ),
       );
+
+      if (!savedUser.hasCompletedAssessment ||
+          (user.accountId != null && savedUser.accountId != user.accountId)) {
+        throw StateError('The assessment save was not confirmed.');
+      }
 
       // Registration signs the user in. Sign out after the assessment because
       // this flow intentionally returns to the login screen.
@@ -242,12 +292,19 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               itemHeight: null,
               initialValue: diet,
               decoration: digiGymFormDecoration('Diet'),
-              items: ['No Restrictions', 'Vegetarian', 'Vegan', 'High Protein']
-                  .map(
-                    (value) =>
-                        DropdownMenuItem(value: value, child: Text(value)),
-                  )
-                  .toList(),
+              items:
+                  {
+                        'No Restrictions',
+                        'Vegetarian',
+                        'Vegan',
+                        'High Protein',
+                        diet,
+                      }
+                      .map(
+                        (value) =>
+                            DropdownMenuItem(value: value, child: Text(value)),
+                      )
+                      .toList(),
               onChanged: (value) {
                 setState(() {
                   diet = value!;
@@ -262,7 +319,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               itemHeight: null,
               initialValue: bodyType,
               decoration: digiGymFormDecoration('Body Type'),
-              items: ['Slim', 'Average', 'Athletic', 'Heavy']
+              items: {'Slim', 'Average', 'Athletic', 'Heavy', bodyType}
                   .map(
                     (value) =>
                         DropdownMenuItem(value: value, child: Text(value)),
@@ -282,7 +339,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               itemHeight: null,
               initialValue: workoutTime,
               decoration: digiGymFormDecoration('Available Workout Time'),
-              items: [15, 30, 45, 60]
+              items: {15, 30, 45, 60, workoutTime}
                   .map(
                     (value) => DropdownMenuItem(
                       value: value,

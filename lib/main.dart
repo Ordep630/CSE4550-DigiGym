@@ -57,6 +57,8 @@ class _DigiGymAppState extends State<DigiGymApp> with WidgetsBindingObserver {
     setState(() {
       isRestoringSession = true;
       sessionRestoreError = null;
+      DigiGymSession.currentUser = null;
+      DigiGymSession.clearPendingRegistration();
     });
 
     try {
@@ -77,11 +79,18 @@ class _DigiGymAppState extends State<DigiGymApp> with WidgetsBindingObserver {
       });
     } on ProfileSetupRequiredException catch (error) {
       if (!mounted) return;
-      DigiGymSession.pendingUser = UserProfile(name: '', email: error.email);
-      DigiGymSession.clearRegistrationPassword();
+      DigiGymSession.pendingUser =
+          error.profile ?? UserProfile(name: '', email: error.email);
       setState(() {
         isRestoringSession = false;
         isCompletingProfile = true;
+      });
+    } on MissingFitnessProfileException {
+      if (!mounted) return;
+      setState(() {
+        isRestoringSession = false;
+        isCompletingProfile = false;
+        sessionRestoreError = MissingFitnessProfileException.message;
       });
     } catch (_) {
       if (!mounted) return;
@@ -104,6 +113,7 @@ class _DigiGymAppState extends State<DigiGymApp> with WidgetsBindingObserver {
   void _login(UserProfile user) {
     _motivationalMessage = _personalization.startSession(user.email);
     setState(() {
+      DigiGymSession.clearPendingRegistration();
       DigiGymSession.currentUser = user;
     });
   }
@@ -115,6 +125,7 @@ class _DigiGymAppState extends State<DigiGymApp> with WidgetsBindingObserver {
 
     setState(() {
       DigiGymSession.currentUser = null;
+      DigiGymSession.clearPendingRegistration();
       _motivationalMessage = DashboardPersonalization.defaultMessage;
     });
   }

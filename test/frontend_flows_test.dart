@@ -276,22 +276,23 @@ void main() {
     },
   );
 
-  testWidgets('an authenticated user without a profile resumes assessment', (
-    tester,
-  ) async {
-    final api = FakeDigiGymApi()
-      ..authenticated = true
-      ..restoreError = const ProfileSetupRequiredException(
-        'incomplete@example.com',
-      );
+  testWidgets(
+    'an authenticated user with an incomplete profile resumes assessment',
+    (tester) async {
+      final api = FakeDigiGymApi()
+        ..authenticated = true
+        ..restoreError = const ProfileSetupRequiredException(
+          'incomplete@example.com',
+        );
 
-    await tester.pumpWidget(DigiGymApp(api: api));
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(DigiGymApp(api: api));
+      await tester.pumpAndSettle();
 
-    expect(find.text('Fitness Assessment'), findsOneWidget);
-    expect(DigiGymSession.pendingUser?.email, 'incomplete@example.com');
-    expect(find.widgetWithText(TextField, 'Name'), findsOneWidget);
-  });
+      expect(find.text('Fitness Assessment'), findsOneWidget);
+      expect(DigiGymSession.pendingUser?.email, 'incomplete@example.com');
+      expect(find.widgetWithText(TextField, 'Name'), findsOneWidget);
+    },
+  );
 
   testWidgets('assessment persists through updateMyProfile adapter', (
     tester,

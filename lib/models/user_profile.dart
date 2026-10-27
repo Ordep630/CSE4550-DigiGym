@@ -31,6 +31,11 @@ class UserProfile {
     this.isDemo = false,
   });
 
+  /// The current backend creates a blank-name profile at email verification.
+  /// A successful assessment saves a nonblank name. Do not infer completion
+  /// from default measurements: those can also be valid, saved user values.
+  bool get hasCompletedAssessment => name.trim().isNotEmpty;
+
   double get bmi {
     if (height <= 0) return 0;
 

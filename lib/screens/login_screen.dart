@@ -77,15 +77,26 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
 
+      DigiGymSession.clearPendingRegistration();
       DigiGymSession.currentUser = loggedInUser;
       widget.onLogin(loggedInUser);
     } on ProfileSetupRequiredException catch (error) {
       passwordController.clear();
-      DigiGymSession.pendingUser = UserProfile(name: '', email: error.email);
-      DigiGymSession.clearRegistrationPassword();
+      DigiGymSession.currentUser = null;
+      DigiGymSession.clearPendingRegistration();
+      DigiGymSession.pendingUser =
+          error.profile ?? UserProfile(name: '', email: error.email);
 
       if (!mounted) return;
       Navigator.pushNamed(context, '/assessment');
+    } on MissingFitnessProfileException {
+      passwordController.clear();
+      DigiGymSession.currentUser = null;
+      DigiGymSession.clearPendingRegistration();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text(MissingFitnessProfileException.message)),
+      );
     } catch (_) {
       if (!mounted) return;
 

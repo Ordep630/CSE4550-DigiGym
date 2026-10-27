@@ -11,8 +11,19 @@ import '../models/user_profile.dart';
 
 class ProfileSetupRequiredException implements Exception {
   final String email;
+  final UserProfile? profile;
 
-  const ProfileSetupRequiredException(this.email);
+  const ProfileSetupRequiredException(this.email, {this.profile});
+}
+
+/// An authenticated account has no row that updateMyProfile can update.
+/// Recovery requires backend support; never treat this as a writable draft.
+class MissingFitnessProfileException implements Exception {
+  const MissingFitnessProfileException();
+
+  static const message =
+      'Your account is missing its fitness profile. Try again, or contact '
+      'the DigiGym team if the problem continues.';
 }
 
 enum PasswordRecoveryFailure {
@@ -126,21 +137,7 @@ class DigiGymApi {
         password: password,
       );
       await client.auth.updateSignedInUser(authSuccess);
-
-      final profile = await client.profile.getMyProfile();
-      final accountProfile = await client
-          .modules
-          .serverpod_auth_core
-          .userProfileInfo
-          .get();
-      if (profile == null) {
-        throw ProfileSetupRequiredException(accountProfile.email ?? email);
-      }
-
-      return userProfileFromBackend(
-        profile,
-        email: accountProfile.email ?? email,
-      );
+      return await _loadProfile(fallbackEmail: email);
     } on ProfileSetupRequiredException {
       rethrow;
     } catch (_) {
@@ -151,18 +148,26 @@ class DigiGymApi {
 
   Future<UserProfile?> restoreProfile() async {
     if (!isAuthenticated) return null;
+    return _loadProfile();
+  }
 
+  // Login and persisted-session restoration must use the same completion gate.
+  Future<UserProfile> _loadProfile({String fallbackEmail = ''}) async {
     final profile = await client.profile.getMyProfile();
+    if (profile == null) throw const MissingFitnessProfileException();
     final accountProfile = await client
         .modules
         .serverpod_auth_core
         .userProfileInfo
         .get();
-    if (profile == null) {
-      throw ProfileSetupRequiredException(accountProfile.email ?? '');
+    final user = userProfileFromBackend(
+      profile,
+      email: accountProfile.email ?? fallbackEmail,
+    );
+    if (!user.hasCompletedAssessment) {
+      throw ProfileSetupRequiredException(user.email, profile: user);
     }
-
-    return userProfileFromBackend(profile, email: accountProfile.email ?? '');
+    return user;
   }
 
   Future<UserProfile> updateProfile(UserProfile profile) async {
