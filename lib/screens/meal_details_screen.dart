@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/meal.dart';
+import '../utils/calorie_format.dart';
 import '../theme/digigym_dashboard_theme.dart';
 import '../widgets/dashboard_glass_card.dart';
 import '../widgets/dashboard_number.dart';
@@ -50,7 +51,7 @@ class MealDetailsScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       DashboardNumber(
-                        value: '${meal.calories} kcal',
+                        value: CalorieFormat.format(meal.calories),
                         dotted: false,
                         fontSize: 38,
                         fitToWidth: true,

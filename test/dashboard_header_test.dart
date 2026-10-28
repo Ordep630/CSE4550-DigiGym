@@ -70,7 +70,7 @@ void main() {
     await tester.tap(find.byType(DashboardNotificationButton));
     await tester.pumpAndSettle();
     expect(calls, 1);
-    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byType(Dialog), findsNothing);
   }, skip: DashboardHeaderPreview.enabled);
 
   testWidgets(
@@ -98,7 +98,7 @@ void main() {
       await tester.tap(find.byType(DashboardNotificationButton));
       await tester.pumpAndSettle();
       expect(calls, 1);
-      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.byType(Dialog), findsNothing);
     },
   );
 
@@ -253,7 +253,7 @@ void main() {
       );
       await tester.tap(find.text('Close'));
       await tester.pumpAndSettle();
-      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.byType(Dialog), findsNothing);
       expect(
         tester
             .widget<DailyStreakIndicator>(find.byType(DailyStreakIndicator))

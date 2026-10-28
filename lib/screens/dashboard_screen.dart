@@ -11,6 +11,10 @@ import '../theme/digigym_dashboard_theme.dart';
 import '../widgets/dashboard_glass_card.dart';
 import '../widgets/dashboard_progress_card.dart';
 import '../utils/measurement_units.dart';
+import '../utils/calorie_format.dart';
+import '../utils/bmi_category.dart';
+import '../widgets/dashboard_information_dialogs.dart';
+import '../widgets/digigym_dialog.dart';
 import '../widgets/monthly_activity_calendar.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/dashboard_greeting.dart';
@@ -141,14 +145,16 @@ class DashboardPage extends StatelessWidget {
                                   'dashboard-calories-action',
                                 ),
                                 label:
-                                    'Daily calorie target: ${user.estimatedCalories}. Open Meals',
+                                    'Daily calorie target: ${CalorieFormat.format(user.estimatedCalories)}. Open Meals',
                                 onTap: onSelectTab == null
                                     ? null
                                     : () => onSelectTab!(2),
                                 child: StatCard(
                                   title: 'Daily calorie target',
                                   iconGlowOnly: true,
-                                  value: '${user.estimatedCalories}',
+                                  value: CalorieFormat.format(
+                                    user.estimatedCalories,
+                                  ),
                                   icon: Icons.local_fire_department,
                                   iconColor: const Color(0xFFFFD35B),
                                   embedded: true,
@@ -159,8 +165,12 @@ class DashboardPage extends StatelessWidget {
                               DashboardCardAction(
                                 key: const ValueKey('dashboard-weight-action'),
                                 label:
-                                    'Weight: ${MeasurementUnits.formatWeight(user.weight)}. Edit Profile',
-                                onTap: onEditProfile,
+                                    'Weight: ${MeasurementUnits.formatWeight(user.weight)}. View weight information',
+                                onTap: () => showDashboardWeightDialog(
+                                  context,
+                                  weight: user.weight,
+                                  onEditWeight: onEditProfile,
+                                ),
                                 child: StatCard(
                                   title: 'Weight',
                                   iconGlowOnly: true,
@@ -178,14 +188,17 @@ class DashboardPage extends StatelessWidget {
                               DashboardCardAction(
                                 key: const ValueKey('dashboard-bmi-action'),
                                 label:
-                                    'BMI: ${user.bmi.toStringAsFixed(1)}. Open Profile',
-                                onTap: onSelectTab == null
-                                    ? null
-                                    : () => onSelectTab!(4),
+                                    'BMI: ${BmiCategory.fromValue(user.bmi) == null ? 'unavailable' : user.bmi.toStringAsFixed(1)}. View BMI information',
+                                onTap: () => showDashboardBmiDialog(
+                                  context,
+                                  bmi: user.bmi,
+                                ),
                                 child: StatCard(
                                   title: 'BMI',
                                   iconGlowOnly: true,
-                                  value: user.bmi.toStringAsFixed(1),
+                                  value: BmiCategory.fromValue(user.bmi) == null
+                                      ? 'Unavailable'
+                                      : user.bmi.toStringAsFixed(1),
                                   icon: Icons.monitor_weight_outlined,
                                   iconColor: DigiGymDarkColors.softGreen,
                                   embedded: true,
@@ -252,10 +265,9 @@ class DashboardPage extends StatelessWidget {
                                               () => showDialog<void>(
                                                 context: context,
                                                 builder: (context) =>
-                                                    AlertDialog(
-                                                      title: const Text(
-                                                        'Development preview',
-                                                      ),
+                                                    DigiGymDialog(
+                                                      title:
+                                                          'Development preview',
                                                       content: const Text(
                                                         'Workout streaks are not available until '
                                                         'workout completion is tracked. '

@@ -6,7 +6,6 @@ import 'package:digigym/screens/dashboard_screen.dart';
 import 'package:digigym/screens/edit_profile_screen.dart';
 import 'package:digigym/screens/meal_page.dart';
 import 'package:digigym/screens/workouts_screen.dart';
-import 'package:digigym/screens/profile_screen.dart';
 import 'package:digigym/theme/digigym_dashboard_theme.dart';
 import 'package:digigym/widgets/dashboard_card_action.dart';
 import 'package:digigym/widgets/dashboard_glass_card.dart';
@@ -56,7 +55,6 @@ void main() {
     ('progress', 1, WorkoutsScreen),
     ('calories', 2, MealPage),
     ('workout', 1, WorkoutsScreen),
-    ('bmi', 4, ProfilePage),
   ]) {
     testWidgets('${action.$1} opens its existing tab without pushing a route', (
       tester,
@@ -349,13 +347,17 @@ void main() {
 
   for (final action in ['weight']) {
     testWidgets(
-      '$action opens Edit Profile and returned data refreshes dashboard calculations',
+      '$action dialog opens Edit Profile and returned data refreshes dashboard calculations',
       (tester) async {
         final api = await startDashboard(tester);
         final target = find.byKey(ValueKey('dashboard-$action-action'));
         await tester.ensureVisible(target);
         await tester.pumpAndSettle();
         await tester.tap(target);
+        await tester.pumpAndSettle();
+        expect(find.text('Your Weight'), findsOneWidget);
+        expect(find.byType(EditProfileScreen), findsNothing);
+        await tester.tap(find.text('Edit Weight'));
         await tester.pumpAndSettle();
         expect(find.byType(EditProfileScreen), findsOneWidget);
         expect(

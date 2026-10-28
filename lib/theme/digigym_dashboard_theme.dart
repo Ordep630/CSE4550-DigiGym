@@ -8,6 +8,8 @@ abstract final class DigiGymDarkColors {
   static const electricGreen = Color(0xFF70FF45);
   // Softer right-hand stop of the approved Login button gradient.
   static const softGreen = Color(0xFF67E780);
+  // Existing Profile Log Out red, shared with destructive dialog actions.
+  static const destructive = Color(0xFFFF5F68);
   static const primaryText = Color(0xFFF4F7F5);
   static const secondaryText = Color(0xFFABB5AF);
 }

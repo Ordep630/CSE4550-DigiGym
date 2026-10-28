@@ -69,7 +69,7 @@ Future<void> press(WidgetTester tester, Finder finder) async {
   final rect = tester.getRect(finder);
   final nav = find.byType(FloatingBottomNavigationBar);
   final bottom =
-      find.byType(AlertDialog).evaluate().isNotEmpty || nav.evaluate().isEmpty
+      find.byType(Dialog).evaluate().isNotEmpty || nav.evaluate().isEmpty
       ? tester.view.physicalSize.height / tester.view.devicePixelRatio
       : tester.getRect(nav).top;
   final appbar = find.byType(AppBar);
@@ -119,7 +119,7 @@ void main() {
       final target = tester.widget<DashboardNumber>(
         find.byKey(const ValueKey('meal-calorie-target')),
       );
-      expect(target.value, '1,920 kcal');
+      expect(target.value, '1,920 Cal');
       expect(target.dotted, isTrue);
       expect(target.fontSize, 45);
       expect(target.dotWeight, 860);
@@ -437,7 +437,7 @@ void main() {
     controller.addCustom('Clear at logout');
     await tab(tester, 'Profile');
     await press(tester, find.text('Log Out'));
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Logout'));
+    await tester.tap(find.byKey(const ValueKey('confirm-logout')));
     await tester.pumpAndSettle();
     expect(find.byType(LoginScreen), findsOneWidget);
     expect(controller.items, isEmpty);
@@ -485,7 +485,7 @@ void main() {
       'Keyboard item',
     );
     await press(tester, find.widgetWithText(FilledButton, 'Add item'));
-    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byType(Dialog), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -625,7 +625,7 @@ void main() {
             'Responsive item',
           );
           await press(tester, find.widgetWithText(FilledButton, 'Add item'));
-          expect(find.byType(AlertDialog), findsNothing);
+          expect(find.byType(Dialog), findsNothing);
           expect(tester.takeException(), isNull);
         },
       );

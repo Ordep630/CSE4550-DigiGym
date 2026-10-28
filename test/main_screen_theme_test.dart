@@ -473,7 +473,7 @@ void main() {
               find.byKey(const ValueKey('meal-calorie-target')),
             )
             .value,
-        '1,818 kcal',
+        '1,818 Cal',
       );
       expect(find.text('Build Muscle · No Preference'), findsOneWidget);
       final page = tester.widget<MealPage>(find.byType(MealPage));
@@ -568,9 +568,9 @@ void main() {
     await selectTab(tester, 'Profile');
     expect(find.byType(ProfileInformation), findsNothing);
     expect(find.text('Isaac'), findsOneWidget);
-    expect(find.text('Intermediate'), findsOneWidget);
-    expect(find.text('Build Muscle'), findsOneWidget);
-    expect(find.text('30 min'), findsOneWidget);
+    expect(find.text('Intermediate'), findsNothing);
+    expect(find.text('Build Muscle'), findsNothing);
+    expect(find.text('30 min'), findsNothing);
     await tester.tap(find.byKey(const ValueKey('profile-user-card')));
     await tester.pumpAndSettle();
     expect(find.byType(ProfileDetailsScreen), findsOneWidget);
@@ -603,7 +603,7 @@ void main() {
     expect(logoutCalls, 0);
     await tester.tap(find.text('Log Out'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Logout'));
+    await tester.tap(find.byKey(const ValueKey('confirm-logout')));
     await tester.pumpAndSettle();
     expect(logoutCalls, 1);
     expect(tester.takeException(), isNull);

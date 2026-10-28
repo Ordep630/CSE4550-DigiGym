@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import '../models/meal.dart';
 import '../services/meal_recommendation_service.dart';
+import '../utils/calorie_format.dart';
 import '../theme/digigym_dashboard_theme.dart';
 import '../widgets/dashboard_glass_card.dart';
 import '../widgets/dashboard_card_action.dart';
@@ -58,7 +59,10 @@ class MealPage extends StatelessWidget {
                       );
                       final target = DashboardNumber(
                         key: const ValueKey('meal-calorie-target'),
-                        value: '${_grouped(user.estimatedCalories)} kcal',
+                        value: CalorieFormat.format(
+                          user.estimatedCalories,
+                          grouped: true,
+                        ),
                         fontSize: 45,
                         dotWeight: 860,
                         unitFontSize: 18,
@@ -169,7 +173,7 @@ class MealPage extends StatelessWidget {
               DashboardCardAction(
                 key: ValueKey('meal-${meal.id}'),
                 label:
-                    '${meal.name}. Approximately ${meal.calories} calories. '
+                    '${meal.name}. Approximately ${CalorieFormat.format(meal.calories)}. '
                     'Protein ${meal.proteinGrams} grams, carbohydrates ${meal.carbohydrateGrams} grams, '
                     'fat ${meal.fatGrams} grams. ${meal.serving}. View meal details',
                 onTap: () => Navigator.of(context).push<void>(
@@ -202,7 +206,7 @@ class MealPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       DashboardNumber(
-                        value: '${meal.calories} kcal',
+                        value: CalorieFormat.format(meal.calories),
                         dotted: false,
                         fontSize: 30,
                         unitFontSize: 16,
@@ -228,9 +232,4 @@ class MealPage extends StatelessWidget {
       ),
     );
   }
-
-  static String _grouped(int value) => value.toString().replaceAllMapped(
-    RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-    (match) => '${match[1]},',
-  );
 }

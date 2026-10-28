@@ -562,7 +562,7 @@ void main() {
       await tab(tester, 'Home');
       expect(find.bySemanticsLabel(RegExp('Rest Day')), findsNWidgets(4));
       await activate(tester, 'week-badge-2026-10-25');
-      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.byType(Dialog), findsOneWidget);
       final assigned = WorkoutScheduling.week(
         user: profile(),
         workoutDays: {0, 2, 4},

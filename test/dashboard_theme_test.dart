@@ -62,7 +62,7 @@ void main() {
       expect(find.text('Alex'), findsOneWidget);
       expect(find.text("Today's Progress"), findsOneWidget);
       expect(find.text('24.7'), findsOneWidget);
-      expect(find.text('1775'), findsOneWidget);
+      expect(find.text('1775 Cal'), findsOneWidget);
       expect(find.text('176.4 lb'), findsOneWidget);
       expect(find.text('35 min'), findsOneWidget);
       expect(find.byType(StatCard), findsNWidgets(4));
@@ -84,7 +84,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Taylor'), findsOneWidget);
       expect(find.text('27.8'), findsOneWidget);
-      expect(find.text('1875'), findsOneWidget);
+      expect(find.text('1875 Cal'), findsOneWidget);
       expect(find.text('198.4 lb'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
@@ -333,7 +333,7 @@ void main() {
           expect(find.text('125 min'), findsOneWidget);
           expect(find.text('2204.4 lb'), findsOneWidget);
           expect(find.text(user.bmi.toStringAsFixed(1)), findsOneWidget);
-          expect(find.text('${user.estimatedCalories}'), findsOneWidget);
+          expect(find.text('${user.estimatedCalories} Cal'), findsOneWidget);
           for (final card in tester.widgetList<StatCard>(
             find.byType(StatCard),
           )) {
@@ -367,7 +367,7 @@ void main() {
       }.entries) {
         await tester.pumpWidget(host(profile(fitnessGoal: entry.key)));
         await tester.pumpAndSettle();
-        expect(find.text(entry.value), findsOneWidget);
+        expect(find.text('${entry.value} Cal'), findsOneWidget);
         expect(
           tester
               .widget<SegmentedProgressRing>(find.byType(SegmentedProgressRing))
@@ -467,7 +467,7 @@ void main() {
           await tester.pumpAndSettle();
           expect(find.text('Alexandria Morgan Hernandez'), findsOneWidget);
           expect(find.text('24.7'), findsOneWidget);
-          expect(find.text('1775'), findsOneWidget);
+          expect(find.text('1775 Cal'), findsOneWidget);
           expect(find.text('176.4 lb'), findsOneWidget);
           expect(find.text('35 min'), findsOneWidget);
           expect(

@@ -591,7 +591,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Log Out'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Logout'));
+    await tester.tap(find.byKey(const ValueKey('confirm-logout')));
     await tester.pump();
 
     expect(logoutCalls, 1);

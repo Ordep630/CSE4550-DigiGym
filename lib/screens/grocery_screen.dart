@@ -7,6 +7,7 @@ import '../services/grocery_list_controller.dart';
 import '../services/meal_recommendation_service.dart';
 import '../theme/digigym_dashboard_theme.dart';
 import '../widgets/dashboard_glass_card.dart';
+import '../widgets/digigym_dialog.dart';
 import '../widgets/workout_app_bar.dart';
 
 class GroceryScreen extends StatefulWidget {
@@ -99,9 +100,16 @@ class _GroceryScreenState extends State<GroceryScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'One serving of each recommended meal option. '
-                        'Kept for this signed-in session; not synced across devices.',
+                        'Your shopping list is based on your recommended meals.',
                         style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Changes are saved for this session only.',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontSize: 11,
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
@@ -112,6 +120,7 @@ class _GroceryScreenState extends State<GroceryScreen> {
                 OutlinedButton.icon(
                   key: const ValueKey('grocery-add'),
                   style: OutlinedButton.styleFrom(
+                    foregroundColor: DigiGymDarkColors.softGreen,
                     minimumSize: const Size(48, 48),
                     padding: const EdgeInsets.all(12),
                   ),
@@ -252,9 +261,8 @@ class _CustomGroceryDialogState extends State<_CustomGroceryDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Add grocery item'),
-    scrollable: true,
+  Widget build(BuildContext context) => DigiGymDialog(
+    title: 'Add grocery item',
     content: Form(
       key: _form,
       child: Column(

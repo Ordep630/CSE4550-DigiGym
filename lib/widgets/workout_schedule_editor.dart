@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../services/workout_schedule_controller.dart';
 import '../theme/digigym_dashboard_theme.dart';
+import 'digigym_dialog.dart';
 
 Future<void> editWorkoutSchedule(
   BuildContext context,
@@ -38,57 +39,52 @@ class _ScheduleEditorState extends State<_ScheduleEditor> {
       final controller = widget.controller;
       return PopScope(
         canPop: !controller.saving,
-        child: AlertDialog(
-          title: const Text('Your workout days'),
-          content: SizedBox(
-            width: 400,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Select Workout or leave Rest for each day. All rest days is also a valid choice.',
-                  ),
-                  const SizedBox(height: 12),
-                  for (var i = 0; i < 7; i++)
-                    CheckboxListTile(
-                      key: ValueKey('schedule-edit-day-$i'),
-                      contentPadding: EdgeInsets.zero,
-                      activeColor: DigiGymDarkColors.softGreen,
-                      title: Text(names[i]),
-                      subtitle: Text(_days.contains(i) ? 'Workout' : 'Rest'),
-                      value: _days.contains(i),
-                      onChanged: controller.saving
-                          ? null
-                          : (checked) => setState(() {
-                              checked! ? _days.add(i) : _days.remove(i);
-                            }),
-                    ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Saved only on this device, separately for your account. Not synced through Serverpod.',
-                    key: const ValueKey('schedule-local-storage-disclosure'),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  if (controller.error != null)
-                    Semantics(
-                      liveRegion: true,
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: Text(
-                          controller.error!,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                        ),
+        child: DigiGymDialog(
+          title: 'Your workout days',
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Select Workout or leave Rest for each day. All rest days is also a valid choice.',
+              ),
+              const SizedBox(height: 12),
+              for (var i = 0; i < 7; i++)
+                CheckboxListTile(
+                  key: ValueKey('schedule-edit-day-$i'),
+                  contentPadding: EdgeInsets.zero,
+                  activeColor: DigiGymDarkColors.softGreen,
+                  title: Text(names[i]),
+                  subtitle: Text(_days.contains(i) ? 'Workout' : 'Rest'),
+                  value: _days.contains(i),
+                  onChanged: controller.saving
+                      ? null
+                      : (checked) => setState(() {
+                          checked! ? _days.add(i) : _days.remove(i);
+                        }),
+                ),
+              const SizedBox(height: 12),
+              Text(
+                'Saved only on this device, separately for your account. Not synced through Serverpod.',
+                key: const ValueKey('schedule-local-storage-disclosure'),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              if (controller.error != null)
+                Semantics(
+                  liveRegion: true,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Text(
+                      controller.error!,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
                       ),
                     ),
-                ],
-              ),
-            ),
+                  ),
+                ),
+            ],
           ),
           actions: [
             TextButton(

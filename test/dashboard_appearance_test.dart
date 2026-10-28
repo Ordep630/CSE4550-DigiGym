@@ -402,7 +402,13 @@ void main() {
           final widget = tester.widget<DashboardNumber>(number);
           expect(widget.fontSize, closeTo(entry.value.$1, .001));
           expect(widget.dotted, entry.value.$3);
-          expect(tester.getSize(number).height, entry.value.$2);
+          if (entry.key == 'Daily calorie target') {
+            // The shared Cal unit participates in the existing width fitting;
+            // keep its original line slot without requiring an empty unit span.
+            expect(tester.getSize(number).height, inInclusiveRange(34, 35));
+          } else {
+            expect(tester.getSize(number).height, entry.value.$2);
+          }
           expect(
             tester
                     .getRect(
@@ -532,7 +538,7 @@ void main() {
         'BMI',
       ]);
       expect(tester.widgetList<StatCard>(rows).map((row) => row.value), [
-        '1818',
+        '1818 Cal',
         '127.9 lb',
         '19.2',
       ]);
@@ -600,7 +606,7 @@ void main() {
         'Isaac',
         "Today's Progress",
         'Complete',
-        '1818',
+        '1818 Cal',
         '30 min',
         '19.2',
         '127.9 lb',
@@ -751,7 +757,7 @@ void main() {
           await tester.pumpAndSettle();
           expect(find.text('24.7'), findsOneWidget);
           expect(find.text('176.4 lb'), findsOneWidget);
-          expect(find.text('2075'), findsOneWidget);
+          expect(find.text('2075 Cal'), findsOneWidget);
           expect(find.text('45 min'), findsOneWidget);
           final description = tester.getRect(
             find.byKey(const ValueKey('month-day-2026-10-31')),
