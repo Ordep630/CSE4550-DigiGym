@@ -8,7 +8,7 @@ import 'test_tools/serverpod_test_tools.dart';
 void main() {
   withServerpod('Fitness data handling', (sessionBuilder, endpoints) {
     test(
-      'gets and updates fitness data for the authenticated user',
+      'gets and updates fitness data using intermediate, buildMuscle',
       () async {
         final session = sessionBuilder.build();
 
@@ -22,7 +22,7 @@ void main() {
 
         final authUserId = authUser.id!;
 
-        /// Create the existing DigiGym profile for the authenticated user
+        /// Create DigiGymUser for the authenticated session
         await DigiGymUser.db.insertRow(
           session,
           DigiGymUser(
@@ -76,13 +76,84 @@ void main() {
         expect(persisted.fitnessGoal, equals(FitnessGoal.buildMuscle));
 
         /// Verify the underlying DigiGymUser was updated as well
-        final updatedProfile = await DigiGymUser.db.findFirstRow(
+        final verify = await DigiGymUser.db.findFirstRow(
           session,
           where: (t) => t.authUserId.equals(authUserId),
         );
-        expect(updatedProfile, isNotNull);
-        expect(updatedProfile!.fitnessLevel, equals(FitnessLevel.intermediate));
-        expect(updatedProfile.fitnessGoal, equals(FitnessGoal.buildMuscle));
+        expect(verify, isNotNull);
+        expect(verify!.fitnessLevel, equals(FitnessLevel.intermediate));
+        expect(verify.fitnessGoal, equals(FitnessGoal.buildMuscle));
+      },
+    );
+    test(
+      'updates the user fitness data using advanced, maintainWeight',
+      () async {
+        final session = sessionBuilder.build();
+
+        final authUser = await AuthUser.db.insertRow(
+          session,
+          AuthUser(
+            scopeNames: {'user'},
+          ),
+        );
+
+        final authUserId = authUser.id!;
+
+        /// Create DigiGymUser for the authenticated session
+        await DigiGymUser.db.insertRow(
+          session,
+          DigiGymUser(
+            authUserId: authUserId,
+            name: 'Test User',
+            age: 25,
+            height: 175.0,
+            weight: 75.0,
+            fitnessLevel: FitnessLevel.beginner,
+            fitnessGoal: FitnessGoal.loseWeight,
+            workoutTime: 45,
+            dietaryPreference: 'None',
+            bodyType: 'Average',
+          ),
+        );
+        final authenticatedSession = sessionBuilder.copyWith(
+          authentication: AuthenticationOverride.authenticationInfo(
+            authUserId.toString(),
+            {Scope('user')},
+          ),
+        );
+        final initial = await endpoints.profile.getMyFitnessData(
+          authenticatedSession,
+        );
+
+        expect(initial, isNotNull);
+        expect(initial!.fitnessLevel, FitnessLevel.beginner);
+        expect(initial.fitnessGoal, equals(FitnessGoal.loseWeight));
+
+        final updated = await endpoints.profile.updateMyFitnessData(
+          authenticatedSession,
+          FitnessLevel.advanced,
+          FitnessGoal.maintainWeight,
+        );
+
+        expect(updated.fitnessLevel, equals(FitnessLevel.advanced));
+        expect(updated.fitnessGoal, equals(FitnessGoal.maintainWeight));
+
+        final persisted = await endpoints.profile.getMyFitnessData(
+          authenticatedSession,
+        );
+
+        expect(persisted, isNotNull);
+        expect(persisted!.fitnessLevel, equals(FitnessLevel.advanced));
+        expect(persisted.fitnessGoal, equals(FitnessGoal.maintainWeight));
+
+        final verify = await DigiGymUser.db.findFirstRow(
+          session,
+          where: (t) => t.authUserId.equals(authUserId),
+        );
+
+        expect(verify, isNotNull);
+        expect(verify!.fitnessLevel, equals(FitnessLevel.advanced));
+        expect(verify.fitnessGoal, equals(FitnessGoal.maintainWeight));
       },
     );
     test(
