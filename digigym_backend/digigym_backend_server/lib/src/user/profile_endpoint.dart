@@ -38,6 +38,21 @@ class ProfileEndpoint extends Endpoint {
     String dietaryPreference,
     String bodyType,
   ) async {
+    if (name.trim().isEmpty) {
+      throw ArgumentError('Name cannot be empty.');
+    }
+    if (age < 13 || age > 100) {
+      throw ArgumentError('Age must be between 13 and 100.');
+    }
+    if (!height.isFinite || height < 50 || height > 275) {
+      throw ArgumentError('Height must be between 50 and 275 cm.');
+    }
+    if (!weight.isFinite || weight < 20 || weight > 500) {
+      throw ArgumentError('Weight must be between 20 and 500 kg.');
+    }
+    if (workoutTime < 1 || workoutTime > 300) {
+      throw ArgumentError('Workout time must be between 1 and 300 minutes.');
+    }
     final authUserId = session.authenticated?.authUserId;
 
     if (authUserId == null) {

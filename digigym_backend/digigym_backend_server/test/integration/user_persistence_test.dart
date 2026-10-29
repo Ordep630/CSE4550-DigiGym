@@ -106,5 +106,135 @@ void main() {
         expect(fetchedAgain.bodyType, 'Average');
       },
     );
+    test('rejects invalid profile values', () async {
+      final session = sessionBuilder.build();
+
+      final authUser = await AuthUser.db.insertRow(
+        session,
+        AuthUser(
+          scopeNames: {'user'},
+        ),
+      );
+
+      final authUserId = authUser.id!;
+
+      await DigiGymUser.db.insertRow(
+        session,
+        DigiGymUser(
+          authUserId: authUserId,
+          name: 'Test User',
+          age: 20,
+          height: 170,
+          weight: 70,
+          fitnessLevel: FitnessLevel.beginner,
+          fitnessGoal: FitnessGoal.loseWeight,
+          workoutTime: 30,
+          dietaryPreference: 'No Preference',
+          bodyType: 'Average',
+        ),
+      );
+
+      final authenticatedSession = sessionBuilder.copyWith(
+        authentication: AuthenticationOverride.authenticationInfo(
+          authUserId.toString(),
+          {Scope('user')},
+        ),
+      );
+
+      Future<void> expectInvalidProfile({
+        String name = 'Test User',
+        int age = 20,
+        double height = 170,
+        double weight = 70,
+        int workoutTime = 30,
+      }) async {
+        await expectLater(
+          endpoints.profile.updateMyProfile(
+            authenticatedSession,
+            name,
+            age,
+            height,
+            weight,
+            FitnessLevel.beginner,
+            FitnessGoal.loseWeight,
+            workoutTime,
+            'No Preference',
+            'Average',
+          ),
+          throwsArgumentError,
+        );
+      }
+      // Empty or whitespace-only names must be rejected.
+      await expectInvalidProfile(name: '');
+      await expectInvalidProfile(name: '   ');
+
+      // Ages outside the allowed 13–100 range must be rejected.
+      await expectInvalidProfile(age: 12);
+      await expectInvalidProfile(age: 101);
+
+      // Heights outside the allowed 50–275 cm range must be rejected.
+      await expectInvalidProfile(height: 49);
+      await expectInvalidProfile(height: 276);
+
+      // Weights outside the allowed 20–500 kg range must be rejected.
+      await expectInvalidProfile(weight: 19);
+      await expectInvalidProfile(weight: 501);
+
+      // Workout durations outside the allowed 1–300 minute range must be rejected.
+      await expectInvalidProfile(workoutTime: 0);
+      await expectInvalidProfile(workoutTime: 301);
+    });
+    test('accepts age boundaries of 13 and 100', () async {
+      final session = sessionBuilder.build();
+
+      final authUser = await AuthUser.db.insertRow(
+        session,
+        AuthUser(
+          scopeNames: {'user'},
+        ),
+      );
+
+      final authUserId = authUser.id!;
+
+      await DigiGymUser.db.insertRow(
+        session,
+        DigiGymUser(
+          authUserId: authUserId,
+          name: 'Test User',
+          age: 20,
+          height: 170,
+          weight: 70,
+          fitnessLevel: FitnessLevel.beginner,
+          fitnessGoal: FitnessGoal.loseWeight,
+          workoutTime: 30,
+          dietaryPreference: 'No Preference',
+          bodyType: 'Average',
+        ),
+      );
+
+      final authenticatedSession = sessionBuilder.copyWith(
+        authentication: AuthenticationOverride.authenticationInfo(
+          authUserId.toString(),
+          {Scope('user')},
+        ),
+      );
+
+      for (final age in [13, 100]) {
+        final updated = await endpoints.profile.updateMyProfile(
+          authenticatedSession,
+          'Test User',
+          age,
+          170,
+          70,
+          FitnessLevel.beginner,
+          FitnessGoal.loseWeight,
+          30,
+          'No Preference',
+          'Average',
+        );
+
+        expect(updated.age, age);
+      }
+    });
   });
 }
