@@ -17,6 +17,8 @@ import 'package:digigym_backend_server/src/generated/fitness/fitness_data.dart'
     as _iqjir54v;
 import 'package:digigym_backend_server/src/generated/greetings/greeting.dart'
     as _ixw9ndps;
+import 'package:digigym_backend_server/src/generated/meal/meal_recommendation.dart'
+    as _i6k5u2jh;
 import 'package:digigym_backend_server/src/generated/user/fitness_goal.dart'
     as _i4runcty;
 import 'package:digigym_backend_server/src/generated/user/fitness_level.dart'
@@ -163,6 +165,8 @@ class TestEndpoints {
 
   late final _GreetingEndpoint greeting;
 
+  late final _MealRecommendationEndpoint mealRecommendation;
+
   late final _ProfileEndpoint profile;
 
   late final _WorkoutRecommendationEndpoint workoutRecommendation;
@@ -184,6 +188,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     greeting = _GreetingEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    mealRecommendation = _MealRecommendationEndpoint(
       endpoints,
       serializationManager,
     );
@@ -550,6 +558,47 @@ class _GreetingEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<_ixw9ndps.Greeting>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _MealRecommendationEndpoint {
+  _MealRecommendationEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<_i6k5u2jh.MealRecommendation?> getMyMealRecommendation(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'mealRecommendation',
+            method: 'getMyMealRecommendation',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'mealRecommendation',
+          methodName: 'getMyMealRecommendation',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_i6k5u2jh.MealRecommendation?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

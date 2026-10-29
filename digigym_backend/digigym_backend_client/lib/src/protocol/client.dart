@@ -15,6 +15,8 @@ import 'package:digigym_backend_client/src/protocol/fitness/fitness_data.dart'
     as _i7ssfes1;
 import 'package:digigym_backend_client/src/protocol/greetings/greeting.dart'
     as _isjug9ek;
+import 'package:digigym_backend_client/src/protocol/meal/meal_recommendation.dart'
+    as _iolhdjxc;
 import 'package:digigym_backend_client/src/protocol/user/fitness_goal.dart'
     as _i1zhugzl;
 import 'package:digigym_backend_client/src/protocol/user/fitness_level.dart'
@@ -274,6 +276,22 @@ class EndpointGreeting extends _isc.EndpointRef {
       );
 }
 
+/// Provides meal recommendations for the authenticated user.
+/// {@category Endpoint}
+class EndpointMealRecommendation extends _isc.EndpointRef {
+  EndpointMealRecommendation(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'mealRecommendation';
+
+  _ida.Future<_iolhdjxc.MealRecommendation?> getMyMealRecommendation() =>
+      caller.callServerEndpoint<_iolhdjxc.MealRecommendation?>(
+        'mealRecommendation',
+        'getMyMealRecommendation',
+        {},
+      );
+}
+
 /// Lets the currently logged-in user manage their DigiGym fitness profile.
 /// {@category Endpoint}
 class EndpointProfile extends _isc.EndpointRef {
@@ -395,6 +413,7 @@ class Client extends _isc.ServerpodClientShared {
     emailIdp = EndpointEmailIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
     greeting = EndpointGreeting(this);
+    mealRecommendation = EndpointMealRecommendation(this);
     profile = EndpointProfile(this);
     workoutRecommendation = EndpointWorkoutRecommendation(this);
     modules = Modules(this);
@@ -405,6 +424,8 @@ class Client extends _isc.ServerpodClientShared {
   late final EndpointJwtRefresh jwtRefresh;
 
   late final EndpointGreeting greeting;
+
+  late final EndpointMealRecommendation mealRecommendation;
 
   late final EndpointProfile profile;
 
@@ -417,6 +438,7 @@ class Client extends _isc.ServerpodClientShared {
     'emailIdp': emailIdp,
     'jwtRefresh': jwtRefresh,
     'greeting': greeting,
+    'mealRecommendation': mealRecommendation,
     'profile': profile,
     'workoutRecommendation': workoutRecommendation,
   };

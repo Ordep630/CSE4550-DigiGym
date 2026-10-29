@@ -22,6 +22,7 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
 import '../auth/email_idp_endpoint.dart' as _iuc1hd5t;
 import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
+import '../meal/meal_recommendation_endpoint.dart' as _ix7sbnmc;
 import '../user/profile_endpoint.dart' as _i6a309j1;
 import '../workout/workout_recommendation_endpoint.dart' as _if4v7cf2;
 
@@ -45,6 +46,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'greeting',
+          null,
+        ),
+      'mealRecommendation': _ix7sbnmc.MealRecommendationEndpoint()
+        ..initialize(
+          server,
+          'mealRecommendation',
           null,
         ),
       'profile': _i6a309j1.ProfileEndpoint()
@@ -288,6 +295,24 @@ class Endpoints extends _is.EndpointDispatch {
                     session,
                     params['name'],
                   ),
+        ),
+      },
+    );
+    connectors['mealRecommendation'] = _is.EndpointConnector(
+      name: 'mealRecommendation',
+      endpoint: endpoints['mealRecommendation']!,
+      methodConnectors: {
+        'getMyMealRecommendation': _is.MethodConnector(
+          name: 'getMyMealRecommendation',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['mealRecommendation']
+                          as _ix7sbnmc.MealRecommendationEndpoint)
+                      .getMyMealRecommendation(session),
         ),
       },
     );
