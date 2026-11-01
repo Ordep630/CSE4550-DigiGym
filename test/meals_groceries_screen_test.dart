@@ -30,6 +30,7 @@ Widget host(
       padding: const EdgeInsets.only(top: 52, bottom: 34),
       viewInsets: EdgeInsets.only(bottom: keyboard ? 250 : 0),
       textScaler: TextScaler.linear(scale),
+      accessibleNavigation: false,
     ),
     child: child!,
   ),
@@ -290,6 +291,44 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('grocery removal SnackBar disappears after five seconds', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(testUser()));
+    await tester.pumpAndSettle();
+
+    await tab(tester, 'Groceries');
+
+    final controller = tester
+        .widget<GroceryScreen>(find.byType(GroceryScreen))
+        .controller!;
+
+    final item = controller.items.first;
+
+    await press(tester, find.byTooltip('Remove ${item.name}'));
+
+    final snackBar = tester.widget<SnackBar>(find.byType(SnackBar));
+
+    expect(snackBar.duration, const Duration(seconds: 5));
+    expect(
+      MediaQuery.of(tester.element(find.byType(SnackBar))).accessibleNavigation,
+      isFalse,
+    );
+
+    expect(find.text('Grocery item removed'), findsOneWidget);
+    expect(find.text('Undo'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Grocery item removed'), findsNothing);
+
+    expect(controller.items.any((row) => row.id == item.id), isFalse);
+
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets(
     'purchases, additions, removals and undo survive tab navigation',

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/meal.dart';
@@ -20,8 +22,10 @@ class GroceryScreen extends StatefulWidget {
 
 class _GroceryScreenState extends State<GroceryScreen> {
   GroceryListController? _owned;
+  Timer? _snackBarTimer;
   @override
   void dispose() {
+    _snackBarTimer?.cancel();
     _owned?.dispose();
     super.dispose();
   }
@@ -206,17 +210,35 @@ class _GroceryScreenState extends State<GroceryScreen> {
                                   tooltip: 'Remove ${item.name}',
                                   onPressed: () {
                                     controller.remove(item.id);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: const Text(
-                                          'Grocery item removed',
-                                        ),
-                                        action: SnackBarAction(
-                                          label: 'Undo',
-                                          onPressed: () =>
-                                              controller.restore(item),
-                                        ),
-                                      ),
+                                    final messenger = ScaffoldMessenger.of(
+                                      context,
+                                    );
+
+                                    final snackBarController = messenger
+                                        .showSnackBar(
+                                          SnackBar(
+                                            duration: const Duration(
+                                              seconds: 5,
+                                            ),
+                                            content: const Text(
+                                              'Grocery item removed',
+                                            ),
+                                            action: SnackBarAction(
+                                              label: 'Undo',
+                                              onPressed: () =>
+                                                  controller.restore(item),
+                                            ),
+                                          ),
+                                        );
+                                    _snackBarTimer?.cancel();
+
+                                    _snackBarTimer = Timer(
+                                      const Duration(seconds: 5),
+                                      () {
+                                        if (mounted) {
+                                          snackBarController.close();
+                                        }
+                                      },
                                     );
                                   },
                                   icon: const Icon(
