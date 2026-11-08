@@ -1,3 +1,4 @@
+import 'package:digigym/models/user_profile.dart';
 import 'package:digigym/screens/grocery_screen.dart';
 import 'package:digigym/screens/home_screen.dart';
 import 'package:digigym/screens/login_screen.dart';
@@ -14,7 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_digigym_api.dart';
-import 'support/memory_schedule_storage.dart';
+
 
 Future<void> _tab(WidgetTester tester, String label) async {
   await tester.tap(
@@ -247,10 +248,19 @@ void main() {
   testWidgets(
     'workout day information and schedule editor share the glass surface without changing persistence',
     (tester) async {
-      final storage = MemoryScheduleStorage();
+      const accountId = '123e4567-e89b-12d3-a456-426614174000';
+
+      final api = FakeDigiGymApi()
+        ..authenticated = true
+        ..restoredProfile = UserProfile(
+          accountId: accountId,
+          name: 'Test User',
+          email: 'test@example.com',
+        );
+
       final controller = WorkoutScheduleController(
-        accountId: '123e4567-e89b-12d3-a456-426614174000',
-        storage: storage,
+        accountId: accountId,
+        api: api,
       );
       addTearDown(controller.dispose);
       await controller.initialize();
@@ -289,13 +299,13 @@ void main() {
       await tester.pumpAndSettle();
       _expectSharedSurface(tester);
       expect(
-        find.byKey(const ValueKey('schedule-local-storage-disclosure')),
+        find.byKey(const ValueKey('schedule-server-storage-disclosure')),
         findsOneWidget,
       );
-      expect(storage.writes, 0);
+      expect(api.workoutSchedules, isEmpty);
       await tester.tap(find.byKey(const ValueKey('schedule-cancel')));
       await tester.pumpAndSettle();
-      expect(storage.writes, 0);
+      expect(api.workoutSchedules, isEmpty);
       expect(controller.configured, isFalse);
     },
   );

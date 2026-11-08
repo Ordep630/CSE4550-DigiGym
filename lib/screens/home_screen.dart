@@ -66,7 +66,10 @@ class _HomeScreenState extends State<HomeScreen> {
     _ownsSchedule = widget.workoutSchedule == null;
     _schedule =
         widget.workoutSchedule ??
-        WorkoutScheduleController(accountId: widget.user.accountId);
+        WorkoutScheduleController(
+          accountId: widget.user.accountId,
+          api: widget.api,
+        );
     unawaited(_schedule.initialize());
     _schedule.addListener(_scheduleChanged);
   }

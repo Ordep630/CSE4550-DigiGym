@@ -65,8 +65,8 @@ class _ScheduleEditorState extends State<_ScheduleEditor> {
                 ),
               const SizedBox(height: 12),
               Text(
-                'Saved only on this device, separately for your account. Not synced through Serverpod.',
-                key: const ValueKey('schedule-local-storage-disclosure'),
+                'Saved securely to your account through Serverpod.',
+                key: const ValueKey('schedule-server-storage-disclosure'),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
