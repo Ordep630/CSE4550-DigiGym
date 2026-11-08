@@ -185,6 +185,14 @@ class DigiGymApi {
     return userProfileFromBackend(updatedProfile, email: profile.email);
   }
 
+  Future<List<int>?> getMyWorkoutSchedule() {
+    return client.workoutSchedule.getMyWorkoutSchedule();
+  }
+
+  Future<List<int>> updateMyWorkoutSchedule(List<int> workoutDays) {
+    return client.workoutSchedule.updateMyWorkoutSchedule(workoutDays);
+  }
+
   Future<void> signOut() async {
     if (isAuthenticated) {
       await client.auth.signOutDevice();

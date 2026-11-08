@@ -24,6 +24,7 @@ import 'user/fitness_goal.dart' as _ifss0aho;
 import 'user/fitness_level.dart' as _ifclzg6e;
 import 'user/user.dart' as _izvcgnx4;
 import 'workout/workout_recommendation.dart' as _izdon4ck;
+import 'workout/workout_schedule.dart' as _ikxcc35h;
 export 'fitness/fitness_data.dart';
 export 'greetings/greeting.dart';
 export 'meal/meal_recommendation.dart';
@@ -31,6 +32,7 @@ export 'user/fitness_goal.dart';
 export 'user/fitness_level.dart';
 export 'user/user.dart';
 export 'workout/workout_recommendation.dart';
+export 'workout/workout_schedule.dart';
 
 class Protocol extends _is.DatabaseSerializationManager {
   Protocol._();
@@ -143,6 +145,61 @@ class Protocol extends _is.DatabaseSerializationManager {
       ],
       managed: true,
     ),
+    _isp.TableDefinition(
+      name: 'workout_schedule',
+      dartName: 'WorkoutSchedule',
+      schema: 'public',
+      module: 'digigym_backend',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'authUserId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'workoutDays',
+          columnType: _isp.ColumnType.json,
+          isNullable: false,
+          dartType: 'List<int>',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'workout_schedule_fk_0',
+          columns: ['authUserId'],
+          referenceTable: 'serverpod_auth_core_user',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'workout_schedule_auth_user_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'authUserId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
     ..._iacs.Protocol.targetTableDefinitions,
     ..._iais.Protocol.targetTableDefinitions,
     ..._isp.Protocol.targetTableDefinitions,
@@ -196,6 +253,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _izdon4ck.WorkoutRecommendation) {
       return _izdon4ck.WorkoutRecommendation.fromJson(data) as T;
     }
+    if (t == _ikxcc35h.WorkoutSchedule) {
+      return _ikxcc35h.WorkoutSchedule.fromJson(data) as T;
+    }
     if (t == _is.getType<_isdrmxyn.FitnessData?>()) {
       return (data != null ? _isdrmxyn.FitnessData.fromJson(data) : null) as T;
     }
@@ -221,6 +281,22 @@ class Protocol extends _is.DatabaseSerializationManager {
               : null)
           as T;
     }
+    if (t == _is.getType<_ikxcc35h.WorkoutSchedule?>()) {
+      return (data != null ? _ikxcc35h.WorkoutSchedule.fromJson(data) : null)
+          as T;
+    }
+    if (t == List<int>) {
+      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
+    }
+    if (t == List<int>) {
+      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
+    }
+    if (t == _is.getType<List<int>?>()) {
+      return (data != null
+              ? (data as List).map((e) => deserialize<int>(e)).toList()
+              : null)
+          as T;
+    }
     try {
       return _iacs.Protocol().deserialize<T>(data, t);
     } on _is.DeserializationTypeNotFoundException catch (_) {}
@@ -242,6 +318,7 @@ class Protocol extends _is.DatabaseSerializationManager {
       _ifclzg6e.FitnessLevel => 'FitnessLevel',
       _izvcgnx4.DigiGymUser => 'DigiGymUser',
       _izdon4ck.WorkoutRecommendation => 'WorkoutRecommendation',
+      _ikxcc35h.WorkoutSchedule => 'WorkoutSchedule',
       _ => null,
     };
   }
@@ -273,6 +350,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'DigiGymUser';
       case _izdon4ck.WorkoutRecommendation():
         return 'WorkoutRecommendation';
+      case _ikxcc35h.WorkoutSchedule():
+        return 'WorkoutSchedule';
     }
     className = _iacs.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -320,6 +399,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'WorkoutRecommendation') {
       return deserialize<_izdon4ck.WorkoutRecommendation>(data['data']);
     }
+    if (dataClassName == 'WorkoutSchedule') {
+      return deserialize<_ikxcc35h.WorkoutSchedule>(data['data']);
+    }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
       return _iacs.Protocol().deserializeByClassName(data);
@@ -363,6 +445,8 @@ class Protocol extends _is.DatabaseSerializationManager {
     switch (t) {
       case _izvcgnx4.DigiGymUser:
         return _izvcgnx4.DigiGymUser.t;
+      case _ikxcc35h.WorkoutSchedule:
+        return _ikxcc35h.WorkoutSchedule.t;
     }
     return null;
   }

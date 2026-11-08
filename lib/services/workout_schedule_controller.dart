@@ -1,17 +1,20 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
-/// Device-local weekday choices only. Recommendations are derived separately.
-/// Each controller belongs to one immutable authenticated account UUID.
+import 'digigym_api.dart';
+
+/// Authenticated, server-persisted weekday choices.
+/// Recommendations are derived separately.
+/// Each controller belongs to one immutable account UUID.
 class WorkoutScheduleController extends ChangeNotifier {
   final String? accountId;
-  final KeyValueStorage _storage;
-  final Duration storageTimeout;
+  final DigiGymApi _api;
+  final Duration requestTimeout;
+
   Future<void>? _initialization;
   Future<void> _writes = Future.value();
+
   Set<int>? _workoutDays;
   bool loading = true;
   bool saving = false;
@@ -21,21 +24,26 @@ class WorkoutScheduleController extends ChangeNotifier {
 
   WorkoutScheduleController({
     required this.accountId,
-    KeyValueStorage? storage,
-    this.storageTimeout = const Duration(seconds: 2),
-  }) : _storage = storage ?? FlutterSecureKeyValueStorage(null);
+    DigiGymApi? api,
+    this.requestTimeout = const Duration(seconds: 10),
+  }) : _api = api ?? digiGymApi;
 
   bool get hasIdentity =>
       accountId != null &&
       RegExp(
         r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
       ).hasMatch(accountId!);
-  String? get storageKey => hasIdentity
-      ? 'digigym.workoutSchedule.v1.${accountId!.toLowerCase()}'
-      : null;
-  Set<int>? get workoutDays => _workoutDays;
+
   bool get configured => _workoutDays != null;
-  bool get canEdit => hasIdentity && !loading && !_readFailed && !saving;
+
+  bool get canEdit =>
+      hasIdentity &&
+      _api.isAuthenticated &&
+      !loading &&
+      !_readFailed &&
+      !saving;
+
+  Set<int>? get workoutDays => _workoutDays;
 
   Future<void> initialize() => _initialization ??= _load();
 
@@ -44,38 +52,40 @@ class WorkoutScheduleController extends ChangeNotifier {
     error = null;
     _readFailed = false;
     _workoutDays = null;
-    if (!hasIdentity) {
+
+    if (!hasIdentity || !_api.isAuthenticated) {
       loading = false;
-      error = 'A signed-in account identity is needed to save a schedule.';
+      error = 'A signed-in account identity is needed to load a schedule.';
       _notify();
       return;
     }
+
     try {
-      final raw = await _storage.get(storageKey!).timeout(storageTimeout);
+      final days = await _api
+          .getMyWorkoutSchedule()
+          .timeout(requestTimeout);
+
       if (_disposed) return;
-      if (raw != null) {
-        final data = jsonDecode(raw);
-        if (data is! Map ||
-            data['version'] != 1 ||
-            data['workoutDays'] is! List) {
-          throw const FormatException('Unsupported schedule');
-        }
-        final days = data['workoutDays'] as List;
-        if (days.any((day) => day is! int || day < 0 || day > 6) ||
-            days.toSet().length != days.length) {
-          throw const FormatException('Invalid weekdays');
-        }
-        _workoutDays = Set.unmodifiable(days.cast<int>());
+
+      if (days != null) {
+        _validateDays(days);
+        _workoutDays = Set.unmodifiable(days);
       }
-    } on FormatException {
-      // Never reinterpret corrupt/older data as an arbitrary weekly plan.
-      error = 'The saved schedule could not be read. Choose your days again.';
-    } catch (_) {
+    } catch (exception, stackTrace) {
+      debugPrint('Workout schedule initial load failed: $exception');
+      debugPrintStack(stackTrace: stackTrace);
       _readFailed = true;
-      error = 'Schedule storage is unavailable. Retry to load your saved days.';
+      error = 'Your schedule could not be loaded. Retry to load your saved days.';
     } finally {
       loading = false;
       _notify();
+    }
+  }
+
+  void _validateDays(List<int> days) {
+    if (days.any((day) => day < 0 || day > 6) ||
+        days.toSet().length != days.length) {
+      throw const FormatException('Invalid weekdays');
     }
   }
 
@@ -87,28 +97,39 @@ class WorkoutScheduleController extends ChangeNotifier {
 
   Future<bool> save(Set<int> days) async {
     await initialize();
+
     if (_disposed || !canEdit) return false;
+
     if (days.any((day) => day < 0 || day > 6)) {
-      throw ArgumentError('Weekdays must be Sunday (0) through Saturday (6).');
+      throw ArgumentError(
+        'Weekdays must be Sunday (0) through Saturday (6).',
+      );
     }
-    final selection = Set<int>.unmodifiable(days);
+
     final ordered = days.toList()..sort();
+
     saving = true;
     error = null;
     _notify();
-    // Serialize even timed-out writes, so a delayed older save cannot replace
-    // a newer choice. Disposing the controller never deletes persisted data.
+
+    // Serialize requests even after a timeout. A delayed older save must
+    // finish before a newer save is sent to the backend.
     final write = _writes.then(
-      (_) => _storage.set(
-        storageKey!,
-        jsonEncode({'version': 1, 'workoutDays': ordered}),
-      ),
+      (_) => _api.updateMyWorkoutSchedule(ordered),
     );
-    _writes = write.then<void>((_) {}, onError: (Object _, StackTrace _) {});
+
+    _writes = write.then<void>(
+      (_) {},
+      onError: (Object _, StackTrace _) {},
+    );
+
     try {
-      await write.timeout(storageTimeout);
+      final savedDays = await write.timeout(requestTimeout);
+
       if (_disposed) return false;
-      _workoutDays = selection;
+
+      _validateDays(savedDays);
+      _workoutDays = Set.unmodifiable(savedDays);
       return true;
     } catch (_) {
       error = 'Your schedule could not be saved. Please try again.';

@@ -372,6 +372,31 @@ class EndpointWorkoutRecommendation extends _isc.EndpointRef {
       );
 }
 
+/// Manages the authenticated user's weekly workout schedule.
+/// {@category Endpoint}
+class EndpointWorkoutSchedule extends _isc.EndpointRef {
+  EndpointWorkoutSchedule(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'workoutSchedule';
+
+  /// Returns the saved weekdays, or null if no schedule exists.
+  _ida.Future<List<int>?> getMyWorkoutSchedule() =>
+      caller.callServerEndpoint<List<int>?>(
+        'workoutSchedule',
+        'getMyWorkoutSchedule',
+        {},
+      );
+
+  /// Saves or updates the authenticated user's selected weekdays.
+  _ida.Future<List<int>> updateMyWorkoutSchedule(List<int> workoutDays) =>
+      caller.callServerEndpoint<List<int>>(
+        'workoutSchedule',
+        'updateMyWorkoutSchedule',
+        {'workoutDays': workoutDays},
+      );
+}
+
 class Modules {
   Modules(Client client) {
     serverpod_auth_core = _iacc.Caller(client);
@@ -416,6 +441,7 @@ class Client extends _isc.ServerpodClientShared {
     mealRecommendation = EndpointMealRecommendation(this);
     profile = EndpointProfile(this);
     workoutRecommendation = EndpointWorkoutRecommendation(this);
+    workoutSchedule = EndpointWorkoutSchedule(this);
     modules = Modules(this);
   }
 
@@ -431,6 +457,8 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointWorkoutRecommendation workoutRecommendation;
 
+  late final EndpointWorkoutSchedule workoutSchedule;
+
   late final Modules modules;
 
   @override
@@ -441,6 +469,7 @@ class Client extends _isc.ServerpodClientShared {
     'mealRecommendation': mealRecommendation,
     'profile': profile,
     'workoutRecommendation': workoutRecommendation,
+    'workoutSchedule': workoutSchedule,
   };
 
   @override

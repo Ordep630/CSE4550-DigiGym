@@ -23,6 +23,7 @@ import 'user/fitness_goal.dart' as _ifss0aho;
 import 'user/fitness_level.dart' as _ifclzg6e;
 import 'user/user.dart' as _izvcgnx4;
 import 'workout/workout_recommendation.dart' as _izdon4ck;
+import 'workout/workout_schedule.dart' as _ikxcc35h;
 export 'fitness/fitness_data.dart';
 export 'greetings/greeting.dart';
 export 'meal/meal_recommendation.dart';
@@ -30,6 +31,7 @@ export 'user/fitness_goal.dart';
 export 'user/fitness_level.dart';
 export 'user/user.dart';
 export 'workout/workout_recommendation.dart';
+export 'workout/workout_schedule.dart';
 export 'client.dart';
 
 class Protocol extends _isc.SerializationManager {
@@ -87,6 +89,9 @@ class Protocol extends _isc.SerializationManager {
     if (t == _izdon4ck.WorkoutRecommendation) {
       return _izdon4ck.WorkoutRecommendation.fromJson(data) as T;
     }
+    if (t == _ikxcc35h.WorkoutSchedule) {
+      return _ikxcc35h.WorkoutSchedule.fromJson(data) as T;
+    }
     if (t == _isc.getType<_isdrmxyn.FitnessData?>()) {
       return (data != null ? _isdrmxyn.FitnessData.fromJson(data) : null) as T;
     }
@@ -112,6 +117,22 @@ class Protocol extends _isc.SerializationManager {
               : null)
           as T;
     }
+    if (t == _isc.getType<_ikxcc35h.WorkoutSchedule?>()) {
+      return (data != null ? _ikxcc35h.WorkoutSchedule.fromJson(data) : null)
+          as T;
+    }
+    if (t == List<int>) {
+      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
+    }
+    if (t == List<int>) {
+      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
+    }
+    if (t == _isc.getType<List<int>?>()) {
+      return (data != null
+              ? (data as List).map((e) => deserialize<int>(e)).toList()
+              : null)
+          as T;
+    }
     try {
       return _iacc.Protocol().deserialize<T>(data, t);
     } on _isc.DeserializationTypeNotFoundException catch (_) {}
@@ -130,6 +151,7 @@ class Protocol extends _isc.SerializationManager {
       _ifclzg6e.FitnessLevel => 'FitnessLevel',
       _izvcgnx4.DigiGymUser => 'DigiGymUser',
       _izdon4ck.WorkoutRecommendation => 'WorkoutRecommendation',
+      _ikxcc35h.WorkoutSchedule => 'WorkoutSchedule',
       _ => null,
     };
   }
@@ -161,6 +183,8 @@ class Protocol extends _isc.SerializationManager {
         return 'DigiGymUser';
       case _izdon4ck.WorkoutRecommendation():
         return 'WorkoutRecommendation';
+      case _ikxcc35h.WorkoutSchedule():
+        return 'WorkoutSchedule';
     }
     className = _iacc.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -203,6 +227,9 @@ class Protocol extends _isc.SerializationManager {
     }
     if (dataClassName == 'WorkoutRecommendation') {
       return deserialize<_izdon4ck.WorkoutRecommendation>(data['data']);
+    }
+    if (dataClassName == 'WorkoutSchedule') {
+      return deserialize<_ikxcc35h.WorkoutSchedule>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);

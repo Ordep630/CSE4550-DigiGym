@@ -25,6 +25,7 @@ import '../greetings/greeting_endpoint.dart' as _il624ik7;
 import '../meal/meal_recommendation_endpoint.dart' as _ix7sbnmc;
 import '../user/profile_endpoint.dart' as _i6a309j1;
 import '../workout/workout_recommendation_endpoint.dart' as _if4v7cf2;
+import '../workout/workout_schedule_endpoint.dart' as _ivtspexx;
 
 class Endpoints extends _is.EndpointDispatch {
   @override
@@ -64,6 +65,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'workoutRecommendation',
+          null,
+        ),
+      'workoutSchedule': _ivtspexx.WorkoutScheduleEndpoint()
+        ..initialize(
+          server,
+          'workoutSchedule',
           null,
         ),
     };
@@ -449,6 +456,45 @@ class Endpoints extends _is.EndpointDispatch {
                   (endpoints['workoutRecommendation']
                           as _if4v7cf2.WorkoutRecommendationEndpoint)
                       .getMyWorkoutRecommendation(session),
+        ),
+      },
+    );
+    connectors['workoutSchedule'] = _is.EndpointConnector(
+      name: 'workoutSchedule',
+      endpoint: endpoints['workoutSchedule']!,
+      methodConnectors: {
+        'getMyWorkoutSchedule': _is.MethodConnector(
+          name: 'getMyWorkoutSchedule',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['workoutSchedule']
+                          as _ivtspexx.WorkoutScheduleEndpoint)
+                      .getMyWorkoutSchedule(session),
+        ),
+        'updateMyWorkoutSchedule': _is.MethodConnector(
+          name: 'updateMyWorkoutSchedule',
+          params: {
+            'workoutDays': _is.ParameterDescription(
+              name: 'workoutDays',
+              type: _is.getType<List<int>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['workoutSchedule']
+                          as _ivtspexx.WorkoutScheduleEndpoint)
+                      .updateMyWorkoutSchedule(
+                        session,
+                        params['workoutDays'],
+                      ),
         ),
       },
     );

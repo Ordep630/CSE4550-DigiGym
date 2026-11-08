@@ -10,6 +10,13 @@ class FakeDigiGymApi extends DigiGymApi {
   Object? loginError;
   Object? updateError;
 
+  final Map<String, List<int>> workoutSchedules = {};
+  Object? scheduleReadError;
+  Object? scheduleWriteError;
+
+  Future<void>? scheduleReadWait;
+  Future<void>? scheduleWriteWait;
+
   String? startedRegistrationEmail;
   String? verifiedRequestId;
   String? verifiedCode;
@@ -75,6 +82,40 @@ class FakeDigiGymApi extends DigiGymApi {
     await updateWait;
     if (updateError != null) throw updateError!;
     return updatedProfile ?? profile;
+  }
+
+  @override
+  Future<List<int>?> getMyWorkoutSchedule() async {
+    await scheduleReadWait;
+    if (scheduleReadError != null) throw scheduleReadError!;
+
+    final accountId = restoredProfile?.accountId;
+    if (!authenticated || accountId == null) {
+      throw StateError('No authenticated account.');
+    }
+
+    final days = workoutSchedules[accountId];
+    return days == null ? null : List<int>.of(days);
+  }
+
+  @override
+  Future<List<int>> updateMyWorkoutSchedule(List<int> workoutDays) async {
+    await scheduleWriteWait;
+    if (scheduleWriteError != null) throw scheduleWriteError!;
+
+    final accountId = restoredProfile?.accountId;
+    if (!authenticated || accountId == null) {
+      throw StateError('No authenticated account.');
+    }
+
+    if (workoutDays.any((day) => day < 0 || day > 6) ||
+        workoutDays.toSet().length != workoutDays.length) {
+      throw ArgumentError('Invalid weekdays.');
+    }
+
+    final orderedDays = workoutDays.toList()..sort();
+    workoutSchedules[accountId] = orderedDays;
+    return List<int>.of(orderedDays);
   }
 
   @override

@@ -25,12 +25,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_digigym_api.dart';
-import 'support/memory_schedule_storage.dart';
 
 WorkoutScheduleController testSchedule(UserProfile user) {
+  final api = FakeDigiGymApi()
+    ..authenticated = true
+    ..restoredProfile = user;
+
   final controller = WorkoutScheduleController(
     accountId: user.accountId,
-    storage: MemoryScheduleStorage(),
+    api: api,
   );
   addTearDown(controller.dispose);
   return controller;
@@ -154,9 +157,14 @@ void main() {
     }
   });
   Future<WorkoutScheduleController> schedule({Set<int>? days}) async {
+    final user = profile();
+    final api = FakeDigiGymApi()
+      ..authenticated = true
+      ..restoredProfile = user;
+
     final controller = WorkoutScheduleController(
-      accountId: profile().accountId,
-      storage: MemoryScheduleStorage(),
+      accountId: user.accountId,
+      api: api,
     );
     await controller.initialize();
     if (days != null) await controller.save(days);
@@ -471,10 +479,12 @@ void main() {
       expect(find.textContaining('not synced through Serverpod'), findsNothing);
       await activate(tester, 'workout-edit-schedule');
       final disclosure = tester.widget<Text>(
-        find.byKey(const ValueKey('schedule-local-storage-disclosure')),
+        find.byKey(const ValueKey('schedule-server-storage-disclosure')),
       );
-      expect(disclosure.data, contains('separately for your account'));
-      expect(disclosure.data, contains('Not synced through Serverpod'));
+      expect(
+        disclosure.data,
+        contains('Saved securely to your account through Serverpod.'),
+      );
       expect(disclosure.style!.color, DigiGymDarkColors.secondaryText);
       await tester.tap(find.byKey(const ValueKey('schedule-cancel')));
       await tester.pumpAndSettle();
@@ -650,31 +660,7 @@ void main() {
   testWidgets(
     'real shell lifecycle isolates account schedules across logout login and app restoration',
     (tester) async {
-      const channel = MethodChannel(
-        'plugins.it_nomads.com/flutter_secure_storage',
-      );
-      final disk = <String, String>{};
-      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (
-        call,
-      ) async {
-        final args = call.arguments as Map;
-        final key = args['key'] as String;
-        if (call.method == 'read') return disk[key];
-        if (call.method == 'write') {
-          disk[key] = args['value'] as String;
-          return null;
-        }
-        if (call.method == 'delete') {
-          disk.remove(key);
-          return null;
-        }
-        throw UnsupportedError(call.method);
-      });
       addTearDown(() {
-        tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-          channel,
-          null,
-        );
         DigiGymSession.currentUser = null;
       });
       final a = profile();
@@ -694,11 +680,11 @@ void main() {
           .schedule!;
       expect(await first.save({2}), isTrue);
       await tester.pumpAndSettle();
-      final stored = disk[first.storageKey];
+      expect(api.workoutSchedules[a.accountId], [2]);
       await tester.widget<HomeScreen>(find.byType(HomeScreen)).onLogout();
       await tester.pumpAndSettle();
       expect(first.workoutDays, isNull);
-      expect(disk[first.storageKey], stored);
+      expect(api.workoutSchedules[a.accountId], [2]);
       Future<void> login(UserProfile user) async {
         api.restoredProfile = user;
         await tester.enterText(
@@ -746,7 +732,8 @@ void main() {
             .workoutDays,
         {2},
       );
-      expect(disk[first.storageKey], stored);
+      expect(api.workoutSchedules[a.accountId], [2]);
+      expect(api.workoutSchedules[b.accountId], isEmpty);
       expect(tester.takeException(), isNull);
     },
   );

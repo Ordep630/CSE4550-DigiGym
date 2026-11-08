@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:digigym/models/user_profile.dart';
 import 'package:digigym/models/workout_plan.dart';
@@ -7,198 +6,316 @@ import 'package:digigym/services/workout_schedule_controller.dart';
 import 'package:digigym/services/workout_scheduling.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'support/memory_schedule_storage.dart';
+import 'support/fake_digigym_api.dart';
 
 const accountA = '123e4567-e89b-12d3-a456-426614174000';
 const accountB = '123e4567-e89b-12d3-a456-426614174001';
+
 UserProfile scheduleUser({
+  String accountId = accountA,
   String level = 'Intermediate',
   String goal = 'Build Muscle',
   int minutes = 30,
 }) => UserProfile(
-  accountId: accountA,
-  name: 'Test',
+  accountId: accountId,
+  name: 'Test User',
   email: 'test@example.com',
+  age: 28,
+  height: 172,
+  weight: 68,
   fitnessLevel: level,
   fitnessGoal: goal,
   workoutTime: minutes,
+  dietaryPreference: 'Vegetarian',
+  bodyType: 'Athletic',
 );
 
+FakeDigiGymApi authenticatedApi(String accountId) {
+  return FakeDigiGymApi()
+    ..authenticated = true
+    ..restoredProfile = scheduleUser(accountId: accountId);
+}
+
 void main() {
-  test(
-    'missing schedule stays unconfigured, including seven neutral dates',
-    () async {
-      final storage = MemoryScheduleStorage();
-      final controller = WorkoutScheduleController(
-        accountId: accountA,
-        storage: storage,
-      );
-      await controller.initialize();
-      expect(controller.configured, isFalse);
-      expect(controller.workoutDays, isNull);
-      final week = WorkoutScheduling.week(
-        user: scheduleUser(),
-        workoutDays: controller.workoutDays,
-        date: DateTime(2026, 10, 31),
-      );
-      expect(week, hasLength(7));
-      expect(week.first.date.weekday, DateTime.sunday);
-      expect(week.last.date.weekday, DateTime.saturday);
-      expect(
-        week.every(
-          (day) =>
-              !day.configured &&
-              day.plan == null &&
-              !day.presentation.isRestDay,
-        ),
-        isTrue,
-      );
-      expect(storage.writes, 0);
-      controller.dispose();
-    },
-  );
+  test('missing server schedule remains unconfigured', () async {
+    final api = authenticatedApi(accountA);
+    final controller = WorkoutScheduleController(accountId: accountA, api: api);
+
+    await controller.initialize();
+
+    expect(controller.loading, isFalse);
+    expect(controller.configured, isFalse);
+    expect(controller.workoutDays, isNull);
+    expect(controller.error, isNull);
+    expect(controller.canEdit, isTrue);
+
+    controller.dispose();
+  });
+
+  test('server schedule persists and remains isolated by account', () async {
+    final api = authenticatedApi(accountA);
+    final firstController = WorkoutScheduleController(
+      accountId: accountA,
+      api: api,
+    );
+
+    await firstController.initialize();
+    expect(firstController.configured, isFalse);
+
+    expect(await firstController.save({0, 2, 6}), isTrue);
+    expect(firstController.workoutDays, {0, 2, 6});
+    expect(api.workoutSchedules[accountA], [0, 2, 6]);
+
+    expect(() => firstController.workoutDays!.add(4), throwsUnsupportedError);
+
+    firstController.dispose();
+
+    // Simulate signing out of account A and signing in to account B.
+    api.authenticated = false;
+    api.restoredProfile = scheduleUser(accountId: accountB);
+    api.authenticated = true;
+
+    final secondController = WorkoutScheduleController(
+      accountId: accountB,
+      api: api,
+    );
+
+    await secondController.initialize();
+
+    // Account B has no saved schedule.
+    expect(secondController.configured, isFalse);
+    expect(secondController.workoutDays, isNull);
+
+    // An empty list is a deliberate saved choice, not an unconfigured state.
+    expect(await secondController.save({}), isTrue);
+    expect(secondController.configured, isTrue);
+    expect(secondController.workoutDays, isEmpty);
+    expect(api.workoutSchedules[accountB], isEmpty);
+
+    secondController.dispose();
+
+    // Sign back in to account A and verify its original schedule is intact.
+    api.authenticated = false;
+    api.restoredProfile = scheduleUser(accountId: accountA);
+    api.authenticated = true;
+
+    final restoredController = WorkoutScheduleController(
+      accountId: accountA,
+      api: api,
+    );
+
+    await restoredController.initialize();
+
+    expect(restoredController.configured, isTrue);
+    expect(restoredController.workoutDays, {0, 2, 6});
+    expect(api.workoutSchedules[accountA], [0, 2, 6]);
+    expect(api.workoutSchedules[accountB], isEmpty);
+
+    restoredController.dispose();
+  });
 
   test(
-    'saved weekdays survive disposal logout and restart, separately by UUID',
+    'invalid server data blocks editing until a successful reload',
     () async {
-      final storage = MemoryScheduleStorage();
-      final a = WorkoutScheduleController(
-        accountId: accountA,
-        storage: storage,
-      );
-      await a.initialize();
-      expect(await a.save({0, 2, 6}), isTrue);
-      expect(() => a.workoutDays!.clear(), throwsUnsupportedError);
-      final key = a.storageKey!;
-      expect(jsonDecode(storage.values[key]!), {
-        'version': 1,
-        'workoutDays': [0, 2, 6],
-      });
-      a.dispose();
-      expect(a.workoutDays, isNull);
-      final b = WorkoutScheduleController(
-        accountId: accountB,
-        storage: storage,
-      );
-      await b.initialize();
-      expect(b.configured, isFalse);
-      expect(await b.save({}), isTrue);
-      expect(b.configured, isTrue);
-      expect(b.workoutDays, isEmpty);
-      b.dispose();
-      final restored = WorkoutScheduleController(
-        accountId: accountA,
-        storage: storage,
-      );
-      await restored.initialize();
-      expect(restored.workoutDays, {0, 2, 6});
-      expect(storage.values, hasLength(2));
-      expect(storage.values.keys.every((key) => !key.contains('@')), isTrue);
-      expect(
-        storage.values.values.every((value) => !value.contains('password')),
-        isTrue,
-      );
-      restored.dispose();
+      final api = authenticatedApi(accountA);
+
+      for (final invalidDays in [
+        [-1],
+        [7],
+        [1, 1],
+      ]) {
+        api.workoutSchedules[accountA] = invalidDays;
+
+        final controller = WorkoutScheduleController(
+          accountId: accountA,
+          api: api,
+        );
+
+        await controller.initialize();
+
+        expect(controller.configured, isFalse);
+        expect(controller.workoutDays, isNull);
+        expect(controller.error, isNotNull);
+        expect(controller.canEdit, isFalse);
+
+        // Do not overwrite data that could not be read safely.
+        expect(await controller.save({3}), isFalse);
+        expect(api.workoutSchedules[accountA], invalidDays);
+
+        // Once the backend data is valid, a reload should restore editing.
+        api.workoutSchedules[accountA] = [3];
+        await controller.reload();
+
+        expect(controller.configured, isTrue);
+        expect(controller.workoutDays, {3});
+        expect(controller.canEdit, isTrue);
+
+        controller.dispose();
+      }
     },
   );
-
-  for (final raw in [
-    'broken',
-    '[]',
-    '{"version":2,"workoutDays":[1]}',
-    '{"version":1,"workoutDays":[-1]}',
-    '{"version":1,"workoutDays":[7]}',
-    '{"version":1,"workoutDays":[1,1]}',
-    '{"version":1,"workoutDays":["1"]}',
-  ]) {
-    test('malformed or outdated data is unconfigured: $raw', () async {
-      final storage = MemoryScheduleStorage();
-      final controller = WorkoutScheduleController(
-        accountId: accountA,
-        storage: storage,
-      );
-      storage.values[controller.storageKey!] = raw;
-      await controller.initialize();
-      expect(controller.configured, isFalse);
-      expect(controller.error, isNotNull);
-      expect(await controller.save({3}), isTrue);
-      expect(controller.workoutDays, {3});
-      controller.dispose();
-    });
-  }
 
   test(
     'read failure blocks overwriting unknown data and supports retry',
     () async {
-      final storage = MemoryScheduleStorage()
-        ..readError = StateError('unavailable');
+      final api = authenticatedApi(accountA)
+        ..workoutSchedules[accountA] = [1, 3]
+        ..scheduleReadError = StateError('Temporary read failure');
+
       final controller = WorkoutScheduleController(
         accountId: accountA,
-        storage: storage,
+        api: api,
       );
+
       await controller.initialize();
+
+      expect(controller.loading, isFalse);
       expect(controller.error, isNotNull);
-      expect(await controller.save({1}), isFalse);
-      expect(storage.writes, 0);
-      storage.readError = null;
+      expect(controller.canEdit, isFalse);
+      expect(await controller.save({2, 4}), isFalse);
+      expect(api.workoutSchedules[accountA], [1, 3]);
+
+      api.scheduleReadError = null;
       await controller.reload();
-      expect(await controller.save({1}), isTrue);
+
+      expect(controller.workoutDays, {1, 3});
+      expect(controller.canEdit, isTrue);
+
+      expect(await controller.save({2, 4}), isTrue);
+      expect(api.workoutSchedules[accountA], [2, 4]);
+
       controller.dispose();
     },
   );
 
-  test('save failure retains the previous choice and permits retry', () async {
-    final storage = MemoryScheduleStorage();
+  test(
+    'save failure retains the previous selection and permits retry',
+    () async {
+      final api = authenticatedApi(accountA)
+        ..workoutSchedules[accountA] = [1, 3];
+
+      final controller = WorkoutScheduleController(
+        accountId: accountA,
+        api: api,
+      );
+
+      await controller.initialize();
+
+      expect(controller.workoutDays, {1, 3});
+
+      api.scheduleWriteError = StateError('Temporary write failure');
+
+      expect(await controller.save({2, 4}), isFalse);
+      expect(controller.workoutDays, {1, 3});
+      expect(api.workoutSchedules[accountA], [1, 3]);
+      expect(controller.error, isNotNull);
+
+      api.scheduleWriteError = null;
+
+      expect(await controller.save({2, 4}), isTrue);
+      expect(controller.workoutDays, {2, 4});
+      expect(api.workoutSchedules[accountA], [2, 4]);
+
+      controller.dispose();
+    },
+  );
+
+  test('timed-out writes remain ordered before newer saves', () async {
+    final api = authenticatedApi(accountA);
     final controller = WorkoutScheduleController(
       accountId: accountA,
-      storage: storage,
+      api: api,
+      requestTimeout: const Duration(milliseconds: 20),
     );
+
     await controller.initialize();
-    await controller.save({1, 3});
-    storage.writeError = StateError('unavailable');
-    expect(await controller.save({2, 4}), isFalse);
-    expect(controller.workoutDays, {1, 3});
-    storage.writeError = null;
-    expect(await controller.save({2, 4}), isTrue);
-    expect(controller.workoutDays, {2, 4});
+
+    final delayedWrite = Completer<void>();
+    api.scheduleWriteWait = delayedWrite.future;
+
+    // This request times out locally but remains pending at the API boundary.
+    expect(await controller.save({0}), isFalse);
+
+    expect(controller.workoutDays, isNull);
+    expect(api.workoutSchedules.containsKey(accountA), isFalse);
+
+    // Allow the delayed first write to finish.
+    delayedWrite.complete();
+    await delayedWrite.future;
+    await Future<void>.delayed(Duration.zero);
+
+    expect(api.workoutSchedules[accountA], [0]);
+
+    // The next save must run after the delayed first write.
+    api.scheduleWriteWait = null;
+
+    expect(await controller.save({6}), isTrue);
+    expect(controller.workoutDays, {6});
+    expect(api.workoutSchedules[accountA], [6]);
+
     controller.dispose();
   });
 
-  test('bounded storage reads and writes fail safely without credentials or account fallback', () async {
-    final never = Completer<void>();
-    final storage = MemoryScheduleStorage()..readWait = never.future;
+  test('read timeout fails safely and a later reload can recover', () async {
+    final api = authenticatedApi(accountA)..workoutSchedules[accountA] = [2, 5];
+
+    final delayedRead = Completer<void>();
+    api.scheduleReadWait = delayedRead.future;
+
     final controller = WorkoutScheduleController(
       accountId: accountA,
-      storage: storage,
-      storageTimeout: const Duration(milliseconds: 10),
+      api: api,
+      requestTimeout: const Duration(milliseconds: 20),
     );
+
     await controller.initialize();
+
     expect(controller.loading, isFalse);
-    expect(controller.canEdit, isFalse);
-    never.complete();
-    storage.readWait = null;
-    await controller.reload();
-    final slowWrite = Completer<void>();
-    storage.writeWait = slowWrite.future;
-    expect(await controller.save({0}), isFalse);
     expect(controller.configured, isFalse);
-    slowWrite.complete();
-    storage.writeWait = null;
-    expect(await controller.save({6}), isTrue);
-    expect(jsonDecode(storage.values[controller.storageKey!]!)['workoutDays'], [
-      6,
-    ]);
+    expect(controller.canEdit, isFalse);
+    expect(controller.error, isNotNull);
+
+    delayedRead.complete();
+    await delayedRead.future;
+
+    api.scheduleReadWait = null;
+    await controller.reload();
+
+    expect(controller.configured, isTrue);
+    expect(controller.workoutDays, {2, 5});
+    expect(controller.canEdit, isTrue);
+
     controller.dispose();
-    final anonymous = WorkoutScheduleController(
+  });
+
+  test('anonymous or invalid account cannot load or save a schedule', () async {
+    final api = FakeDigiGymApi();
+
+    final anonymousController = WorkoutScheduleController(
       accountId: null,
-      storage: storage,
+      api: api,
     );
-    final reads = storage.reads;
-    await anonymous.initialize();
-    expect(anonymous.storageKey, isNull);
-    expect(await anonymous.save({0}), isFalse);
-    expect(storage.reads, reads);
-    anonymous.dispose();
+
+    await anonymousController.initialize();
+
+    expect(anonymousController.canEdit, isFalse);
+    expect(anonymousController.configured, isFalse);
+    expect(await anonymousController.save({0}), isFalse);
+
+    anonymousController.dispose();
+
+    final invalidIdController = WorkoutScheduleController(
+      accountId: 'not-an-account-id',
+      api: authenticatedApi(accountA),
+    );
+
+    await invalidIdController.initialize();
+
+    expect(invalidIdController.canEdit, isFalse);
+    expect(invalidIdController.configured, isFalse);
+    expect(await invalidIdController.save({0}), isFalse);
+
+    invalidIdController.dispose();
   });
 
   test('schedule is deterministic and profile changes preserve choices while updating assignments', () {
