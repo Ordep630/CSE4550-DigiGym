@@ -152,6 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       WorkoutsScreen(
         user: widget.user,
+        api: widget.api,
         schedule: _schedule,
         clock: widget.clock,
         focusSchedule: _focusSchedule,

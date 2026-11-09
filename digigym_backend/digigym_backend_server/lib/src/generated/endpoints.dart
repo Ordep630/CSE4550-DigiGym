@@ -24,6 +24,7 @@ import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
 import '../meal/meal_recommendation_endpoint.dart' as _ix7sbnmc;
 import '../user/profile_endpoint.dart' as _i6a309j1;
+import '../workout/workout_history_endpoint.dart' as _i8pjsjqh;
 import '../workout/workout_recommendation_endpoint.dart' as _if4v7cf2;
 import '../workout/workout_schedule_endpoint.dart' as _ivtspexx;
 
@@ -59,6 +60,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'profile',
+          null,
+        ),
+      'workoutHistory': _i8pjsjqh.WorkoutHistoryEndpoint()
+        ..initialize(
+          server,
+          'workoutHistory',
           null,
         ),
       'workoutRecommendation': _if4v7cf2.WorkoutRecommendationEndpoint()
@@ -438,6 +445,78 @@ class Endpoints extends _is.EndpointDispatch {
                     params['fitnessLevel'],
                     params['fitnessGoal'],
                   ),
+        ),
+      },
+    );
+    connectors['workoutHistory'] = _is.EndpointConnector(
+      name: 'workoutHistory',
+      endpoint: endpoints['workoutHistory']!,
+      methodConnectors: {
+        'completeWorkout': _is.MethodConnector(
+          name: 'completeWorkout',
+          params: {
+            'workoutName': _is.ParameterDescription(
+              name: 'workoutName',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'durationMinutes': _is.ParameterDescription(
+              name: 'durationMinutes',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'details': _is.ParameterDescription(
+              name: 'details',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['workoutHistory']
+                          as _i8pjsjqh.WorkoutHistoryEndpoint)
+                      .completeWorkout(
+                        session,
+                        params['workoutName'],
+                        params['durationMinutes'],
+                        params['details'],
+                      ),
+        ),
+        'getMyWorkoutHistory': _is.MethodConnector(
+          name: 'getMyWorkoutHistory',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['workoutHistory']
+                          as _i8pjsjqh.WorkoutHistoryEndpoint)
+                      .getMyWorkoutHistory(session),
+        ),
+        'deleteMyWorkoutHistory': _is.MethodConnector(
+          name: 'deleteMyWorkoutHistory',
+          params: {
+            'workoutIds': _is.ParameterDescription(
+              name: 'workoutIds',
+              type: _is.getType<List<int>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['workoutHistory']
+                          as _i8pjsjqh.WorkoutHistoryEndpoint)
+                      .deleteMyWorkoutHistory(
+                        session,
+                        params['workoutIds'],
+                      ),
         ),
       },
     );

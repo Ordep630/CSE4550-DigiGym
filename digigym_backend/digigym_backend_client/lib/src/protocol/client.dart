@@ -23,6 +23,8 @@ import 'package:digigym_backend_client/src/protocol/user/fitness_level.dart'
     as _ir29g2zq;
 import 'package:digigym_backend_client/src/protocol/user/user.dart'
     as _iz9pf62b;
+import 'package:digigym_backend_client/src/protocol/workout/completed_workout.dart'
+    as _iwms7kgh;
 import 'package:digigym_backend_client/src/protocol/workout/workout_recommendation.dart'
     as _ir4uol1t;
 import 'package:http/http.dart' as _i85jenna;
@@ -356,6 +358,42 @@ class EndpointProfile extends _isc.EndpointRef {
   );
 }
 
+/// {@category Endpoint}
+class EndpointWorkoutHistory extends _isc.EndpointRef {
+  EndpointWorkoutHistory(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'workoutHistory';
+
+  _ida.Future<_iwms7kgh.CompletedWorkout> completeWorkout(
+    String workoutName,
+    int durationMinutes,
+    String details,
+  ) => caller.callServerEndpoint<_iwms7kgh.CompletedWorkout>(
+    'workoutHistory',
+    'completeWorkout',
+    {
+      'workoutName': workoutName,
+      'durationMinutes': durationMinutes,
+      'details': details,
+    },
+  );
+
+  _ida.Future<List<_iwms7kgh.CompletedWorkout>> getMyWorkoutHistory() =>
+      caller.callServerEndpoint<List<_iwms7kgh.CompletedWorkout>>(
+        'workoutHistory',
+        'getMyWorkoutHistory',
+        {},
+      );
+
+  _ida.Future<int> deleteMyWorkoutHistory(List<int> workoutIds) =>
+      caller.callServerEndpoint<int>(
+        'workoutHistory',
+        'deleteMyWorkoutHistory',
+        {'workoutIds': workoutIds},
+      );
+}
+
 /// Provides workout recommendations for the authenticated user.
 /// {@category Endpoint}
 class EndpointWorkoutRecommendation extends _isc.EndpointRef {
@@ -440,6 +478,7 @@ class Client extends _isc.ServerpodClientShared {
     greeting = EndpointGreeting(this);
     mealRecommendation = EndpointMealRecommendation(this);
     profile = EndpointProfile(this);
+    workoutHistory = EndpointWorkoutHistory(this);
     workoutRecommendation = EndpointWorkoutRecommendation(this);
     workoutSchedule = EndpointWorkoutSchedule(this);
     modules = Modules(this);
@@ -455,6 +494,8 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointProfile profile;
 
+  late final EndpointWorkoutHistory workoutHistory;
+
   late final EndpointWorkoutRecommendation workoutRecommendation;
 
   late final EndpointWorkoutSchedule workoutSchedule;
@@ -468,6 +509,7 @@ class Client extends _isc.ServerpodClientShared {
     'greeting': greeting,
     'mealRecommendation': mealRecommendation,
     'profile': profile,
+    'workoutHistory': workoutHistory,
     'workoutRecommendation': workoutRecommendation,
     'workoutSchedule': workoutSchedule,
   };

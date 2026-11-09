@@ -11,6 +11,7 @@ AppBar workoutAppBar(
   bool showBack = false,
   bool large = false,
   ThemeData? theme,
+  List<Widget> actions = const [],
 }) {
   final style = (theme ?? Theme.of(context)).textTheme.titleLarge?.copyWith(
     fontSize: large ? 30 : 20,
@@ -39,5 +40,6 @@ AppBar workoutAppBar(
     toolbarHeight: height,
     titleTextStyle: style,
     title: Text(title),
+    actions: actions,
   );
 }

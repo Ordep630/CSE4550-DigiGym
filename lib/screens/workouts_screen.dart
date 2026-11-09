@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../models/user_profile.dart';
 import '../models/workout_plan.dart';
+import '../services/digigym_api.dart';
 import '../services/workout_schedule_controller.dart';
 import '../theme/digigym_dashboard_theme.dart';
 import '../widgets/workout_overview.dart';
@@ -12,23 +13,28 @@ import '../widgets/workout_exercise_list.dart';
 import '../widgets/dashboard_glass_card.dart';
 import '../widgets/workout_app_bar.dart';
 import 'workout_exercises_screen.dart';
+import 'workout_history_screen.dart';
 
 enum WorkoutView { myPlan, exercises, moreWorkouts }
 
 class WorkoutsScreen extends StatefulWidget {
   final UserProfile user;
+  final DigiGymApi api;
   final WorkoutScheduleController? schedule;
   final DateTime Function()? clock;
   final bool focusSchedule;
   final VoidCallback? onScheduleShown;
+
   const WorkoutsScreen({
     super.key,
     required this.user,
+    this.api = digiGymApi,
     this.schedule,
     this.clock,
     this.focusSchedule = false,
     this.onScheduleShown,
   });
+
   @override
   State<WorkoutsScreen> createState() => _WorkoutsScreenState();
 }
@@ -38,7 +44,9 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
   WorkoutScheduleController? _owned;
   final _scheduleKey = GlobalKey();
   bool _restored = false;
+
   WorkoutScheduleController get _schedule => widget.schedule ?? _owned!;
+
   Object get _storageKey =>
       ('workout-view', widget.user.accountId ?? widget.user.email);
 
@@ -119,8 +127,19 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     if (plan.exercises.isEmpty) return;
     Navigator.of(context).push<void>(
       MaterialPageRoute(
-        builder: (_) =>
-            WorkoutExercisesScreen(plan: plan, walkthrough: walkthrough),
+        builder: (_) => WorkoutExercisesScreen(
+          plan: plan,
+          walkthrough: walkthrough,
+          api: widget.api,
+        ),
+      ),
+    );
+  }
+
+  void _openWorkoutHistory() {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => WorkoutHistoryScreen(api: widget.api),
       ),
     );
   }
@@ -140,15 +159,18 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
         primaryContainer: DigiGymDarkColors.softGreen.withValues(alpha: .12),
       ),
     );
+
     Widget heading(String text) => Text(
       text,
       style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
     );
+
     Widget noTime() => WorkoutOverview(
       plan: plan,
       onViewExercises: () {},
       onStartWalkthrough: () {},
     );
+
     return Theme(
       data: theme,
       child: AnimatedBuilder(
@@ -187,7 +209,17 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                 ),
                 const SizedBox(height: 18),
                 _WorkoutSegments(selected: _view, onSelected: _select),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    key: const ValueKey('open-workout-history'),
+                    onPressed: _openWorkoutHistory,
+                    icon: const Icon(Icons.history),
+                    label: const Text('Workout History'),
+                  ),
+                ),
+                const SizedBox(height: 10),
                 switch (_view) {
                   WorkoutView.myPlan => Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -293,7 +325,11 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
 class _WorkoutSegments extends StatelessWidget {
   final WorkoutView selected;
   final ValueChanged<WorkoutView> onSelected;
-  const _WorkoutSegments({required this.selected, required this.onSelected});
+
+  const _WorkoutSegments({
+    required this.selected,
+    required this.onSelected,
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -4,6 +4,8 @@ import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     show
         EmailAccountPasswordResetException,
         EmailAccountPasswordResetExceptionReason;
+import 'package:digigym_backend_client/digigym_backend_client.dart'
+    show CompletedWorkout;
 
 import '../client.dart';
 import '../models/profile_mapping.dart';
@@ -191,6 +193,42 @@ class DigiGymApi {
 
   Future<List<int>> updateMyWorkoutSchedule(List<int> workoutDays) {
     return client.workoutSchedule.updateMyWorkoutSchedule(workoutDays);
+  }
+
+  Future<CompletedWorkout> completeWorkout({
+    required String workoutName,
+    required int durationMinutes,
+    required String details,
+  }) {
+    if (!isAuthenticated) {
+      throw StateError('Sign in to save completed workouts.');
+    }
+
+    return client.workoutHistory.completeWorkout(
+      workoutName,
+      durationMinutes,
+      details,
+    );
+  }
+
+  Future<List<CompletedWorkout>> getWorkoutHistory() {
+    if (!isAuthenticated) {
+      throw StateError('Sign in to view workout history.');
+    }
+
+    return client.workoutHistory.getMyWorkoutHistory();
+  }
+
+  Future<int> deleteWorkoutHistory(List<int> workoutIds) {
+    if (!isAuthenticated) {
+      throw StateError('Sign in to delete workout history.');
+    }
+
+    if (workoutIds.isEmpty) {
+      return Future<int>.value(0);
+    }
+
+    return client.workoutHistory.deleteMyWorkoutHistory(workoutIds);
   }
 
   Future<void> signOut() async {

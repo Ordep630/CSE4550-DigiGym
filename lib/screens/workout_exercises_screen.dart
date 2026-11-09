@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import '../models/workout_plan.dart';
+import '../services/digigym_api.dart';
 import '../theme/digigym_dashboard_theme.dart';
 import '../widgets/dashboard_glass_card.dart';
 import '../widgets/digigym_atmospheric_background.dart';
@@ -12,11 +15,13 @@ import '../widgets/workout_exercise_list.dart';
 class WorkoutExercisesScreen extends StatefulWidget {
   final WorkoutPlan plan;
   final bool walkthrough;
+  final DigiGymApi api;
 
   const WorkoutExercisesScreen({
     super.key,
     required this.plan,
     this.walkthrough = false,
+    this.api = digiGymApi,
   });
 
   @override
@@ -25,6 +30,95 @@ class WorkoutExercisesScreen extends StatefulWidget {
 
 class _WorkoutExercisesScreenState extends State<WorkoutExercisesScreen> {
   int _step = 0;
+  bool _isSavingCompletion = false;
+  bool _isCompleted = false;
+
+  Future<void> _completeWorkout() async {
+    if (_isSavingCompletion ||
+        _isCompleted ||
+        widget.plan.exercises.isEmpty ||
+        widget.plan.isRecovery) {
+      return;
+    }
+
+    setState(() => _isSavingCompletion = true);
+
+    try {
+      final details = jsonEncode(
+        widget.plan.exercises.map((exercise) {
+          return {
+            'name': exercise.name,
+            'sets': exercise.sets,
+            'description': exercise.description,
+          };
+        }).toList(),
+      );
+
+      await widget.api.completeWorkout(
+        workoutName: widget.plan.title,
+        durationMinutes: widget.plan.durationMinutes,
+        details: details,
+      );
+
+      if (!mounted) return;
+
+      setState(() => _isCompleted = true);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Workout completed! Your progress has been saved.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Could not save your workout. Check your connection and try again.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSavingCompletion = false);
+      }
+    }
+  }
+
+  Widget _completionButton() {
+    return FilledButton.icon(
+      key: const ValueKey('complete-workout-button'),
+      onPressed: _isSavingCompletion || _isCompleted
+          ? null
+          : _completeWorkout,
+      icon: _isSavingCompletion
+          ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Icon(
+              _isCompleted ? Icons.check_circle : Icons.flag,
+            ),
+      label: Text(
+        _isSavingCompletion
+            ? 'Saving...'
+            : _isCompleted
+                ? 'Workout Completed'
+                : 'Mark Workout as Completed',
+      ),
+      style: FilledButton.styleFrom(
+        minimumSize: const Size.fromHeight(52),
+        backgroundColor: DigiGymDarkColors.softGreen,
+        foregroundColor: Colors.black,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +166,9 @@ class _WorkoutExercisesScreenState extends State<WorkoutExercisesScreen> {
                 const SizedBox(height: 20),
                 if (widget.walkthrough && plan.exercises.isNotEmpty) ...[
                   Text(
-                    'Follow the instructions at your own pace. No workout session or completions are recorded.',
+                    plan.isRecovery
+                        ? 'Follow the instructions at your own pace. Recovery workouts are not saved as completed workouts.'
+                        : 'Follow the instructions at your own pace. When you finish, mark the workout as completed to save it to your history.',
                     key: const ValueKey('workout-walkthrough-notice'),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
@@ -135,8 +231,17 @@ class _WorkoutExercisesScreenState extends State<WorkoutExercisesScreen> {
                           : 'Back to Workout',
                     ),
                   ),
+                  if (_step == plan.exercises.length - 1 &&
+                      !plan.isRecovery) ...[
+                    const SizedBox(height: 12),
+                    _completionButton(),
+                  ],
                 ] else ...[
                   WorkoutExerciseList(plan: plan),
+                  if (plan.exercises.isNotEmpty && !plan.isRecovery) ...[
+                    const SizedBox(height: 24),
+                    _completionButton(),
+                  ],
                 ],
               ],
             ),
