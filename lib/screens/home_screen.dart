@@ -167,16 +167,24 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     ];
 
-    final darkTheme = DigiGymDashboardTheme.dark(Theme.of(context));
+    final base = Theme.of(context);
+    // Stage 2A: Home and Workout follow the saved appearance. Other tabs keep
+    // their approved dark styling; preserve the existing dark Workout setup.
+    final followsAppearance =
+        selectedIndex == 0 ||
+        (selectedIndex == 1 && base.brightness == Brightness.light);
+    final theme = followsAppearance
+        ? DigiGymDashboardTheme.resolve(base)
+        : DigiGymDashboardTheme.dark(base);
 
     return Theme(
-      data: darkTheme,
+      data: theme,
       child: DigiGymAtmosphericBackground(
         child: Scaffold(
           backgroundColor: Colors.transparent,
           extendBody: true,
           body: Theme(
-            data: DigiGymDashboardTheme.content(darkTheme),
+            data: DigiGymDashboardTheme.content(theme),
             child: pages[selectedIndex],
           ),
           bottomNavigationBar: FloatingBottomNavigationBar(

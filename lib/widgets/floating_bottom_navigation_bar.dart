@@ -2,6 +2,9 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../theme/digigym_dashboard_theme.dart';
+import 'soft_glow_icon.dart';
+
 /// Presentation only: the parent owns the selected tab and its pages.
 class FloatingBottomNavigationBar extends StatelessWidget {
   final int selectedIndex;
@@ -24,12 +27,10 @@ class FloatingBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final selected = dark ? const Color(0xFF70FF45) : const Color(0xFF21865C);
-    final inactive = dark ? const Color(0xFFA6AEAA) : const Color(0xFF626C66);
-    final surface = dark
-        ? const Color(0xFF1A201E).withValues(alpha: 0.20)
-        : const Color(0xE6F5F8F5);
+    final surfaces = DigiGymSurfaces.of(context);
+    final selected = surfaces.navigationActive;
+    final inactive = surfaces.navigationInactive;
+    final surface = surfaces.navigationSurface;
 
     return SafeArea(
       top: false,
@@ -41,30 +42,20 @@ class FloatingBottomNavigationBar extends StatelessWidget {
           child: DecoratedBox(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(48),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: dark ? 0.22 : 0.10),
-                  blurRadius: 18,
-                  offset: const Offset(0, 5),
-                  // A filled shadow behind translucent glass adds a second
-                  // dark surface. Keep the dark-mode shadow outside its shape.
-                  blurStyle: dark ? BlurStyle.outer : BlurStyle.normal,
-                ),
-              ],
+              boxShadow: [surfaces.navigationShadow],
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(48),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                filter: ImageFilter.blur(
+                  sigmaX: surfaces.navigationBackdropSigma,
+                  sigmaY: surfaces.navigationBackdropSigma,
+                ),
                 child: Material(
                   color: surface,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(48),
-                    side: BorderSide(
-                      color: dark
-                          ? Colors.white.withValues(alpha: 0.15)
-                          : const Color(0x99FFFFFF),
-                    ),
+                    side: BorderSide(color: surfaces.navigationBorder),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -95,7 +86,7 @@ class FloatingBottomNavigationBar extends StatelessWidget {
                                     _SelectedIconGlow(
                                       key: ValueKey('navigation-icon-$index'),
                                       selected: active,
-                                      dark: dark,
+                                      surfaces: surfaces,
                                       child: index == 1
                                           ? Image.asset(
                                               'assets/images/digigym_workout_icon.png',
@@ -130,6 +121,29 @@ class FloatingBottomNavigationBar extends StatelessWidget {
                                           fontWeight: active
                                               ? FontWeight.w600
                                               : FontWeight.w400,
+                                          shadows:
+                                              active &&
+                                                  surfaces.selectionGlowOpacity >
+                                                      0
+                                              ? [
+                                                  Shadow(
+                                                    color: color.withValues(
+                                                      alpha: surfaces
+                                                          .selectionGlowOpacity,
+                                                    ),
+                                                    blurRadius: 6,
+                                                  ),
+                                                  Shadow(
+                                                    color: color.withValues(
+                                                      alpha:
+                                                          surfaces
+                                                              .selectionGlowOpacity *
+                                                          .5,
+                                                    ),
+                                                    blurRadius: 12,
+                                                  ),
+                                                ]
+                                              : null,
                                         ),
                                       ),
                                     ),
@@ -155,13 +169,13 @@ class FloatingBottomNavigationBar extends StatelessWidget {
 /// Paints illumination separately from the sharp icon in its original slot.
 class _SelectedIconGlow extends StatelessWidget {
   final bool selected;
-  final bool dark;
+  final DigiGymSurfaces surfaces;
   final Widget child;
 
   const _SelectedIconGlow({
     super.key,
     required this.selected,
-    required this.dark,
+    required this.surfaces,
     required this.child,
   });
 
@@ -195,14 +209,16 @@ class _SelectedIconGlow extends StatelessWidget {
                         stops: [0, 0.22, 0.78, 1],
                       ).createShader(bounds),
                       child: Opacity(
-                        opacity: dark ? 0.85 : 0.32,
-                        child: ImageFiltered(
-                          imageFilter: ImageFilter.blur(
-                            sigmaX: dark ? 4 : 3,
-                            sigmaY: dark ? 4 : 3,
-                          ),
-                          child: Center(child: child),
-                        ),
+                        opacity: surfaces.navigationGlowOpacity,
+                        child: Theme.of(context).brightness == Brightness.light
+                            ? DigiGymGlyphGlow(child: child)
+                            : ImageFiltered(
+                                imageFilter: ImageFilter.blur(
+                                  sigmaX: surfaces.navigationGlowSigma,
+                                  sigmaY: surfaces.navigationGlowSigma,
+                                ),
+                                child: Center(child: child),
+                              ),
                       ),
                     ),
                   ),
@@ -213,6 +229,13 @@ class _SelectedIconGlow extends StatelessWidget {
             key: const ValueKey('navigation-icon-foreground'),
             child: child,
           ),
+          if (selected && Theme.of(context).brightness == Brightness.light)
+            Positioned.fill(
+              child: DigiGymGlyphHighlight(
+                key: const ValueKey('navigation-icon-highlight'),
+                child: child,
+              ),
+            ),
         ],
       ),
     );

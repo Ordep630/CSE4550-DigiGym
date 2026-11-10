@@ -4,7 +4,7 @@ import '../models/user_profile.dart';
 import '../services/workout_schedule_controller.dart';
 import '../services/workout_scheduling.dart';
 import '../theme/digigym_dashboard_theme.dart';
-import 'dashboard_glass_card.dart';
+import 'workout_glass_card.dart';
 import 'weekly_workout_schedule.dart';
 import 'workout_schedule_editor.dart';
 import 'workout_schedule_details.dart';
@@ -24,10 +24,15 @@ class WorkoutWeekView extends StatelessWidget {
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: controller,
     builder: (context, _) {
+      final accent = Theme.of(context).brightness == Brightness.light
+          ? DigiGymSurfaces.of(context).accent
+          : DigiGymDarkColors.softGreen;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           WeeklyWorkoutSchedule(
+            cardBuilder: (child, padding) =>
+                WorkoutGlassCard(padding: padding, child: child),
             title: 'Weekly Schedule',
             showAction: controller.configured,
             actionLabel: controller.configured
@@ -40,9 +45,9 @@ class WorkoutWeekView extends StatelessWidget {
               workoutDays: controller.workoutDays,
               date: date,
             ).map((day) => day.presentation).toList(),
-            currentDayColor: DigiGymDarkColors.softGreen,
-            scheduledColor: DigiGymDarkColors.softGreen,
-            seeAllColor: DigiGymDarkColors.softGreen,
+            currentDayColor: accent,
+            scheduledColor: accent,
+            seeAllColor: accent,
             onSeeAll: controller.canEdit
                 ? () => editWorkoutSchedule(context, controller)
                 : null,
@@ -53,6 +58,7 @@ class WorkoutWeekView extends StatelessWidget {
                 workoutDays: controller.workoutDays,
                 date: day.date,
               ).firstWhere((assignment) => assignment.date == day.date),
+              frostLightSurface: true,
               onSetUp: controller.canEdit
                   ? () => editWorkoutSchedule(context, controller)
                   : null,
@@ -62,7 +68,7 @@ class WorkoutWeekView extends StatelessWidget {
           if (controller.loading)
             const Text('Loading your saved schedule…')
           else if (!controller.configured)
-            DashboardGlassCard(
+            WorkoutGlassCard(
               key: const ValueKey('workout-week-empty'),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../models/workout_plan.dart';
-import 'dashboard_glass_card.dart';
+import 'workout_glass_card.dart';
+import 'recommended_workout_glass_card.dart';
 import '../theme/digigym_dashboard_theme.dart';
+import '../theme/digigym_dot_typography.dart';
 import 'dot_matrix_text.dart';
 
 /// The authoritative recommendation, with no completion or session side effects.
@@ -21,7 +23,7 @@ class WorkoutOverview extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     if (plan.exercises.isEmpty) {
-      return DashboardGlassCard(
+      return WorkoutGlassCard(
         key: const ValueKey('workout-time-empty'),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -40,7 +42,7 @@ class WorkoutOverview extends StatelessWidget {
         ),
       );
     }
-    return DashboardGlassCard(
+    return RecommendedWorkoutGlassCard(
       key: const ValueKey('workout-featured'),
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -106,7 +108,7 @@ class WorkoutDurationDisplay extends StatelessWidget {
     final color = Theme.of(context).colorScheme.onSurface;
     // Doto's bundled cap height is 700/1000: 48sp drew ~33.6px numerals.
     // 43.2px custom dots are ~29% taller without growing the card's line box.
-    final digitHeight = scaler.scale(43.2);
+    final digitHeight = scaler.scale(DigiGymDotTypography.workoutHeight);
     return Semantics(
       label: '$minutes minutes',
       excludeSemantics: true,
@@ -124,13 +126,11 @@ class WorkoutDurationDisplay extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  DotMatrixText(
+                  DotMatrixText.standard(
                     text: '$minutes',
                     height: digitHeight,
                     color: color,
-                    softenedDigits: true,
                     scaleWithText: false,
-                    fillRatio: .74,
                   ),
                   SizedBox(width: scaler.scale(12)),
                   Text(

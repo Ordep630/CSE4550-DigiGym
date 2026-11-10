@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/workout_plan.dart';
-import 'dashboard_glass_card.dart';
+import 'workout_glass_card.dart';
 
 /// Shared read-only prescriptions. Expanding instructions records no work.
 class WorkoutExerciseList extends StatelessWidget {
@@ -18,7 +18,7 @@ class WorkoutExerciseList extends StatelessWidget {
       key: PageStorageKey('exercise-list-${plan.title}'),
       children: [
         for (var i = 0; i < count; i++)
-          DashboardGlassCard(
+          WorkoutGlassCard(
             margin: const EdgeInsets.only(bottom: 12),
             padding: EdgeInsets.zero,
             child: Material(

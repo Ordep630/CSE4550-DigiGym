@@ -10,39 +10,43 @@ class DigiGymDialog extends StatelessWidget {
   final String title;
   final Widget content;
   final List<Widget> actions;
+  final bool translucentSurface;
   const DigiGymDialog({
     super.key,
     required this.title,
     required this.content,
     required this.actions,
+    this.translucentSurface = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final base = DigiGymDashboardTheme.content(
-      DigiGymDashboardTheme.dark(Theme.of(context)),
+    final contentTheme = DigiGymDashboardTheme.content(
+      DigiGymDashboardTheme.resolve(Theme.of(context)),
     );
+    final base = translucentSurface
+        ? DigiGymDashboardTheme.bmiDialog(contentTheme)
+        : contentTheme;
+    final surfaces = base.extension<DigiGymSurfaces>()!;
     final theme = base.copyWith(
-      colorScheme: base.colorScheme.copyWith(
-        primary: DigiGymDarkColors.softGreen,
-      ),
+      colorScheme: base.colorScheme.copyWith(primary: surfaces.accent),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: DigiGymDarkColors.softGreen,
-          foregroundColor: DigiGymDarkColors.graphite,
+          backgroundColor: surfaces.accent,
+          foregroundColor: surfaces.onAccent,
           minimumSize: const Size(48, 48),
         ),
       ),
-      iconTheme: base.iconTheme.copyWith(color: DigiGymDarkColors.softGreen),
+      iconTheme: base.iconTheme.copyWith(color: surfaces.accent),
       textSelectionTheme: base.textSelectionTheme.copyWith(
-        cursorColor: DigiGymDarkColors.softGreen,
-        selectionColor: DigiGymDarkColors.softGreen.withValues(alpha: .24),
-        selectionHandleColor: DigiGymDarkColors.softGreen,
+        cursorColor: surfaces.accent,
+        selectionColor: surfaces.accent.withValues(alpha: .24),
+        selectionHandleColor: surfaces.accent,
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           minimumSize: const Size(48, 48),
-          foregroundColor: DigiGymDarkColors.softGreen,
+          foregroundColor: surfaces.accent,
         ),
       ),
     );
@@ -55,6 +59,8 @@ class DigiGymDialog extends StatelessWidget {
         insetPadding: const EdgeInsets.all(24),
         constraints: const BoxConstraints(maxWidth: 420),
         child: DashboardGlassCard(
+          surfaceOpacity: translucentSurface ? surfaces.bmiSurfaceOpacity : 1,
+          backdropSigma: translucentSurface ? surfaces.bmiBackdropSigma : 0,
           padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,

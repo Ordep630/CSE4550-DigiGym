@@ -6,10 +6,11 @@ import '../models/user_profile.dart';
 import '../models/workout_plan.dart';
 import '../services/workout_schedule_controller.dart';
 import '../theme/digigym_dashboard_theme.dart';
+import '../theme/digigym_workout_theme.dart';
 import '../widgets/workout_overview.dart';
 import '../widgets/workout_week_view.dart';
 import '../widgets/workout_exercise_list.dart';
-import '../widgets/dashboard_glass_card.dart';
+import '../widgets/workout_glass_card.dart';
 import '../widgets/workout_app_bar.dart';
 import 'workout_exercises_screen.dart';
 
@@ -130,16 +131,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     final plan = WorkoutPlan.forUser(widget.user);
     final alternatives = WorkoutPlan.alternativesForUser(widget.user);
     final base = Theme.of(context);
-    final theme = base.copyWith(
-      expansionTileTheme: base.expansionTileTheme.copyWith(
-        textColor: DigiGymDarkColors.softGreen,
-        iconColor: DigiGymDarkColors.softGreen,
-      ),
-      colorScheme: base.colorScheme.copyWith(
-        primary: DigiGymDarkColors.softGreen,
-        primaryContainer: DigiGymDarkColors.softGreen.withValues(alpha: .12),
-      ),
-    );
+    final theme = DigiGymWorkoutTheme.apply(base);
     Widget heading(String text) => Text(
       text,
       style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -180,9 +172,14 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                 Text(
                   '${widget.user.fitnessLevel} Plan',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: DigiGymFitnessLevelColors.forLevel(
-                      widget.user.fitnessLevel,
-                    ),
+                    color: theme.brightness == Brightness.light
+                        ? widget.user.fitnessLevel.trim().toLowerCase() ==
+                                  'intermediate'
+                              ? DigiGymWorkoutTheme.intermediatePlanAccent
+                              : theme.colorScheme.onSurfaceVariant
+                        : DigiGymFitnessLevelColors.forLevel(
+                            widget.user.fitnessLevel,
+                          ),
                   ),
                 ),
                 const SizedBox(height: 18),
@@ -252,7 +249,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                       const SizedBox(height: 16),
                       if (alternatives.isEmpty) noTime(),
                       for (var i = 0; i < alternatives.length; i++)
-                        DashboardGlassCard(
+                        WorkoutGlassCard(
                           key: ValueKey('workout-library-plan-$i'),
                           margin: const EdgeInsets.only(bottom: 12),
                           child: Column(
@@ -298,11 +295,19 @@ class _WorkoutSegments extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final lightSurfaces = DigiGymSurfaces.of(context);
+    final light = theme.brightness == Brightness.light;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: .65),
+        color: light
+            ? DigiGymWorkoutTheme.segmentSurface
+            : theme.colorScheme.surface.withValues(alpha: .65),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
+        border: Border.all(
+          color: light
+              ? lightSurfaces.navigationBorder
+              : theme.colorScheme.outlineVariant,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(3),

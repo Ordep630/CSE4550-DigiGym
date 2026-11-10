@@ -7,6 +7,7 @@ import '../models/workout_schedule_day.dart';
 import '../services/workout_scheduling.dart';
 import '../theme/digigym_dashboard_theme.dart';
 import 'dashboard_glass_card.dart';
+import 'soft_glow_icon.dart';
 
 /// A date-based view only. Missing input stays unassigned; no plan is invented.
 class WeeklyWorkoutSchedule extends StatefulWidget {
@@ -23,6 +24,9 @@ class WeeklyWorkoutSchedule extends StatefulWidget {
   final Key actionKey;
   final bool showAction;
 
+  /// Optional content-card treatment; Home retains the default glass material.
+  final Widget Function(Widget child, EdgeInsetsGeometry padding)? cardBuilder;
+
   const WeeklyWorkoutSchedule({
     super.key,
     this.days = const [],
@@ -37,6 +41,7 @@ class WeeklyWorkoutSchedule extends StatefulWidget {
     this.actionLabel = 'See All',
     this.actionKey = const ValueKey('dashboard-week-see-all'),
     this.showAction = true,
+    this.cardBuilder,
   });
 
   /// Calendar arithmetic, rather than 24-hour subtraction, also handles DST.
@@ -50,6 +55,12 @@ class WeeklyWorkoutSchedule extends StatefulWidget {
 
 class _WeeklyWorkoutScheduleState extends State<WeeklyWorkoutSchedule>
     with WidgetsBindingObserver {
+  Widget _card(Widget child) {
+    const padding = EdgeInsets.symmetric(horizontal: 10, vertical: 12);
+    return widget.cardBuilder?.call(child, padding) ??
+        DashboardGlassCard(padding: padding, child: child);
+  }
+
   static const _labels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
   static const _names = [
     'Sunday',
@@ -151,9 +162,8 @@ class _WeeklyWorkoutScheduleState extends State<WeeklyWorkoutSchedule>
           ],
         ),
         const SizedBox(height: 4),
-        DashboardGlassCard(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-          child: Row(
+        _card(
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: List.generate(7, (i) {
               final date = dates[i];
@@ -225,6 +235,7 @@ class _DayColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final ringColor = currentDayColor ?? colors.primary;
+    final surfaces = DigiGymSurfaces.of(context);
     final state = day.isRestDay
         ? 'Rest Day'
         : _workoutNames[day.workoutType] ?? 'Unassigned Day';
@@ -256,14 +267,18 @@ class _DayColumn extends StatelessWidget {
                       height: 1.2,
                       fontWeight: isToday ? FontWeight.w600 : FontWeight.w400,
                       color: isToday
-                          ? DigiGymDarkColors.softGreen
+                          ? DigiGymSurfaces.of(context).accent
                           : colors.onSurfaceVariant,
                       shadows: isToday
                           ? [
                               Shadow(
-                                color: DigiGymDarkColors.softGreen.withValues(
-                                  alpha: .30,
-                                ),
+                                color: DigiGymSurfaces.of(context).accent
+                                    .withValues(
+                                      alpha:
+                                          .30 *
+                                          DigiGymSurfaces.of(context)
+                                              .glowIntensity,
+                                    ),
                                 blurRadius: 6,
                               ),
                             ]
@@ -288,18 +303,32 @@ class _DayColumn extends StatelessWidget {
                   boxShadow: isToday
                       ? [
                           BoxShadow(
-                            color: ringColor.withValues(alpha: .09),
+                            color: ringColor.withValues(
+                              alpha:
+                                  .09 *
+                                  DigiGymSurfaces.of(context).glowIntensity,
+                            ),
                             blurRadius: currentDayColor == null ? 9 : 12,
                           ),
+                          if (surfaces.selectionGlowOpacity > 0)
+                            BoxShadow(
+                              color: ringColor.withValues(
+                                alpha: surfaces.selectionGlowOpacity * .6,
+                              ),
+                              blurRadius: 18,
+                              spreadRadius: 1,
+                            ),
                         ]
                       : null,
                 ),
                 child: Center(
                   child: day.isCompleted
-                      ? Icon(
-                          Icons.check_rounded,
-                          size: size * .5,
-                          color: colors.primary,
+                      ? DigiGymIlluminatedGlyph(
+                          child: Icon(
+                            Icons.check_rounded,
+                            size: size * .5,
+                            color: colors.primary,
+                          ),
                         )
                       : day.isRestDay
                       ? SizedBox.square(
@@ -308,12 +337,16 @@ class _DayColumn extends StatelessWidget {
                             painter: _RestSymbol(colors.onSurfaceVariant),
                           ),
                         )
-                      : Icon(
-                          _icons[day.workoutType] ?? Icons.remove_rounded,
-                          size: size * .5,
-                          color: day.workoutType == null
-                              ? colors.onSurfaceVariant.withValues(alpha: .5)
-                              : scheduledColor ?? colors.onSurfaceVariant,
+                      : DigiGymIlluminatedGlyph(
+                          enabled:
+                              day.workoutType != null && scheduledColor != null,
+                          child: Icon(
+                            _icons[day.workoutType] ?? Icons.remove_rounded,
+                            size: size * .5,
+                            color: day.workoutType == null
+                                ? colors.onSurfaceVariant.withValues(alpha: .5)
+                                : scheduledColor ?? colors.onSurfaceVariant,
+                          ),
                         ),
                 ),
               ),

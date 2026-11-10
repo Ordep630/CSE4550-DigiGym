@@ -1,3 +1,4 @@
+import 'package:digigym/theme/digigym_dot_typography.dart';
 import 'package:digigym/main.dart';
 import 'package:digigym/models/session.dart';
 import 'package:digigym/models/user_profile.dart';
@@ -9,6 +10,7 @@ import 'package:digigym/screens/meal_page.dart';
 import 'package:digigym/services/meal_recommendation_service.dart';
 import 'package:digigym/theme/digigym_dashboard_theme.dart';
 import 'package:digigym/widgets/dashboard_number.dart';
+import 'package:digigym/widgets/dot_matrix_text.dart';
 import 'package:digigym/widgets/floating_bottom_navigation_bar.dart';
 import 'package:digigym/widgets/meal_nutrition_summary.dart';
 import 'package:digigym/widgets/soft_glow_icon.dart';
@@ -125,20 +127,23 @@ void main() {
       expect(target.fontSize, 45);
       expect(target.dotWeight, 860);
       expect(target.unitFontSize, 18);
-      final targetText = tester.widget<Text>(
+      final targetDots = tester.widget<DotMatrixText>(
         find.descendant(
           of: find.byKey(const ValueKey('meal-calorie-target')),
-          matching: find.byType(Text),
+          matching: find.byType(DotMatrixText),
         ),
       );
-      final spans = (targetText.textSpan! as TextSpan).children!
-          .cast<TextSpan>();
-      expect(spans.first.style?.fontFamily, DigiGymDashboardTheme.numberFont);
-      expect(spans.first.style?.fontVariations, [
-        const FontVariation('ROND', 100),
-        const FontVariation('wght', 860),
-      ]);
-      expect(spans.last.style?.fontFamily, DigiGymDashboardTheme.textFont);
+      expect(targetDots.text, '1,920');
+      expect(targetDots.fillRatio, DigiGymDotTypography.fillRatio);
+      expect(targetDots.softenedDigits, isTrue);
+      final unit = tester.widget<Text>(
+        find.descendant(
+          of: find.byKey(const ValueKey('meal-calorie-target')),
+          matching: find.text('Cal'),
+        ),
+      );
+      expect(unit.style!.fontFamily, DigiGymDashboardTheme.textFont);
+      expect(unit.style!.fontSize, 18);
       final flame = find.byKey(const ValueKey('meal-target-flame'));
       expect(tester.widget<SoftGlowIcon>(flame).color, SoftGlowIcon.warmAmber);
       expect(tester.getSize(flame).width, closeTo(61.2, .001));

@@ -59,6 +59,7 @@ class DashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     // Dashboard-only typography; the sibling navigation bar retains its theme.
     final theme = DigiGymDashboardTheme.content(Theme.of(context));
+    final surfaces = DigiGymSurfaces.of(context);
     // A missing streak is neutral, never a fabricated workout count.
     final preview = DashboardHeaderPreview.enabled;
     final days = streakDays;
@@ -69,7 +70,9 @@ class DashboardPage extends StatelessWidget {
     return Theme(
       data: theme,
       child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light,
+        value: theme.brightness == Brightness.dark
+            ? SystemUiOverlayStyle.light
+            : SystemUiOverlayStyle.dark,
         child: Scaffold(
           backgroundColor: Colors.transparent,
           body: SizedBox.expand(
@@ -126,10 +129,10 @@ class DashboardPage extends StatelessWidget {
                           child: StatCard(
                             title: 'Workout',
                             iconGlowOnly: true,
-                            iconColor: DigiGymDarkColors.softGreen,
+                            iconColor: surfaces.accent,
                             value: '${user.workoutTime} min',
                             icon: Icons.fitness_center,
-                            dotted: false,
+                            dotted: true,
                             fitNumber: true,
                           ),
                         );
@@ -151,12 +154,15 @@ class DashboardPage extends StatelessWidget {
                                     : () => onSelectTab!(2),
                                 child: StatCard(
                                   title: 'Daily calorie target',
+                                  statisticTypography: true,
                                   iconGlowOnly: true,
                                   value: CalorieFormat.format(
                                     user.estimatedCalories,
                                   ),
                                   icon: Icons.local_fire_department,
-                                  iconColor: const Color(0xFFFFD35B),
+                                  iconColor: surfaces.warmAccent,
+                                  lightIconShadow: DigiGymDashboardTheme
+                                      .calorieFlameLightShadow,
                                   embedded: true,
                                   fitNumber: true,
                                 ),
@@ -173,6 +179,7 @@ class DashboardPage extends StatelessWidget {
                                 ),
                                 child: StatCard(
                                   title: 'Weight',
+                                  statisticTypography: true,
                                   iconGlowOnly: true,
                                   value: MeasurementUnits.formatWeight(
                                     user.weight,
@@ -181,7 +188,7 @@ class DashboardPage extends StatelessWidget {
                                   embedded: true,
                                   compactNumber: true,
                                   icon: Icons.scale_outlined,
-                                  iconColor: DigiGymDarkColors.softGreen,
+                                  iconColor: surfaces.accent,
                                 ),
                               ),
                               const SizedBox(height: 14),
@@ -195,12 +202,13 @@ class DashboardPage extends StatelessWidget {
                                 ),
                                 child: StatCard(
                                   title: 'BMI',
+                                  statisticTypography: true,
                                   iconGlowOnly: true,
                                   value: BmiCategory.fromValue(user.bmi) == null
                                       ? 'Unavailable'
                                       : user.bmi.toStringAsFixed(1),
                                   icon: Icons.monitor_weight_outlined,
-                                  iconColor: DigiGymDarkColors.softGreen,
+                                  iconColor: surfaces.accent,
                                   embedded: true,
                                   compactNumber: true,
                                   fitNumber: true,
@@ -397,9 +405,9 @@ class DashboardPage extends StatelessWidget {
                                       date: date,
                                     ).map((day) => day.presentation).toList(),
                               onDaySelected: onScheduleDay,
-                              scheduledColor: DigiGymDarkColors.softGreen,
-                              seeAllColor: DigiGymDarkColors.softGreen,
-                              currentDayColor: DigiGymDarkColors.softGreen,
+                              scheduledColor: surfaces.accent,
+                              seeAllColor: surfaces.accent,
+                              currentDayColor: surfaces.accent,
                               onSeeAll:
                                   onSeeWeek ??
                                   (onSelectTab == null
@@ -409,7 +417,7 @@ class DashboardPage extends StatelessWidget {
                             const SizedBox(height: 18),
                             MonthlyActivityCalendar(
                               clock: clock,
-                              highlightColor: DigiGymDarkColors.softGreen,
+                              highlightColor: surfaces.accent,
                             ),
                           ],
                         );
@@ -463,19 +471,24 @@ class _DashboardWordmark extends StatelessWidget {
         final height = title.height;
         title.dispose();
 
+        final image = Image.asset(
+          'assets/images/digigym_wordmark.png',
+          key: const ValueKey('dashboard-wordmark'),
+          height: 48 * 331 / 796 * 1.05,
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.none,
+          semanticLabel: 'DigiGym',
+        );
         return SizedBox(
           height: height,
           child: Align(
             alignment: AlignmentDirectional.centerStart,
-            child: Image.asset(
-              'assets/images/digigym_wordmark.png',
-              key: const ValueKey('dashboard-wordmark'),
-              // The unchanged 48px-wide dumbbell is 331/796 as tall.
-              height: 48 * 331 / 796 * 1.05,
-              fit: BoxFit.contain,
-              filterQuality: FilterQuality.none,
-              semanticLabel: 'DigiGym',
-            ),
+            child: Theme.of(context).brightness == Brightness.dark
+                ? image
+                : ColorFiltered(
+                    colorFilter: DigiGymSurfaces.of(context).wordmarkFilter,
+                    child: image,
+                  ),
           ),
         );
       },

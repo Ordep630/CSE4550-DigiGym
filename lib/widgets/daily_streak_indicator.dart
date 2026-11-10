@@ -12,7 +12,6 @@ class DailyStreakIndicator extends StatelessWidget {
   const DailyStreakIndicator({super.key, this.days, this.isPreview = false})
     : assert(days == null || days >= 0);
 
-  static const _orange = Color(0xFFFFAA58);
   static const _numberStyle = TextStyle(
     fontFamily: DigiGymDashboardTheme.textFont,
     fontSize: 17,
@@ -41,6 +40,8 @@ class DailyStreakIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scaler = MediaQuery.textScalerOf(context);
+    final colors = Theme.of(context).colorScheme;
+    final surfaces = DigiGymSurfaces.of(context);
     return Semantics(
       label: days == null
           ? '0-day workout streak. No workout completions recorded; tracking is not available yet.'
@@ -50,22 +51,8 @@ class DailyStreakIndicator extends StatelessWidget {
       excludeSemantics: true,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
+        decoration: surfaces.streak.copyWith(
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: _orange.withValues(alpha: 0.30)),
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xE032302B), Color(0xE619211F), Color(0xE6212723)],
-            stops: [0, 0.55, 1],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: _orange.withValues(alpha: 0.11),
-              blurRadius: 12,
-              spreadRadius: -1,
-            ),
-          ],
         ),
         child: Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
@@ -75,14 +62,14 @@ class DailyStreakIndicator extends StatelessWidget {
             Icon(
               Icons.local_fire_department_rounded,
               size: scaler.scale(17),
-              color: _orange,
+              color: surfaces.streakAccent,
             ),
             Text(
               (days ?? 0).toString(),
               style: _numberStyle.copyWith(
                 color: (days ?? 0) == 0
-                    ? DigiGymDarkColors.secondaryText
-                    : DigiGymDarkColors.primaryText,
+                    ? colors.onSurfaceVariant
+                    : colors.onSurface,
               ),
             ),
           ],

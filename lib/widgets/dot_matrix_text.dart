@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/digigym_dot_typography.dart';
+
 /// Fixed 5x7 digits with a shared pitch and a compact, one-third-height %.
 /// Shared by progress, calendar dates, and the featured workout duration.
 class DotMatrixText extends StatelessWidget {
@@ -10,6 +12,26 @@ class DotMatrixText extends StatelessWidget {
   final bool softenedDigits;
   final bool scaleWithText;
   final double fillRatio;
+
+  /// Uses the approved Workout glyph shape, dot diameter, and spacing.
+  DotMatrixText.standard({
+    Key? key,
+    required String text,
+    double height = DigiGymDotTypography.progressHeight,
+    Color? color,
+    String? semanticLabel,
+    bool scaleWithText = true,
+    double fillRatio = DigiGymDotTypography.fillRatio,
+  }) : this(
+         key: key,
+         text: text,
+         height: height,
+         color: color,
+         semanticLabel: semanticLabel,
+         scaleWithText: scaleWithText,
+         softenedDigits: DigiGymDotTypography.softenedDigits,
+         fillRatio: fillRatio,
+       );
 
   DotMatrixText({
     super.key,
@@ -40,7 +62,7 @@ class DotMatrixText extends StatelessWidget {
       throw ArgumentError.value(
         text,
         'text',
-        'Use digits, a decimal point or %',
+        'Use digits, a decimal point, a comma or %',
       );
     }
   }
@@ -93,6 +115,7 @@ class DotMatrixPainter extends CustomPainter {
     '9': ['01110', '10001', '10001', '01111', '00001', '00001', '01110'],
     '%': ['11001', '11010', '00010', '00100', '01000', '01011', '10011'],
     '.': ['0', '0', '0', '0', '0', '0', '1'],
+    ',': ['00', '00', '00', '00', '00', '01', '10'],
   };
 
   const DotMatrixPainter({
@@ -102,8 +125,8 @@ class DotMatrixPainter extends CustomPainter {
     this.fillRatio = dotRatio,
   });
 
-  // Preserve the already-approved large calendar date when refining only the
-  // progress typography. Both variants retain the same 5x7 geometry and pitch.
+  // Legacy square-corner date glyphs remain available to explicit callers.
+  // The shared standard uses softened glyphs on the same 5x7 lattice.
   static const _dateGlyphs = <String, List<String>>{
     '0': ['11111', '10001', '10001', '10001', '10001', '10001', '11111'],
     '2': ['11111', '00001', '00001', '11111', '10000', '10000', '11111'],

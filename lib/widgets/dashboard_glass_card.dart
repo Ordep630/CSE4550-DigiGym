@@ -1,13 +1,19 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 
 import '../theme/digigym_dashboard_theme.dart';
+import 'soft_glow_icon.dart';
 
-/// Layered glass without per-card backdrop filtering or animation.
+/// Layered glass with optional clipped frosting; Home defaults stay unfiltered.
 class DashboardGlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   final EdgeInsetsGeometry margin;
   final double cornerRadius;
+  final double surfaceOpacity;
+  final double backdropSigma;
+  final double lightingOpacity;
 
   const DashboardGlassCard({
     super.key,
@@ -15,56 +21,59 @@ class DashboardGlassCard extends StatelessWidget {
     this.padding = const EdgeInsets.all(16),
     this.margin = EdgeInsets.zero,
     this.cornerRadius = DigiGymDashboardTheme.cardRadius,
-  });
+    this.surfaceOpacity = 1,
+    this.backdropSigma = 0,
+    this.lightingOpacity = 1,
+  }) : assert(surfaceOpacity > 0 && surfaceOpacity <= 1),
+       assert(backdropSigma >= 0),
+       assert(lightingOpacity >= 0 && lightingOpacity <= 1);
 
   @override
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(cornerRadius);
+    final surfaces = DigiGymSurfaces.of(context);
+    Widget frost(Widget content) => backdropSigma == 0
+        ? content
+        : BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaX: backdropSigma,
+              sigmaY: backdropSigma,
+            ),
+            child: content,
+          );
     return Padding(
       padding: margin,
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: radius,
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x38000000),
-              blurRadius: 18,
-              offset: Offset(0, 8),
-            ),
-          ],
+          boxShadow: [surfaces.glassShadow],
         ),
         child: ClipRRect(
           borderRadius: radius,
-          child: CustomPaint(
-            foregroundPainter: _GlassEdgePainter(cornerRadius),
-            child: DecoratedBox(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xF23B474A),
-                    Color(0xEE192123),
-                    Color(0xF00F1618),
-                    Color(0xF0222D2F),
-                  ],
-                  stops: [0, 0.28, 0.72, 1],
-                ),
+          child: frost(
+            CustomPaint(
+              foregroundPainter: _GlassEdgePainter(
+                cornerRadius,
+                surfaces.glassEdge,
               ),
               child: DecoratedBox(
-                decoration: const BoxDecoration(
-                  gradient: RadialGradient(
-                    center: Alignment(0.85, -1.15),
-                    radius: 1.1,
-                    colors: [
-                      Color(0x20FFFFFF),
-                      Color(0x06FFFFFF),
-                      Color(0x00FFFFFF),
-                    ],
-                    stops: [0, 0.35, 1],
-                  ),
+                decoration: surfaceOpacity == 1
+                    ? surfaces.glass
+                    : surfaces.glass.copyWith(
+                        gradient: surfaces.glass.gradient?.scale(
+                          surfaceOpacity,
+                        ),
+                      ),
+                child: DecoratedBox(
+                  decoration: lightingOpacity == 1
+                      ? surfaces.glassLighting
+                      : surfaces.glassLighting.copyWith(
+                          gradient: surfaces.glassLighting.gradient?.scale(
+                            lightingOpacity,
+                          ),
+                        ),
+                  child: Padding(padding: padding, child: child),
                 ),
-                child: Padding(padding: padding, child: child),
               ),
             ),
           ),
@@ -76,8 +85,9 @@ class DashboardGlassCard extends StatelessWidget {
 
 class _GlassEdgePainter extends CustomPainter {
   final double cornerRadius;
+  final Gradient edge;
 
-  const _GlassEdgePainter(this.cornerRadius);
+  const _GlassEdgePainter(this.cornerRadius, this.edge);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -85,18 +95,7 @@ class _GlassEdgePainter extends CustomPainter {
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.8
-      ..shader = const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          Color(0x70D5E1DF),
-          Color(0x26D5E1DF),
-          Color(0x05D5E1DF),
-          Color(0x12D5E1DF),
-          Color(0x38D5E1DF),
-        ],
-        stops: [0, 0.16, 0.48, 0.76, 1],
-      ).createShader(rect);
+      ..shader = edge.createShader(rect);
     canvas.drawRRect(
       RRect.fromRectAndRadius(rect, Radius.circular(cornerRadius - 0.5)),
       paint,
@@ -105,7 +104,7 @@ class _GlassEdgePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_GlassEdgePainter oldDelegate) =>
-      cornerRadius != oldDelegate.cornerRadius;
+      cornerRadius != oldDelegate.cornerRadius || edge != oldDelegate.edge;
 }
 
 /// Shared illuminated icon well used by dashboard cards, never the navbar.
@@ -128,6 +127,7 @@ class DashboardIconBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = color ?? Theme.of(context).colorScheme.primary;
+    final surfaces = DigiGymSurfaces.of(context);
     return Container(
       width: size,
       height: size,
@@ -138,26 +138,28 @@ class DashboardIconBadge extends StatelessWidget {
           radius: 1.25,
           colors: [
             Color.alphaBlend(
-              accent.withValues(alpha: luminous ? 0.20 : 0.12),
-              const Color(0xFF14231C),
+              accent.withValues(
+                alpha: (luminous ? 0.20 : 0.12) * surfaces.glowIntensity,
+              ),
+              surfaces.iconWell,
             ),
             Color.alphaBlend(
-              accent.withValues(alpha: 0.06),
-              const Color(0xFF14231C),
+              accent.withValues(alpha: 0.06 * surfaces.glowIntensity),
+              surfaces.iconWell,
             ),
-            const Color(0xFF0E1916),
+            surfaces.iconWellBottom,
           ],
           stops: const [0, 0.4, 1],
         ),
         boxShadow: luminous
             ? [
                 BoxShadow(
-                  color: accent.withValues(alpha: 0.2),
+                  color: accent.withValues(alpha: 0.2 * surfaces.glowIntensity),
                   blurRadius: 17,
                   spreadRadius: 1,
                 ),
-                const BoxShadow(
-                  color: Color(0x45000000),
+                BoxShadow(
+                  color: surfaces.iconShadow,
                   blurRadius: 8,
                   offset: Offset(0, 3),
                 ),
@@ -165,19 +167,20 @@ class DashboardIconBadge extends StatelessWidget {
             : null,
       ),
       child: CustomPaint(
-        foregroundPainter: _IconRimPainter(accent, luminous),
+        foregroundPainter: _IconRimPainter(
+          accent,
+          luminous,
+          surfaces.glowIntensity,
+        ),
         child: DecoratedBox(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: RadialGradient(
-              center: Alignment(-0.55, -0.8),
-              radius: 0.95,
-              colors: [Color(0x24FFFFFF), Color(0x00FFFFFF), Color(0x28000000)],
-              stops: [0, 0.5, 1],
-            ),
+            gradient: surfaces.iconLighting,
           ),
           child: child == null
-              ? Icon(icon, size: size * 0.52, color: accent)
+              ? DigiGymIlluminatedGlyph(
+                  child: Icon(icon, size: size * 0.52, color: accent),
+                )
               : Center(child: child),
         ),
       ),
@@ -188,13 +191,14 @@ class DashboardIconBadge extends StatelessWidget {
 class _IconRimPainter extends CustomPainter {
   final Color accent;
   final bool luminous;
+  final double glowIntensity;
 
-  const _IconRimPainter(this.accent, this.luminous);
+  const _IconRimPainter(this.accent, this.luminous, this.glowIntensity);
 
   @override
   void paint(Canvas canvas, Size size) {
     final rect = (Offset.zero & size).deflate(0.5);
-    final strength = luminous ? 1.0 : 0.35;
+    final strength = (luminous ? 1.0 : 0.35) * glowIntensity;
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.9
@@ -218,5 +222,7 @@ class _IconRimPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_IconRimPainter oldDelegate) =>
-      accent != oldDelegate.accent || luminous != oldDelegate.luminous;
+      accent != oldDelegate.accent ||
+      luminous != oldDelegate.luminous ||
+      glowIntensity != oldDelegate.glowIntensity;
 }

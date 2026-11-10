@@ -547,45 +547,17 @@ void main() {
     );
   });
 
-  testWidgets(
-    'appearance shows selected dark and unavailable light without toggling theme',
-    (tester) async {
-      final semantics = tester.ensureSemantics();
-      await profile(tester);
-      await tapRow(tester, 'App Appearance');
-      expect(find.byType(AppAppearanceScreen), findsOneWidget);
-      expect(find.byIcon(Icons.check_rounded), findsOneWidget);
-      expect(find.text('Coming Soon'), findsOneWidget);
-      expect(
-        tester.getSemantics(find.bySemanticsLabel('Dark Mode, selected')),
-        matchesSemantics(
-          label: 'Dark Mode, selected',
-          hasEnabledState: true,
-          isEnabled: true,
-          hasSelectedState: true,
-          isSelected: true,
-        ),
-      );
-      expect(
-        tester.getSemantics(
-          find.bySemanticsLabel('Light Mode, Coming Soon, unavailable'),
-        ),
-        matchesSemantics(
-          label: 'Light Mode, Coming Soon, unavailable',
-          hasEnabledState: true,
-          isEnabled: false,
-        ),
-      );
-      await tester.tap(find.text('Light Mode'));
-      await tester.pumpAndSettle();
-      expect(
-        Theme.of(tester.element(find.text('Dark Mode'))).brightness,
-        Brightness.dark,
-      );
-      expect(find.byIcon(Icons.check_rounded), findsOneWidget);
-      semantics.dispose();
-    },
-  );
+  testWidgets('appearance route exposes all three options', (tester) async {
+    await profile(tester);
+    await tapRow(tester, 'App Appearance');
+    expect(find.byType(AppAppearanceScreen), findsOneWidget);
+    for (final label in ['Dark Mode', 'Light Mode', 'Follow System']) {
+      expect(find.text(label), findsOneWidget);
+    }
+    expect(find.text('Coming Soon'), findsNothing);
+    expect(find.byIcon(Icons.check_rounded), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('three settings open the same artwork route with working back', (
     tester,

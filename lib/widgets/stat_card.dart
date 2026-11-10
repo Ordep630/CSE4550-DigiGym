@@ -14,6 +14,10 @@ class StatCard extends StatelessWidget {
   final Color? iconColor;
   final bool fitNumber;
   final bool iconGlowOnly;
+  final Shadow? lightIconShadow;
+
+  /// Opt in only for the three approved right-hand dashboard statistics.
+  final bool statisticTypography;
 
   /// Retain compact numerical typography when embedding a former small card.
   final bool? compactNumber;
@@ -29,6 +33,8 @@ class StatCard extends StatelessWidget {
     this.iconColor,
     this.fitNumber = false,
     this.iconGlowOnly = false,
+    this.lightIconShadow,
+    this.statisticTypography = false,
     this.compactNumber,
   });
 
@@ -44,6 +50,7 @@ class StatCard extends StatelessWidget {
           SoftGlowIcon(
             icon: icon,
             color: iconColor ?? theme.colorScheme.primary,
+            lightShadow: lightIconShadow,
           )
         else
           DashboardIconBadge(
@@ -60,6 +67,7 @@ class StatCard extends StatelessWidget {
             children: [
               DashboardNumber(
                 value: value,
+                statisticTypography: statisticTypography,
                 dotted: dotted,
                 fontSize: originalSize * numberScale,
                 // Larger glyphs use the existing line box and unit sizing.

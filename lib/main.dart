@@ -5,6 +5,8 @@ import 'models/user_profile.dart';
 import 'models/session.dart';
 import 'services/digigym_api.dart';
 import 'services/dashboard_personalization.dart';
+import 'theme/appearance_controller.dart';
+import 'theme/digigym_dashboard_theme.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/assessment_screen.dart';
@@ -25,12 +27,14 @@ class DigiGymApp extends StatefulWidget {
   final DigiGymApi api;
   final DashboardPersonalization? personalization;
   final DateTime Function()? clock;
+  final AppearanceController? appearance;
 
   const DigiGymApp({
     super.key,
     this.api = digiGymApi,
     this.personalization,
     this.clock,
+    this.appearance,
   });
 
   @override
@@ -43,12 +47,14 @@ class _DigiGymAppState extends State<DigiGymApp> with WidgetsBindingObserver {
   bool isCompletingProfile = false;
   String? sessionRestoreError;
   late final DashboardPersonalization _personalization;
+  late final AppearanceController _appearance;
   String _motivationalMessage = DashboardPersonalization.defaultMessage;
 
   @override
   void initState() {
     super.initState();
     _personalization = widget.personalization ?? DashboardPersonalization();
+    _appearance = widget.appearance ?? AppearanceController();
     WidgetsBinding.instance.addObserver(this);
     restoreSession();
   }
@@ -62,6 +68,7 @@ class _DigiGymAppState extends State<DigiGymApp> with WidgetsBindingObserver {
     });
 
     try {
+      await _appearance.initialize();
       await _personalization.initialize();
       final user = await widget.api.restoreProfile();
       if (widget.api.isAuthenticated && user == null) {
@@ -134,12 +141,14 @@ class _DigiGymAppState extends State<DigiGymApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _personalization.retryPersistence();
+      _appearance.retryPersistence();
     }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    if (widget.appearance == null) _appearance.dispose();
     super.dispose();
   }
 
@@ -204,24 +213,34 @@ class _DigiGymAppState extends State<DigiGymApp> with WidgetsBindingObserver {
       );
     }
 
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'DigiGym',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
-        scaffoldBackgroundColor: const Color(0xFFF5F7F5),
+    return ListenableBuilder(
+      listenable: _appearance,
+      builder: (context, child) => AppearanceScope(
+        controller: _appearance,
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'DigiGym',
+          theme: DigiGymDashboardTheme.light(_baseTheme()),
+          darkTheme: DigiGymDashboardTheme.dark(_baseTheme()),
+          themeMode: _appearance.mode,
+          home: home,
+          routes: {
+            '/verify-email': (context) => VerifyEmailScreen(api: widget.api),
+            '/register': (_) => RegisterScreen(api: widget.api),
+            '/assessment': (_) => AssessmentScreen(api: widget.api),
+            '/meals': (_) => const MealsScreen(),
+            '/groceries': (_) => const DigiGymPageShell(child: GroceryScreen()),
+          },
+        ),
       ),
-      home: home,
-      routes: {
-        '/verify-email': (context) => VerifyEmailScreen(api: widget.api),
-        '/register': (_) => RegisterScreen(api: widget.api),
-        '/assessment': (_) => AssessmentScreen(api: widget.api),
-        '/meals': (_) => const MealsScreen(),
-        '/groceries': (_) => const DigiGymPageShell(child: GroceryScreen()),
-      },
     );
   }
+
+  ThemeData _baseTheme() => ThemeData(
+    useMaterial3: true,
+    colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+    scaffoldBackgroundColor: const Color(0xFFF5F7F5),
+  );
 }
 
 class _SessionLoadingScreen extends StatelessWidget {

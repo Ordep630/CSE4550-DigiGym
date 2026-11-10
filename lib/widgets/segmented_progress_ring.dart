@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../theme/digigym_dashboard_theme.dart';
+import '../theme/digigym_dot_typography.dart';
 import 'dot_matrix_text.dart';
 
 /// A supplied percentage only; never derives completion from a profile or plan.
@@ -32,8 +34,9 @@ class SegmentedProgressRing extends StatelessWidget {
     // Three digits (100) are the largest display, including fractional inputs.
     final label = progress.round().toString();
     final theme = Theme.of(context);
+    final surfaces = DigiGymSurfaces.of(context);
     final size = diameter;
-    final innerWidth = size * .64;
+    final innerWidth = size * .64 * surfaces.numberScale;
     final innerHeight = size * .64;
     final labelStyle = theme.textTheme.bodySmall?.copyWith(
       fontSize: 12,
@@ -50,9 +53,16 @@ class SegmentedProgressRing extends StatelessWidget {
     // One fixed height for every value at these constraints. No value-specific
     // FittedBox: 0, 25, 75 and 100 all use identical digit dots and spacing.
     final digitHeight = math.min(
-      MediaQuery.textScalerOf(context).scale(44),
+      MediaQuery.textScalerOf(context)
+              .scale(DigiGymDotTypography.progressHeight) *
+          surfaces.numberScale,
       math.min(
-        innerWidth / DotMatrixPainter.widthFor('100%', 1),
+        innerWidth /
+            DotMatrixPainter.widthFor(
+              '100%',
+              1,
+              fillRatio: surfaces.dotFillRatio,
+            ),
         innerHeight - labelHeight - 4,
       ),
     );
@@ -65,6 +75,7 @@ class SegmentedProgressRing extends StatelessWidget {
           painter: SegmentedProgressPainter(
             progress: progress,
             activeColor: theme.colorScheme.primary,
+            inactiveColor: DigiGymSurfaces.of(context).progressTrack,
           ),
           child: Center(
             child: SizedBox(
@@ -77,12 +88,11 @@ class SegmentedProgressRing extends StatelessWidget {
                   SizedBox(
                     key: const ValueKey('progress-percentage-bounds'),
                     height: digitHeight,
-                    child: DotMatrixText(
+                    child: DotMatrixText.standard(
                       key: const ValueKey('progress-percentage'),
                       text: '$label%',
                       height: digitHeight,
                       scaleWithText: false,
-                      softenedDigits: true,
                       color: theme.colorScheme.onSurface,
                     ),
                   ),

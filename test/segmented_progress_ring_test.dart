@@ -7,11 +7,17 @@ import 'package:digigym/theme/digigym_dashboard_theme.dart';
 import 'package:digigym/widgets/dashboard_progress_card.dart';
 import 'package:digigym/widgets/segmented_progress_ring.dart';
 import 'package:digigym/widgets/floating_bottom_navigation_bar.dart';
+import 'package:digigym/widgets/dashboard_number.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:digigym/widgets/dot_matrix_text.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+// Numeric glyphs are painted; verify the original accessible data value.
+Finder numberValue(String value) => find.byWidgetPredicate(
+  (widget) => widget is DashboardNumber && widget.value == value,
+);
 
 void main() {
   setUpAll(() async {
@@ -315,7 +321,7 @@ void main() {
             .text,
         '0%',
       );
-      expect(find.text('165.3 lb'), findsOneWidget);
+      expect(numberValue('165.3 lb'), findsOneWidget);
       expect(find.text('Good Morning,'), findsOneWidget);
       expect(find.text('0'), findsOneWidget);
       final scroll = tester

@@ -62,6 +62,7 @@ class _BmiInformation extends StatelessWidget {
     final category = BmiCategory.fromValue(bmi);
     return DigiGymDialog(
       title: 'What is BMI?',
+      translucentSurface: true,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,7 +102,7 @@ class _BmiInformation extends StatelessWidget {
                         band.range,
                         style: TextStyle(
                           color: band == category
-                              ? DigiGymDarkColors.softGreen
+                              ? DigiGymSurfaces.of(context).accent
                               : null,
                         ),
                       ),
@@ -112,7 +113,7 @@ class _BmiInformation extends StatelessWidget {
                         band.label,
                         style: TextStyle(
                           color: band == category
-                              ? DigiGymDarkColors.softGreen
+                              ? DigiGymSurfaces.of(context).accent
                               : null,
                           fontWeight: band == category ? FontWeight.w600 : null,
                         ),
@@ -135,8 +136,8 @@ class _BmiInformation extends StatelessWidget {
                       TextSpan(text: 'Your BMI: ${bmi!.toStringAsFixed(1)} — '),
                       TextSpan(
                         text: category.label,
-                        style: const TextStyle(
-                          color: DigiGymDarkColors.softGreen,
+                        style: TextStyle(
+                          color: DigiGymSurfaces.of(context).accent,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

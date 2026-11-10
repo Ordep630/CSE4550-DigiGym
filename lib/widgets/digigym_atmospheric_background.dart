@@ -10,27 +10,11 @@ class DigiGymAtmosphericBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final surfaces = DigiGymSurfaces.of(context);
     return SizedBox.expand(
       child: DecoratedBox(
-        decoration: const BoxDecoration(
-          color: DigiGymDarkColors.graphite,
-          gradient: RadialGradient(
-            center: Alignment(1.2, -0.6),
-            radius: 1.6,
-            colors: [Color(0xFF202C30), DigiGymDarkColors.graphite],
-            stops: [0, 0.85],
-          ),
-        ),
-        child: DecoratedBox(
-          decoration: const BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment(-1.1, 1.2),
-              radius: 1.25,
-              colors: [Color(0x0D39FF98), Color(0x0039FF98)],
-            ),
-          ),
-          child: child,
-        ),
+        decoration: surfaces.background,
+        child: DecoratedBox(decoration: surfaces.atmosphere, child: child),
       ),
     );
   }

@@ -12,17 +12,21 @@ import 'workout_app_bar.dart';
 class ProfileDestinationScaffold extends StatelessWidget {
   final String? title;
   final Widget child;
+  final bool followAppearance;
 
   const ProfileDestinationScaffold({
     super.key,
     this.title,
     required this.child,
+    this.followAppearance = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = DigiGymDashboardTheme.content(
-      DigiGymDashboardTheme.dark(Theme.of(context)),
+      followAppearance
+          ? DigiGymDashboardTheme.resolve(Theme.of(context))
+          : DigiGymDashboardTheme.dark(Theme.of(context)),
     );
     return Theme(
       data: theme,

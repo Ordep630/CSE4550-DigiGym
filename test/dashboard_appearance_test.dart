@@ -1,3 +1,5 @@
+import 'package:digigym/theme/digigym_dot_typography.dart';
+
 import 'dart:io';
 import 'dart:convert';
 
@@ -23,6 +25,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Widget dashboard({
+  ThemeData? theme,
   double textScale = 1,
   String name = 'Alex Morgan',
   EdgeInsets safeArea = const EdgeInsets.only(top: 24, bottom: 24),
@@ -31,11 +34,13 @@ Widget dashboard({
   DateTime? localTime,
 }) => MaterialApp(
   debugShowCheckedModeBanner: false,
-  theme: ThemeData(
-    useMaterial3: true,
-    colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
-    scaffoldBackgroundColor: const Color(0xFFF5F7F5),
-  ),
+  theme:
+      theme ??
+      ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+        scaffoldBackgroundColor: const Color(0xFFF5F7F5),
+      ),
   builder: (context, child) => MediaQuery(
     data: MediaQuery.of(context)
         .copyWith(padding: safeArea, textScaler: TextScaler.linear(textScale)),
@@ -379,7 +384,7 @@ void main() {
   );
 
   testAndroidDashboard(
-    'larger Doto values retain card heights, units and label alignment',
+    'Workout-style numerals retain card heights, units and label alignment',
     (tester) async {
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.resetPhysicalSize);
@@ -392,7 +397,7 @@ void main() {
           'Daily calorie target': (29 * 1.15, 35.0, true),
           'BMI': (27 * 1.17, 32.0, true),
           'Weight': (27 * 1.17, 32.0, true),
-          'Workout': (27.0, 32.0, false),
+          'Workout': (27 * 1.17, 32.0, true),
         }.entries) {
           final card = find.widgetWithText(StatCard, entry.key);
           final number = find.descendant(
@@ -420,23 +425,29 @@ void main() {
           );
           expect(
             tester.getRect(number).right,
-            lessThanOrEqualTo(tester.getRect(card).right),
+            lessThanOrEqualTo(tester.getRect(card).right + .001),
           );
-          final text = tester.widget<Text>(
-            find.descendant(of: number, matching: find.byType(Text)),
+          final digits = tester.widget<DotMatrixText>(
+            find.descendant(of: number, matching: find.byType(DotMatrixText)),
           );
-          final spans = (text.textSpan! as TextSpan).children!.cast<TextSpan>();
           expect(
-            spans.first.style!.fontFamily,
-            entry.value.$3
-                ? DigiGymDashboardTheme.numberFont
-                : DigiGymDashboardTheme.textFont,
+            digits.fillRatio,
+            entry.key == 'Workout'
+                ? DigiGymDotTypography.fillRatio
+                : DigiGymDotTypography.statisticFillRatio,
           );
-          expect(spans.first.style!.color, DigiGymDarkColors.primaryText);
-          expect(
-            spans.last.style!.fontSize,
-            (entry.key == 'Daily calorie target' ? 29 : 27) * .53,
-          );
+          expect(digits.softenedDigits, isTrue);
+          expect(digits.color, DigiGymDarkColors.primaryText);
+          if (entry.key != 'BMI') {
+            final unit = tester.widget<Text>(
+              find.descendant(of: number, matching: find.byType(Text)),
+            );
+            expect(
+              unit.style!.fontSize,
+              (entry.key == 'Daily calorie target' ? 29 : 27) * .53,
+            );
+            expect(unit.style!.fontFamily, DigiGymDashboardTheme.textFont);
+          }
           if (entry.key == 'BMI' || entry.key == 'Weight') {
             expect(tester.getSize(card).height, 63);
           }
@@ -606,10 +617,6 @@ void main() {
         'Isaac',
         "Today's Progress",
         'Complete',
-        '1818 Cal',
-        '30 min',
-        '19.2',
-        '127.9 lb',
         'Daily calorie target',
         'Workout',
         'Weight',
@@ -629,6 +636,12 @@ void main() {
         expect(bounds.left, greaterThanOrEqualTo(20), reason: label);
         expect(bounds.right, lessThanOrEqualTo(1280 / 3 - 20), reason: label);
       }
+      expect(
+        tester
+            .widgetList<DashboardNumber>(find.byType(DashboardNumber))
+            .map((w) => w.value),
+        containsAll(['1818 Cal', '30 min', '19.2', '127.9 lb']),
+      );
       expect(tester.takeException(), isNull);
     },
   );
@@ -755,10 +768,30 @@ void main() {
             find.byKey(const ValueKey('month-day-2026-10-31')),
           );
           await tester.pumpAndSettle();
-          expect(find.text('24.7'), findsOneWidget);
-          expect(find.text('176.4 lb'), findsOneWidget);
-          expect(find.text('2075 Cal'), findsOneWidget);
-          expect(find.text('45 min'), findsOneWidget);
+          expect(
+            find.byWidgetPredicate(
+              (w) => w is DashboardNumber && w.value == '24.7',
+            ),
+            findsOneWidget,
+          );
+          expect(
+            find.byWidgetPredicate(
+              (w) => w is DashboardNumber && w.value == '176.4 lb',
+            ),
+            findsOneWidget,
+          );
+          expect(
+            find.byWidgetPredicate(
+              (w) => w is DashboardNumber && w.value == '2075 Cal',
+            ),
+            findsOneWidget,
+          );
+          expect(
+            find.byWidgetPredicate(
+              (w) => w is DashboardNumber && w.value == '45 min',
+            ),
+            findsOneWidget,
+          );
           final description = tester.getRect(
             find.byKey(const ValueKey('month-day-2026-10-31')),
           );

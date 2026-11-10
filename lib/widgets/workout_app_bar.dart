@@ -33,7 +33,13 @@ AppBar workoutAppBar(
   return AppBar(
     automaticallyImplyLeading: showBack,
     leading: showBack
-        ? const BackButton(color: DigiGymDarkColors.electricGreen)
+        ? BackButton(
+            color:
+                (theme ?? Theme.of(context))
+                    .extension<DigiGymSurfaces>()
+                    ?.navigationActive ??
+                DigiGymDarkColors.electricGreen,
+          )
         : null,
     titleSpacing: 20,
     toolbarHeight: height,

@@ -13,8 +13,14 @@ import 'package:digigym/widgets/dashboard_progress_card.dart';
 import 'package:digigym/widgets/segmented_progress_ring.dart';
 import 'package:digigym/widgets/plan_card.dart';
 import 'package:digigym/widgets/stat_card.dart';
+import 'package:digigym/widgets/dashboard_number.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+// Numeric glyphs are painted; verify the original accessible data value.
+Finder numberValue(String value) => find.byWidgetPredicate(
+  (widget) => widget is DashboardNumber && widget.value == value,
+);
 
 void main() {
   final lightTheme = ThemeData(
@@ -61,10 +67,10 @@ void main() {
       );
       expect(find.text('Alex'), findsOneWidget);
       expect(find.text("Today's Progress"), findsOneWidget);
-      expect(find.text('24.7'), findsOneWidget);
-      expect(find.text('1775 Cal'), findsOneWidget);
-      expect(find.text('176.4 lb'), findsOneWidget);
-      expect(find.text('35 min'), findsOneWidget);
+      expect(numberValue('24.7'), findsOneWidget);
+      expect(numberValue('1775 Cal'), findsOneWidget);
+      expect(numberValue('176.4 lb'), findsOneWidget);
+      expect(numberValue('35 min'), findsOneWidget);
       expect(find.byType(StatCard), findsNWidgets(4));
       expect(
         find.descendant(
@@ -83,9 +89,9 @@ void main() {
       await tester.pumpWidget(host(profile(weight: 90, name: 'Taylor')));
       await tester.pumpAndSettle();
       expect(find.text('Taylor'), findsOneWidget);
-      expect(find.text('27.8'), findsOneWidget);
-      expect(find.text('1875 Cal'), findsOneWidget);
-      expect(find.text('198.4 lb'), findsOneWidget);
+      expect(numberValue('27.8'), findsOneWidget);
+      expect(numberValue('1875 Cal'), findsOneWidget);
+      expect(numberValue('198.4 lb'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );
@@ -330,10 +336,10 @@ void main() {
             ),
           );
           await tester.pumpAndSettle();
-          expect(find.text('125 min'), findsOneWidget);
-          expect(find.text('2204.4 lb'), findsOneWidget);
-          expect(find.text(user.bmi.toStringAsFixed(1)), findsOneWidget);
-          expect(find.text('${user.estimatedCalories} Cal'), findsOneWidget);
+          expect(numberValue('125 min'), findsOneWidget);
+          expect(numberValue('2204.4 lb'), findsOneWidget);
+          expect(numberValue(user.bmi.toStringAsFixed(1)), findsOneWidget);
+          expect(numberValue('${user.estimatedCalories} Cal'), findsOneWidget);
           for (final card in tester.widgetList<StatCard>(
             find.byType(StatCard),
           )) {
@@ -367,7 +373,7 @@ void main() {
       }.entries) {
         await tester.pumpWidget(host(profile(fitnessGoal: entry.key)));
         await tester.pumpAndSettle();
-        expect(find.text('${entry.value} Cal'), findsOneWidget);
+        expect(numberValue('${entry.value} Cal'), findsOneWidget);
         expect(
           tester
               .widget<SegmentedProgressRing>(find.byType(SegmentedProgressRing))
@@ -466,10 +472,10 @@ void main() {
           );
           await tester.pumpAndSettle();
           expect(find.text('Alexandria Morgan Hernandez'), findsOneWidget);
-          expect(find.text('24.7'), findsOneWidget);
-          expect(find.text('1775 Cal'), findsOneWidget);
-          expect(find.text('176.4 lb'), findsOneWidget);
-          expect(find.text('35 min'), findsOneWidget);
+          expect(numberValue('24.7'), findsOneWidget);
+          expect(numberValue('1775 Cal'), findsOneWidget);
+          expect(numberValue('176.4 lb'), findsOneWidget);
+          expect(numberValue('35 min'), findsOneWidget);
           expect(
             tester.takeException(),
             isNull,

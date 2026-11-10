@@ -8,6 +8,7 @@ Future<void> showWorkoutDay(
   BuildContext context,
   AssignedWorkoutDay day, {
   VoidCallback? onSetUp,
+  bool frostLightSurface = false,
 }) => showDialog<void>(
   context: context,
   builder: (dialogContext) {
@@ -22,6 +23,9 @@ Future<void> showWorkoutDay(
     ];
     final plan = day.plan;
     return DigiGymDialog(
+      translucentSurface:
+          frostLightSurface &&
+          Theme.of(dialogContext).brightness == Brightness.light,
       title:
           '${names[day.date.weekday % 7]} · ${day.date.month}/${day.date.day}',
       content: Column(

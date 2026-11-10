@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../models/workout_plan.dart';
 import '../theme/digigym_dashboard_theme.dart';
-import '../widgets/dashboard_glass_card.dart';
+import '../theme/digigym_workout_theme.dart';
+import '../widgets/workout_glass_card.dart';
 import '../widgets/digigym_atmospheric_background.dart';
 import '../widgets/workout_app_bar.dart';
 import '../widgets/workout_exercise_list.dart';
@@ -28,19 +29,14 @@ class _WorkoutExercisesScreenState extends State<WorkoutExercisesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final base = Theme.of(context);
+    final resolved = DigiGymDashboardTheme.resolve(base);
     final baseTheme = DigiGymDashboardTheme.content(
-      DigiGymDashboardTheme.dark(Theme.of(context)),
+      resolved.brightness == Brightness.light
+          ? resolved
+          : DigiGymDashboardTheme.dark(base),
     );
-    final theme = baseTheme.copyWith(
-      expansionTileTheme: baseTheme.expansionTileTheme.copyWith(
-        textColor: DigiGymDarkColors.softGreen,
-        iconColor: DigiGymDarkColors.softGreen,
-      ),
-      colorScheme: baseTheme.colorScheme.copyWith(
-        primary: DigiGymDarkColors.softGreen,
-        primaryContainer: DigiGymDarkColors.softGreen.withValues(alpha: .12),
-      ),
-    );
+    final theme = DigiGymWorkoutTheme.apply(baseTheme);
     final plan = widget.plan;
     return Theme(
       data: theme,
@@ -79,7 +75,7 @@ class _WorkoutExercisesScreenState extends State<WorkoutExercisesScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  DashboardGlassCard(
+                  WorkoutGlassCard(
                     key: const ValueKey('workout-walkthrough-step'),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,

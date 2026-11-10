@@ -40,6 +40,7 @@ class _ScheduleEditorState extends State<_ScheduleEditor> {
       return PopScope(
         canPop: !controller.saving,
         child: DigiGymDialog(
+          translucentSurface: Theme.of(context).brightness == Brightness.light,
           title: 'Your workout days',
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -53,7 +54,12 @@ class _ScheduleEditorState extends State<_ScheduleEditor> {
                 CheckboxListTile(
                   key: ValueKey('schedule-edit-day-$i'),
                   contentPadding: EdgeInsets.zero,
-                  activeColor: DigiGymDarkColors.softGreen,
+                  activeColor: Theme.of(context).brightness == Brightness.light
+                      ? DigiGymSurfaces.of(context).accent
+                      : DigiGymDarkColors.softGreen,
+                  checkColor: Theme.of(context).brightness == Brightness.light
+                      ? DigiGymSurfaces.of(context).onAccent
+                      : null,
                   title: Text(names[i]),
                   subtitle: Text(_days.contains(i) ? 'Workout' : 'Rest'),
                   value: _days.contains(i),

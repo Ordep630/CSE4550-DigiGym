@@ -1,3 +1,5 @@
+import 'package:digigym/theme/digigym_dot_typography.dart';
+
 import 'dart:ui' as ui;
 
 import 'package:digigym/main.dart';
@@ -276,7 +278,7 @@ void main() {
           expect(matrix.text, '$minutes');
           expect(matrix.softenedDigits, isTrue);
           expect(matrix.height / scale, closeTo(43.2, .0001));
-          expect(matrix.fillRatio, .74);
+          expect(matrix.fillRatio, DigiGymDotTypography.fillRatio);
           expect(
             matrix.height / scale / (48 * .7),
             inInclusiveRange(1.25, 1.30),

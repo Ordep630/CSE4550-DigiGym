@@ -4,6 +4,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../models/workout_schedule_day.dart';
+import '../theme/digigym_dashboard_theme.dart';
+import '../theme/digigym_dot_typography.dart';
 import 'dashboard_glass_card.dart';
 import 'dot_matrix_text.dart';
 
@@ -121,6 +123,7 @@ class _MonthlyActivityCalendarState extends State<MonthlyActivityCalendar>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final surfaces = DigiGymSurfaces.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -160,12 +163,16 @@ class _MonthlyActivityCalendarState extends State<MonthlyActivityCalendar>
                     const SizedBox(height: 7),
                     FittedBox(
                       fit: BoxFit.scaleDown,
-                      child: DotMatrixText(
-                        key: const ValueKey('activity-date'),
-                        text: '${_today.day}',
-                        height: 48,
-                        color:
-                            widget.highlightColor ?? theme.colorScheme.primary,
+                      child: Transform.scale(
+                        scale: surfaces.numberScale,
+                        child: DotMatrixText.standard(
+                          key: const ValueKey('activity-date'),
+                          text: '${_today.day}',
+                          height: DigiGymDotTypography.calendarHeight,
+                          color:
+                              widget.highlightColor ??
+                              theme.colorScheme.primary,
+                        ),
                       ),
                     ),
                   ],
@@ -275,6 +282,7 @@ class _CalendarDate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final surfaces = DigiGymSurfaces.of(context);
     final current = date == today;
     final future = date.isAfter(today);
     final record = activity;
@@ -326,6 +334,17 @@ class _CalendarDate extends StatelessWidget {
                 )
               : null,
           color: current ? highlightColor.withValues(alpha: .06) : null,
+          boxShadow: current && surfaces.selectionGlowOpacity > 0
+              ? [
+                  BoxShadow(
+                    color: highlightColor.withValues(
+                      alpha: surfaces.selectionGlowOpacity,
+                    ),
+                    blurRadius: 8,
+                    spreadRadius: .5,
+                  ),
+                ]
+              : null,
         ),
         // A missing activity indicator must not reserve space below the date.
         // Center the number in the full cell and overlay explicit activity at

@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:digigym/widgets/floating_bottom_navigation_bar.dart';
+import 'package:digigym/theme/digigym_dashboard_theme.dart';
 
 void main() {
   Finder foreground(int index) => find.descendant(
@@ -50,7 +51,10 @@ void main() {
         expect(blur, findsOneWidget);
         expect(
           tester.widget<BackdropFilter>(blur).filter,
-          ui.ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          ui.ImageFilter.blur(
+            sigmaX: brightness == Brightness.light ? 16 : 14,
+            sigmaY: brightness == Brightness.light ? 16 : 14,
+          ),
         );
         final clip = find.ancestor(of: blur, matching: find.byType(ClipRRect));
         expect(clip, findsOneWidget);
@@ -72,8 +76,8 @@ void main() {
           );
           expect(shape.side.color.a, closeTo(.15, .001));
         } else {
-          expect(material.color, const Color(0xE6F5F8F5));
-          expect(shape.side.color, const Color(0x99FFFFFF));
+          expect(material.color, DigiGymSurfaces.light.navigationSurface);
+          expect(shape.side.color, DigiGymSurfaces.light.navigationBorder);
         }
       }
     },
@@ -188,10 +192,12 @@ void main() {
           findsNothing,
         );
         final glowImage = tester.widget<Image>(
-          find.descendant(
-            of: find.byKey(const ValueKey('navigation-icon-glow')),
-            matching: find.byType(Image),
-          ),
+          find
+              .descendant(
+                of: find.byKey(const ValueKey('navigation-icon-glow')),
+                matching: find.byType(Image),
+              )
+              .first,
         );
         expect(glowImage.image, image.image);
         expect(glowImage.width, image.width);
@@ -233,7 +239,7 @@ void main() {
       for (final brightness in Brightness.values) {
         final selected = brightness == Brightness.dark
             ? const Color(0xFF70FF45)
-            : const Color(0xFF21865C);
+            : DigiGymSurfaces.light.navigationActive;
         final inactive = brightness == Brightness.dark
             ? const Color(0xFFA6AEAA)
             : const Color(0xFF626C66);
@@ -245,7 +251,10 @@ void main() {
           expect(bar, originalBounds);
           final glow = find.byKey(const ValueKey('navigation-icon-glow'));
           expect(glow, findsOneWidget);
-          expect(find.byType(ImageFiltered), findsOneWidget);
+          expect(
+            find.byType(ImageFiltered),
+            brightness == Brightness.light ? findsNWidgets(3) : findsOneWidget,
+          );
           final slot = find.byKey(ValueKey('navigation-icon-$index'));
           expect(tester.getRect(glow), tester.getRect(slot));
           expect(
@@ -255,7 +264,7 @@ void main() {
           expect(tester.widget<IgnorePointer>(glow).ignoring, isTrue);
           glowStrength[brightness] = tester
               .widget<Opacity>(
-                find.descendant(of: glow, matching: find.byType(Opacity)),
+                find.descendant(of: glow, matching: find.byType(Opacity)).first,
               )
               .opacity;
           for (

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/digigym_dashboard_theme.dart';
+
 /// A notification affordance that requires a real action from its caller.
 class DashboardNotificationButton extends StatelessWidget {
   final VoidCallback onPressed;
@@ -37,11 +39,7 @@ class DashboardNotificationButton extends StatelessWidget {
               border: Border.all(
                 color: colors.onSurface.withValues(alpha: 0.10),
               ),
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0x9634413D), Color(0x66151D1A)],
-              ),
+              gradient: DigiGymSurfaces.of(context).notification,
             ),
             child: Padding(
               padding: const EdgeInsets.all(6),
