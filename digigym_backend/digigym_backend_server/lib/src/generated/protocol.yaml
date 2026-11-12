@@ -18,6 +18,7 @@ profile:
   - updateMyProfile:
   - getMyFitnessData:
   - updateMyFitnessData:
+  - changePassword:
 workoutHistory:
   - completeWorkout:
   - getMyWorkoutHistory:
