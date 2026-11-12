@@ -187,6 +187,16 @@ class DigiGymApi {
     return userProfileFromBackend(updatedProfile, email: profile.email);
   }
 
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) {
+    return client.profile.changePassword(
+      currentPassword,
+      newPassword,
+    );
+  }
+
   Future<List<int>?> getMyWorkoutSchedule() {
     return client.workoutSchedule.getMyWorkoutSchedule();
   }

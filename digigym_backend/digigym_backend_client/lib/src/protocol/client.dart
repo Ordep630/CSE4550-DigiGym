@@ -356,6 +356,19 @@ class EndpointProfile extends _isc.EndpointRef {
       'fitnessGoal': fitnessGoal,
     },
   );
+
+  /// Changes the password for the currently authenticated email account.
+  _ida.Future<void> changePassword(
+    String currentPassword,
+    String newPassword,
+  ) => caller.callServerEndpoint<void>(
+    'profile',
+    'changePassword',
+    {
+      'currentPassword': currentPassword,
+      'newPassword': newPassword,
+    },
+  );
 }
 
 /// {@category Endpoint}

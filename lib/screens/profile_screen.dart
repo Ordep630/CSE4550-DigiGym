@@ -8,6 +8,7 @@ import '../widgets/digigym_dialog.dart';
 import '../widgets/profile_components.dart';
 import '../widgets/workout_app_bar.dart';
 import 'app_appearance_screen.dart';
+import 'change_password_screen.dart';
 import 'coming_soon_screen.dart';
 import 'profile_details_screen.dart';
 import 'edit_profile_screen.dart';
@@ -304,6 +305,22 @@ class _ProfilePageState extends State<ProfilePage> {
                                     MaterialPageRoute(
                                       builder: (_) =>
                                           const AppAppearanceScreen(),
+                                    ),
+                                  );
+                                },
+                        ),
+                        const Divider(height: 1, indent: 16, endIndent: 16),
+                        ProfileMenuRow(
+                          label: 'Change Password',
+                          icon: Icons.lock_outline_rounded,
+                          onTap: isLoggingOut
+                              ? null
+                              : () {
+                                  Navigator.push<void>(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          ChangePasswordScreen(api: widget.api),
                                     ),
                                   );
                                 },

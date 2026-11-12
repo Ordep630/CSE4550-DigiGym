@@ -453,6 +453,31 @@ class Endpoints extends _is.EndpointDispatch {
                     params['fitnessGoal'],
                   ),
         ),
+        'changePassword': _is.MethodConnector(
+          name: 'changePassword',
+          params: {
+            'currentPassword': _is.ParameterDescription(
+              name: 'currentPassword',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'newPassword': _is.ParameterDescription(
+              name: 'newPassword',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6a309j1.ProfileEndpoint)
+                  .changePassword(
+                    session,
+                    params['currentPassword'],
+                    params['newPassword'],
+                  ),
+        ),
       },
     );
     connectors['workoutHistory'] = _is.EndpointConnector(

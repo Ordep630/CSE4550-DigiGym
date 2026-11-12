@@ -1,5 +1,6 @@
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
+import 'package:serverpod_auth_idp_server/providers/email.dart';
 
 import '../generated/protocol.dart';
 
@@ -143,5 +144,55 @@ class ProfileEndpoint extends Endpoint {
       fitnessLevel: savedProfile.fitnessLevel,
       fitnessGoal: savedProfile.fitnessGoal,
     );
+  }
+  /// Changes the password for the currently authenticated email account.
+  Future<void> changePassword(
+    Session session,
+    String currentPassword,
+    String newPassword,
+  ) async {
+    if (currentPassword.isEmpty || newPassword.isEmpty) {
+      throw ArgumentError('Current password and new password are required.');
+    }
+
+    if (currentPassword == newPassword) {
+      throw ArgumentError(
+        'Your new password must be different from your current password.',
+      );
+    }
+
+    final authUserId = session.authenticated?.authUserId;
+    if (authUserId == null) {
+      throw StateError('User is not authenticated.');
+    }
+
+    final emailIdp = AuthServices.getIdentityProvider<EmailIdp>();
+    final account = await emailIdp.utils.getAccount(session);
+
+    if (account == null) {
+      throw StateError('No email password account was found.');
+    }
+
+    if (!emailIdp.config.passwordValidationFunction(newPassword)) {
+      throw ArgumentError(
+        'Your new password does not meet the password requirements.',
+      );
+    }
+
+    await session.db.transaction((transaction) async {
+      await emailIdp.utils.authentication.authenticate(
+        session,
+        email: account.email,
+        password: currentPassword,
+        transaction: transaction,
+      );
+
+      await emailIdp.utils.passwordReset.setPassword(
+        session,
+        emailAccount: account,
+        password: newPassword,
+        transaction: transaction,
+      );
+    });
   }
 }
