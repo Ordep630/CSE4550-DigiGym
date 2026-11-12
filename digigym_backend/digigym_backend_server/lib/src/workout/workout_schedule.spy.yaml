@@ -1,0 +1,11 @@
+class: WorkoutSchedule
+table: workout_schedule
+
+fields:
+  authUser: module:serverpod_auth_core:AuthUser?, relation(onDelete=Cascade)
+  workoutDays: List<int>
+
+indexes:
+  workout_schedule_auth_user_idx:
+    fields: authUserId
+    unique: true

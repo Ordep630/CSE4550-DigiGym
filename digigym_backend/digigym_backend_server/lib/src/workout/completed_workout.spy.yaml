@@ -1,0 +1,13 @@
+class: CompletedWorkout
+table: completed_workout
+
+fields:
+  authUser: module:serverpod_auth_core:AuthUser?, relation(onDelete=Cascade)
+  workoutName: String
+  durationMinutes: int
+  details: String
+  completedAt: DateTime
+
+indexes:
+  completed_workout_auth_user_completed_at_idx:
+    fields: authUserId, completedAt

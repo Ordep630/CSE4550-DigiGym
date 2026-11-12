@@ -1,0 +1,32 @@
+emailIdp:
+  - login:
+  - startRegistration:
+  - verifyRegistrationCode:
+  - finishRegistration:
+  - startPasswordReset:
+  - verifyPasswordResetCode:
+  - finishPasswordReset:
+  - hasAccount:
+jwtRefresh:
+  - refreshAccessToken:
+greeting:
+  - hello:
+mealRecommendation:
+  - getMyMealRecommendation:
+profile:
+  - getMyProfile:
+  - updateMyProfile:
+  - getMyFitnessData:
+  - updateMyFitnessData:
+workoutHistory:
+  - completeWorkout:
+  - getMyWorkoutHistory:
+  - deleteMyWorkoutHistory:
+workoutRecommendation:
+  - getMyWorkoutRecommendation:
+workoutSchedule:
+  - getMyWorkoutSchedule:
+  - updateMyWorkoutSchedule:
+workoutStreak:
+  - recordCompletion:
+  - getMyStreak:

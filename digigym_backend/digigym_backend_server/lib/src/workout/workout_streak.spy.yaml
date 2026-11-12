@@ -1,0 +1,13 @@
+class: WorkoutStreak
+table: workout_streak
+
+fields:
+  authUser: module:serverpod_auth_core:AuthUser?, relation(onDelete=Cascade)
+  currentStreak: int
+  # Calendar day (yyyy-MM-dd, the user's local day) of the latest completion.
+  lastCompletedDate: String
+
+indexes:
+  workout_streak_auth_user_idx:
+    fields: authUserId
+    unique: true
