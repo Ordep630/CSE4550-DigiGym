@@ -1,0 +1,16 @@
+class: MealOption
+fields:
+  # meal object fields
+  id: String
+  name: String
+  description: String
+  serving: String
+  supportedGoals: List<FitnessGoal>
+  compatibleDiets: List<String>
+  ingredients: List<MealIngredientOption>
+  calories: int # not double!! Mistake #1 
+
+  # macros: three fields
+  carbohydrateGrams: int  
+  proteinGrams: int
+  fatGrams: int  
