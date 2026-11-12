@@ -1,5 +1,7 @@
 import 'package:digigym/models/user_profile.dart';
 import 'package:digigym/services/digigym_api.dart';
+import 'package:digigym_backend_client/digigym_backend_client.dart'
+    show CompletedWorkout, UuidValue;
 
 class FakeDigiGymApi extends DigiGymApi {
   bool authenticated = false;
@@ -35,6 +37,53 @@ class FakeDigiGymApi extends DigiGymApi {
 
   @override
   bool get isAuthenticated => authenticated;
+
+  final completedWorkoutNames = <String>[];
+
+  @override
+  Future<CompletedWorkout> completeWorkout({
+    required String workoutName,
+    required int durationMinutes,
+    required String details,
+  }) async {
+    completedWorkoutNames.add(workoutName);
+    return CompletedWorkout(
+      authUserId: UuidValue.fromString('123e4567-e89b-12d3-a456-426614174000'),
+      workoutName: workoutName,
+      durationMinutes: durationMinutes,
+      details: details,
+      completedAt: DateTime.now().toUtc(),
+    );
+  }
+
+  /// Mirrors the backend streak rules for widget tests.
+  int streak = 0;
+  String? lastStreakDay;
+  Object? streakError;
+  final streakCompletions = <DateTime>[];
+
+  @override
+  Future<int> recordWorkoutCompletion(DateTime now) async {
+    if (streakError != null) throw streakError!;
+    streakCompletions.add(now);
+    final today = DigiGymApi.localDay(now);
+    if (lastStreakDay == today) return streak;
+    final last = lastStreakDay == null ? null : DateTime.parse(lastStreakDay!);
+    final day = DateTime.parse(today);
+    streak = last != null && day.difference(last).inDays == 1 ? streak + 1 : 1;
+    lastStreakDay = today;
+    return streak;
+  }
+
+  @override
+  Future<int> getWorkoutStreak(DateTime now) async {
+    final last = lastStreakDay;
+    if (last == null) return 0;
+    final gap = DateTime.parse(DigiGymApi.localDay(now))
+        .difference(DateTime.parse(last))
+        .inDays;
+    return gap > 1 ? 0 : streak;
+  }
 
   @override
   Future<String> startRegistration(String email) async {

@@ -51,11 +51,26 @@ class _HomeScreenState extends State<HomeScreen> {
   late WorkoutScheduleController _schedule;
   bool _ownsSchedule = false;
   bool _focusSchedule = false;
+  int? _streakDays;
 
   @override
   void initState() {
     super.initState();
     _bindSchedule();
+    unawaited(_loadStreak());
+  }
+
+  /// Streak is stored in the backend; a failed read leaves it neutral.
+  Future<void> _loadStreak() async {
+    if (!widget.api.isAuthenticated) return;
+    try {
+      final days = await widget.api.getWorkoutStreak(
+        (widget.clock ?? DateTime.now)(),
+      );
+      if (mounted) setState(() => _streakDays = days);
+    } catch (_) {
+      // Keep the previous value.
+    }
   }
 
   void _bindSchedule() {
@@ -116,6 +131,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void selectTab(int index) {
     setState(() => selectedIndex = index);
+    // A workout may have been completed since the dashboard was last shown.
+    if (index == 0) unawaited(_loadStreak());
   }
 
   Future<void> editProfile() async {
@@ -144,6 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
         user: widget.user,
         motivationalMessage: widget.motivationalMessage,
         clock: widget.clock,
+        streakDays: _streakDays,
         onSelectTab: selectTab,
         onEditProfile: editProfile,
         workoutSchedule: _schedule,

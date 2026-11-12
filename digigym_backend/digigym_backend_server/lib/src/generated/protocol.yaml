@@ -27,3 +27,6 @@ workoutRecommendation:
 workoutSchedule:
   - getMyWorkoutSchedule:
   - updateMyWorkoutSchedule:
+workoutStreak:
+  - recordCompletion:
+  - getMyStreak:

@@ -16,12 +16,14 @@ class WorkoutExercisesScreen extends StatefulWidget {
   final WorkoutPlan plan;
   final bool walkthrough;
   final DigiGymApi api;
+  final DateTime Function()? clock;
 
   const WorkoutExercisesScreen({
     super.key,
     required this.plan,
     this.walkthrough = false,
     this.api = digiGymApi,
+    this.clock,
   });
 
   @override
@@ -60,14 +62,27 @@ class _WorkoutExercisesScreenState extends State<WorkoutExercisesScreen> {
         details: details,
       );
 
+      // The workout is saved at this point; a streak failure must not undo it.
+      int? streak;
+      try {
+        streak = await widget.api.recordWorkoutCompletion(
+          (widget.clock ?? DateTime.now)(),
+        );
+      } catch (_) {
+        streak = null;
+      }
+
       if (!mounted) return;
 
       setState(() => _isCompleted = true);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'Workout completed! Your progress has been saved.',
+            streak == null
+                ? 'Workout completed! Your progress has been saved.'
+                : 'Workout completed! Current streak: '
+                    '$streak ${streak == 1 ? 'day' : 'days'}.',
           ),
           behavior: SnackBarBehavior.floating,
         ),

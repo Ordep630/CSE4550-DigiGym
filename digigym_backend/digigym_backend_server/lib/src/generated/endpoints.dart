@@ -27,6 +27,7 @@ import '../user/profile_endpoint.dart' as _i6a309j1;
 import '../workout/workout_history_endpoint.dart' as _i8pjsjqh;
 import '../workout/workout_recommendation_endpoint.dart' as _if4v7cf2;
 import '../workout/workout_schedule_endpoint.dart' as _ivtspexx;
+import '../workout/workout_streak_endpoint.dart' as _i6o0kqpz;
 
 class Endpoints extends _is.EndpointDispatch {
   @override
@@ -78,6 +79,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'workoutSchedule',
+          null,
+        ),
+      'workoutStreak': _i6o0kqpz.WorkoutStreakEndpoint()
+        ..initialize(
+          server,
+          'workoutStreak',
           null,
         ),
     };
@@ -573,6 +580,54 @@ class Endpoints extends _is.EndpointDispatch {
                       .updateMyWorkoutSchedule(
                         session,
                         params['workoutDays'],
+                      ),
+        ),
+      },
+    );
+    connectors['workoutStreak'] = _is.EndpointConnector(
+      name: 'workoutStreak',
+      endpoint: endpoints['workoutStreak']!,
+      methodConnectors: {
+        'recordCompletion': _is.MethodConnector(
+          name: 'recordCompletion',
+          params: {
+            'localDay': _is.ParameterDescription(
+              name: 'localDay',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['workoutStreak']
+                          as _i6o0kqpz.WorkoutStreakEndpoint)
+                      .recordCompletion(
+                        session,
+                        params['localDay'],
+                      ),
+        ),
+        'getMyStreak': _is.MethodConnector(
+          name: 'getMyStreak',
+          params: {
+            'localDay': _is.ParameterDescription(
+              name: 'localDay',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['workoutStreak']
+                          as _i6o0kqpz.WorkoutStreakEndpoint)
+                      .getMyStreak(
+                        session,
+                        params['localDay'],
                       ),
         ),
       },

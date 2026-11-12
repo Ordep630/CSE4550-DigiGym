@@ -435,6 +435,32 @@ class EndpointWorkoutSchedule extends _isc.EndpointRef {
       );
 }
 
+/// Tracks the authenticated user's consecutive-day workout streak.
+/// {@category Endpoint}
+class EndpointWorkoutStreak extends _isc.EndpointRef {
+  EndpointWorkoutStreak(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'workoutStreak';
+
+  /// Creates or updates the streak for a completed workout and returns it.
+  /// Safe to call repeatedly: extra completions on one day change nothing.
+  _ida.Future<int> recordCompletion(String localDay) =>
+      caller.callServerEndpoint<int>(
+        'workoutStreak',
+        'recordCompletion',
+        {'localDay': localDay},
+      );
+
+  /// Current streak as of [localDay]; 0 if none or a day was missed.
+  _ida.Future<int> getMyStreak(String localDay) =>
+      caller.callServerEndpoint<int>(
+        'workoutStreak',
+        'getMyStreak',
+        {'localDay': localDay},
+      );
+}
+
 class Modules {
   Modules(Client client) {
     serverpod_auth_core = _iacc.Caller(client);
@@ -481,6 +507,7 @@ class Client extends _isc.ServerpodClientShared {
     workoutHistory = EndpointWorkoutHistory(this);
     workoutRecommendation = EndpointWorkoutRecommendation(this);
     workoutSchedule = EndpointWorkoutSchedule(this);
+    workoutStreak = EndpointWorkoutStreak(this);
     modules = Modules(this);
   }
 
@@ -500,6 +527,8 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointWorkoutSchedule workoutSchedule;
 
+  late final EndpointWorkoutStreak workoutStreak;
+
   late final Modules modules;
 
   @override
@@ -512,6 +541,7 @@ class Client extends _isc.ServerpodClientShared {
     'workoutHistory': workoutHistory,
     'workoutRecommendation': workoutRecommendation,
     'workoutSchedule': workoutSchedule,
+    'workoutStreak': workoutStreak,
   };
 
   @override

@@ -27,6 +27,7 @@ import 'user/user.dart' as _izvcgnx4;
 import 'workout/completed_workout.dart' as _ikkxl43r;
 import 'workout/workout_recommendation.dart' as _izdon4ck;
 import 'workout/workout_schedule.dart' as _ikxcc35h;
+import 'workout/workout_streak.dart' as _iext2gyt;
 export 'fitness/fitness_data.dart';
 export 'greetings/greeting.dart';
 export 'meal/meal_recommendation.dart';
@@ -36,6 +37,7 @@ export 'user/user.dart';
 export 'workout/completed_workout.dart';
 export 'workout/workout_recommendation.dart';
 export 'workout/workout_schedule.dart';
+export 'workout/workout_streak.dart';
 export 'client.dart';
 
 class Protocol extends _isc.SerializationManager {
@@ -99,6 +101,9 @@ class Protocol extends _isc.SerializationManager {
     if (t == _ikxcc35h.WorkoutSchedule) {
       return _ikxcc35h.WorkoutSchedule.fromJson(data) as T;
     }
+    if (t == _iext2gyt.WorkoutStreak) {
+      return _iext2gyt.WorkoutStreak.fromJson(data) as T;
+    }
     if (t == _isc.getType<_isdrmxyn.FitnessData?>()) {
       return (data != null ? _isdrmxyn.FitnessData.fromJson(data) : null) as T;
     }
@@ -131,6 +136,13 @@ class Protocol extends _isc.SerializationManager {
     if (t == _isc.getType<_ikxcc35h.WorkoutSchedule?>()) {
       return (data != null ? _ikxcc35h.WorkoutSchedule.fromJson(data) : null)
           as T;
+    }
+    if (t == _isc.getType<_iext2gyt.WorkoutStreak?>()) {
+      return (data != null ? _iext2gyt.WorkoutStreak.fromJson(data) : null)
+          as T;
+    }
+    if (t == List<int>) {
+      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
     }
     if (t == List<_iwms7kgh.CompletedWorkout>) {
       return (data as List)
@@ -167,6 +179,7 @@ class Protocol extends _isc.SerializationManager {
       _ikkxl43r.CompletedWorkout => 'CompletedWorkout',
       _izdon4ck.WorkoutRecommendation => 'WorkoutRecommendation',
       _ikxcc35h.WorkoutSchedule => 'WorkoutSchedule',
+      _iext2gyt.WorkoutStreak => 'WorkoutStreak',
       _ => null,
     };
   }
@@ -202,6 +215,8 @@ class Protocol extends _isc.SerializationManager {
         return 'WorkoutRecommendation';
       case _ikxcc35h.WorkoutSchedule():
         return 'WorkoutSchedule';
+      case _iext2gyt.WorkoutStreak():
+        return 'WorkoutStreak';
     }
     className = _iacc.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -250,6 +265,9 @@ class Protocol extends _isc.SerializationManager {
     }
     if (dataClassName == 'WorkoutSchedule') {
       return deserialize<_ikxcc35h.WorkoutSchedule>(data['data']);
+    }
+    if (dataClassName == 'WorkoutStreak') {
+      return deserialize<_iext2gyt.WorkoutStreak>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);

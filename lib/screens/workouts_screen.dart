@@ -131,6 +131,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
           plan: plan,
           walkthrough: walkthrough,
           api: widget.api,
+          clock: widget.clock,
         ),
       ),
     );

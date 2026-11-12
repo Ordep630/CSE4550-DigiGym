@@ -211,6 +211,31 @@ class DigiGymApi {
     );
   }
 
+  /// Local calendar day as yyyy-MM-dd; the streak is counted in this day.
+  static String localDay(DateTime now) {
+    final local = now.toLocal();
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${local.year.toString().padLeft(4, '0')}-${two(local.month)}-${two(local.day)}';
+  }
+
+  /// Creates or updates the streak for a completed workout; returns it.
+  Future<int> recordWorkoutCompletion(DateTime now) {
+    if (!isAuthenticated) {
+      throw StateError('Sign in to track workout streaks.');
+    }
+
+    return client.workoutStreak.recordCompletion(localDay(now));
+  }
+
+  /// Current streak (0 when none or broken by a missed day).
+  Future<int> getWorkoutStreak(DateTime now) {
+    if (!isAuthenticated) {
+      throw StateError('Sign in to view workout streaks.');
+    }
+
+    return client.workoutStreak.getMyStreak(localDay(now));
+  }
+
   Future<List<CompletedWorkout>> getWorkoutHistory() {
     if (!isAuthenticated) {
       throw StateError('Sign in to view workout history.');
