@@ -18,8 +18,16 @@ profile:
   - updateMyProfile:
   - getMyFitnessData:
   - updateMyFitnessData:
+  - changePassword:
+workoutHistory:
+  - completeWorkout:
+  - getMyWorkoutHistory:
+  - deleteMyWorkoutHistory:
 workoutRecommendation:
   - getMyWorkoutRecommendation:
 workoutSchedule:
   - getMyWorkoutSchedule:
   - updateMyWorkoutSchedule:
+workoutStreak:
+  - recordCompletion:
+  - getMyStreak:

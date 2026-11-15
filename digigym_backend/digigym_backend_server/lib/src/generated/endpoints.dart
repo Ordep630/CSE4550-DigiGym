@@ -24,8 +24,10 @@ import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
 import '../meal/meal_recommendation_endpoint.dart' as _ix7sbnmc;
 import '../user/profile_endpoint.dart' as _i6a309j1;
+import '../workout/workout_history_endpoint.dart' as _i8pjsjqh;
 import '../workout/workout_recommendation_endpoint.dart' as _if4v7cf2;
 import '../workout/workout_schedule_endpoint.dart' as _ivtspexx;
+import '../workout/workout_streak_endpoint.dart' as _i6o0kqpz;
 
 class Endpoints extends _is.EndpointDispatch {
   @override
@@ -61,6 +63,12 @@ class Endpoints extends _is.EndpointDispatch {
           'profile',
           null,
         ),
+      'workoutHistory': _i8pjsjqh.WorkoutHistoryEndpoint()
+        ..initialize(
+          server,
+          'workoutHistory',
+          null,
+        ),
       'workoutRecommendation': _if4v7cf2.WorkoutRecommendationEndpoint()
         ..initialize(
           server,
@@ -71,6 +79,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'workoutSchedule',
+          null,
+        ),
+      'workoutStreak': _i6o0kqpz.WorkoutStreakEndpoint()
+        ..initialize(
+          server,
+          'workoutStreak',
           null,
         ),
     };
@@ -439,6 +453,103 @@ class Endpoints extends _is.EndpointDispatch {
                     params['fitnessGoal'],
                   ),
         ),
+        'changePassword': _is.MethodConnector(
+          name: 'changePassword',
+          params: {
+            'currentPassword': _is.ParameterDescription(
+              name: 'currentPassword',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'newPassword': _is.ParameterDescription(
+              name: 'newPassword',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6a309j1.ProfileEndpoint)
+                  .changePassword(
+                    session,
+                    params['currentPassword'],
+                    params['newPassword'],
+                  ),
+        ),
+      },
+    );
+    connectors['workoutHistory'] = _is.EndpointConnector(
+      name: 'workoutHistory',
+      endpoint: endpoints['workoutHistory']!,
+      methodConnectors: {
+        'completeWorkout': _is.MethodConnector(
+          name: 'completeWorkout',
+          params: {
+            'workoutName': _is.ParameterDescription(
+              name: 'workoutName',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'durationMinutes': _is.ParameterDescription(
+              name: 'durationMinutes',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'details': _is.ParameterDescription(
+              name: 'details',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['workoutHistory']
+                          as _i8pjsjqh.WorkoutHistoryEndpoint)
+                      .completeWorkout(
+                        session,
+                        params['workoutName'],
+                        params['durationMinutes'],
+                        params['details'],
+                      ),
+        ),
+        'getMyWorkoutHistory': _is.MethodConnector(
+          name: 'getMyWorkoutHistory',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['workoutHistory']
+                          as _i8pjsjqh.WorkoutHistoryEndpoint)
+                      .getMyWorkoutHistory(session),
+        ),
+        'deleteMyWorkoutHistory': _is.MethodConnector(
+          name: 'deleteMyWorkoutHistory',
+          params: {
+            'workoutIds': _is.ParameterDescription(
+              name: 'workoutIds',
+              type: _is.getType<List<int>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['workoutHistory']
+                          as _i8pjsjqh.WorkoutHistoryEndpoint)
+                      .deleteMyWorkoutHistory(
+                        session,
+                        params['workoutIds'],
+                      ),
+        ),
       },
     );
     connectors['workoutRecommendation'] = _is.EndpointConnector(
@@ -494,6 +605,54 @@ class Endpoints extends _is.EndpointDispatch {
                       .updateMyWorkoutSchedule(
                         session,
                         params['workoutDays'],
+                      ),
+        ),
+      },
+    );
+    connectors['workoutStreak'] = _is.EndpointConnector(
+      name: 'workoutStreak',
+      endpoint: endpoints['workoutStreak']!,
+      methodConnectors: {
+        'recordCompletion': _is.MethodConnector(
+          name: 'recordCompletion',
+          params: {
+            'localDay': _is.ParameterDescription(
+              name: 'localDay',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['workoutStreak']
+                          as _i6o0kqpz.WorkoutStreakEndpoint)
+                      .recordCompletion(
+                        session,
+                        params['localDay'],
+                      ),
+        ),
+        'getMyStreak': _is.MethodConnector(
+          name: 'getMyStreak',
+          params: {
+            'localDay': _is.ParameterDescription(
+              name: 'localDay',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['workoutStreak']
+                          as _i6o0kqpz.WorkoutStreakEndpoint)
+                      .getMyStreak(
+                        session,
+                        params['localDay'],
                       ),
         ),
       },

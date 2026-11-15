@@ -119,6 +119,9 @@ class FakeDigiGymApi extends DigiGymApi {
   }
 
   @override
+  String? get authenticatedAccountId => null;
+
+  @override
   Future<void> signOut() async {
     signOutCalls++;
     await signOutWait;

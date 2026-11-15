@@ -25,6 +25,8 @@ import 'package:digigym_backend_server/src/generated/user/fitness_level.dart'
     as _i0de4bt5;
 import 'package:digigym_backend_server/src/generated/user/user.dart'
     as _ii4hua2a;
+import 'package:digigym_backend_server/src/generated/workout/completed_workout.dart'
+    as _ihjluj51;
 import 'package:digigym_backend_server/src/generated/workout/workout_recommendation.dart'
     as _igklxlq9;
 import 'package:serverpod/serverpod.dart' as _is;
@@ -169,9 +171,13 @@ class TestEndpoints {
 
   late final _ProfileEndpoint profile;
 
+  late final _WorkoutHistoryEndpoint workoutHistory;
+
   late final _WorkoutRecommendationEndpoint workoutRecommendation;
 
   late final _WorkoutScheduleEndpoint workoutSchedule;
+
+  late final _WorkoutStreakEndpoint workoutStreak;
 }
 
 class _InternalTestEndpoints extends TestEndpoints
@@ -201,11 +207,19 @@ class _InternalTestEndpoints extends TestEndpoints
       endpoints,
       serializationManager,
     );
+    workoutHistory = _WorkoutHistoryEndpoint(
+      endpoints,
+      serializationManager,
+    );
     workoutRecommendation = _WorkoutRecommendationEndpoint(
       endpoints,
       serializationManager,
     );
     workoutSchedule = _WorkoutScheduleEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    workoutStreak = _WorkoutStreakEndpoint(
       endpoints,
       serializationManager,
     );
@@ -766,6 +780,150 @@ class _ProfileEndpoint {
       }
     });
   }
+
+  _ida.Future<void> changePassword(
+    _ist.TestSessionBuilder sessionBuilder,
+    String currentPassword,
+    String newPassword,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'profile',
+            method: 'changePassword',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'profile',
+          methodName: 'changePassword',
+          parameters: _ist.testObjectToJson({
+            'currentPassword': currentPassword,
+            'newPassword': newPassword,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _WorkoutHistoryEndpoint {
+  _WorkoutHistoryEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<_ihjluj51.CompletedWorkout> completeWorkout(
+    _ist.TestSessionBuilder sessionBuilder,
+    String workoutName,
+    int durationMinutes,
+    String details,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'workoutHistory',
+            method: 'completeWorkout',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'workoutHistory',
+          methodName: 'completeWorkout',
+          parameters: _ist.testObjectToJson({
+            'workoutName': workoutName,
+            'durationMinutes': durationMinutes,
+            'details': details,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_ihjluj51.CompletedWorkout>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<List<_ihjluj51.CompletedWorkout>> getMyWorkoutHistory(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'workoutHistory',
+            method: 'getMyWorkoutHistory',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'workoutHistory',
+          methodName: 'getMyWorkoutHistory',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_ihjluj51.CompletedWorkout>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<int> deleteMyWorkoutHistory(
+    _ist.TestSessionBuilder sessionBuilder,
+    List<int> workoutIds,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'workoutHistory',
+            method: 'deleteMyWorkoutHistory',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'workoutHistory',
+          methodName: 'deleteMyWorkoutHistory',
+          parameters: _ist.testObjectToJson({'workoutIds': workoutIds}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<int>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
 }
 
 class _WorkoutRecommendationEndpoint {
@@ -873,6 +1031,79 @@ class _WorkoutScheduleEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<List<int>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _WorkoutStreakEndpoint {
+  _WorkoutStreakEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<int> recordCompletion(
+    _ist.TestSessionBuilder sessionBuilder,
+    String localDay,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'workoutStreak',
+            method: 'recordCompletion',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'workoutStreak',
+          methodName: 'recordCompletion',
+          parameters: _ist.testObjectToJson({'localDay': localDay}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<int>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<int> getMyStreak(
+    _ist.TestSessionBuilder sessionBuilder,
+    String localDay,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'workoutStreak',
+            method: 'getMyStreak',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'workoutStreak',
+          methodName: 'getMyStreak',
+          parameters: _ist.testObjectToJson({'localDay': localDay}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<int>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

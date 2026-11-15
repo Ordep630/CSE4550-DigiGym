@@ -11,6 +11,7 @@ AppBar workoutAppBar(
   bool showBack = false,
   bool large = false,
   ThemeData? theme,
+  List<Widget> actions = const [],
 }) {
   final style = (theme ?? Theme.of(context)).textTheme.titleLarge?.copyWith(
     fontSize: large ? 30 : 20,
@@ -25,7 +26,9 @@ AppBar workoutAppBar(
       )..layout(
         maxWidth: math.max(
           1,
-          MediaQuery.sizeOf(context).width - (showBack ? 96 : 40),
+          MediaQuery.sizeOf(context).width -
+              (showBack ? 96 : 40) -
+              actions.length * kMinInteractiveDimension,
         ),
       );
   final height = math.max(kToolbarHeight, painter.height + 16);
@@ -45,5 +48,6 @@ AppBar workoutAppBar(
     toolbarHeight: height,
     titleTextStyle: style,
     title: Text(title),
+    actions: actions,
   );
 }

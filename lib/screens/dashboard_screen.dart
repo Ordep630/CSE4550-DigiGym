@@ -35,6 +35,7 @@ class DashboardPage extends StatelessWidget {
   final String motivationalMessage;
   final DateTime Function()? clock;
   final int? streakDays;
+  final bool streakUnavailable;
   final VoidCallback? onNotifications;
   final ValueChanged<int>? onSelectTab;
   final VoidCallback? onEditProfile;
@@ -48,6 +49,7 @@ class DashboardPage extends StatelessWidget {
     this.motivationalMessage = DashboardPersonalization.defaultMessage,
     this.clock,
     this.streakDays,
+    this.streakUnavailable = false,
     this.onNotifications,
     this.onSelectTab,
     this.onEditProfile,
@@ -246,7 +248,10 @@ class DashboardPage extends StatelessWidget {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Flexible(
-                                        child: DailyStreakIndicator(days: days),
+                                        child: DailyStreakIndicator(
+                                          days: days,
+                                          unavailable: streakUnavailable,
+                                        ),
                                       ),
                                       if (hasBell) const SizedBox(width: 6),
                                       if (hasBell)
@@ -292,6 +297,7 @@ class DashboardPage extends StatelessWidget {
                                     DailyStreakIndicator.preferredWidth(
                                       context,
                                       days,
+                                      unavailable: streakUnavailable,
                                     ) +
                                     (hasBell ? 6 : 0) +
                                     (hasBell ? 48 : 0);

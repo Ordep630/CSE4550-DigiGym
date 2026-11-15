@@ -1,5 +1,6 @@
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
+import 'package:serverpod_auth_idp_server/providers/email.dart';
 
 import '../generated/protocol.dart';
 
@@ -143,5 +144,59 @@ class ProfileEndpoint extends Endpoint {
       fitnessLevel: savedProfile.fitnessLevel,
       fitnessGoal: savedProfile.fitnessGoal,
     );
+  }
+
+  /// Changes the password for the currently authenticated email account.
+  Future<void> changePassword(
+    Session session,
+    String currentPassword,
+    String newPassword,
+  ) async {
+    final authUserId = session.authenticated?.authUserId;
+    if (authUserId == null) {
+      throw StateError('User is not authenticated.');
+    }
+
+    final emailIdp = AuthServices.getIdentityProvider<EmailIdp>();
+    if (newPassword == currentPassword ||
+        !emailIdp.config.passwordValidationFunction(newPassword)) {
+      throw EmailAccountPasswordResetException(
+        reason: EmailAccountPasswordResetExceptionReason.policyViolation,
+      );
+    }
+
+    try {
+      await session.db.transaction((transaction) async {
+        // Serialize changes to the same account, including from two devices.
+        final account = await EmailAccount.db.findFirstRow(
+          session,
+          where: (t) => t.authUserId.equals(authUserId),
+          transaction: transaction,
+          lockMode: LockMode.forUpdate,
+        );
+        if (account == null || currentPassword.isEmpty) {
+          throw EmailAuthenticationInvalidCredentialsException();
+        }
+
+        await emailIdp.utils.authentication.authenticate(
+          session,
+          email: account.email,
+          password: currentPassword,
+          transaction: transaction,
+        );
+        await emailIdp.utils.passwordReset.setPassword(
+          session,
+          emailAccount: account,
+          password: newPassword,
+          transaction: transaction,
+        );
+      });
+    } on EmailLoginServerException catch (error) {
+      throw EmailAccountLoginException(
+        reason: error is EmailAuthenticationTooManyAttemptsException
+            ? EmailAccountLoginExceptionReason.tooManyAttempts
+            : EmailAccountLoginExceptionReason.invalidCredentials,
+      );
+    }
   }
 }

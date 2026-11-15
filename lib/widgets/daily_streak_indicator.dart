@@ -5,12 +5,17 @@ import '../theme/digigym_dashboard_theme.dart';
 /// Displays a supplied streak; this widget never calculates or persists one.
 class DailyStreakIndicator extends StatelessWidget {
   final int? days;
+  final bool unavailable;
 
   /// Identifies sample data to assistive technology without extra visible text.
   final bool isPreview;
 
-  const DailyStreakIndicator({super.key, this.days, this.isPreview = false})
-    : assert(days == null || days >= 0);
+  const DailyStreakIndicator({
+    super.key,
+    this.days,
+    this.isPreview = false,
+    this.unavailable = false,
+  }) : assert(days == null || days >= 0);
 
   static const _numberStyle = TextStyle(
     fontFamily: DigiGymDashboardTheme.textFont,
@@ -21,10 +26,14 @@ class DailyStreakIndicator extends StatelessWidget {
   );
 
   /// Natural width used by the header to wrap actions without shrinking art.
-  static double preferredWidth(BuildContext context, int? days) {
+  static double preferredWidth(
+    BuildContext context,
+    int? days, {
+    bool unavailable = false,
+  }) {
     final number = TextPainter(
       text: TextSpan(
-        text: (days ?? 0).toString(),
+        text: unavailable ? '–' : (days ?? 0).toString(),
         style: DefaultTextStyle.of(context).style.merge(_numberStyle),
       ),
       textDirection: Directionality.of(context),
@@ -43,7 +52,9 @@ class DailyStreakIndicator extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final surfaces = DigiGymSurfaces.of(context);
     return Semantics(
-      label: days == null
+      label: unavailable
+          ? 'Workout streak unavailable'
+          : days == null
           ? '0-day workout streak. No workout completions recorded; tracking is not available yet.'
           : isPreview
           ? 'Development preview: sample $days-day workout streak'
@@ -65,7 +76,7 @@ class DailyStreakIndicator extends StatelessWidget {
               color: surfaces.streakAccent,
             ),
             Text(
-              (days ?? 0).toString(),
+              unavailable ? '–' : (days ?? 0).toString(),
               style: _numberStyle.copyWith(
                 color: (days ?? 0) == 0
                     ? colors.onSurfaceVariant

@@ -295,6 +295,7 @@ class DigiGymPrimaryButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool loading;
   final IconData? icon;
+  final TextStyle? labelStyle;
 
   const DigiGymPrimaryButton({
     super.key,
@@ -302,6 +303,7 @@ class DigiGymPrimaryButton extends StatelessWidget {
     required this.onPressed,
     this.loading = false,
     this.icon,
+    this.labelStyle,
   });
 
   @override
@@ -319,7 +321,10 @@ class DigiGymPrimaryButton extends StatelessWidget {
         minimumSize: const Size(double.infinity, 60),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         shape: const StadiumBorder(),
-        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        textStyle: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ).merge(labelStyle),
       ),
       child: loading
           ? SizedBox.square(

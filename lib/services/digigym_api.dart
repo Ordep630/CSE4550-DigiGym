@@ -2,8 +2,12 @@ import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart'
     hide UserProfile;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     show
+        EmailAccountLoginException,
+        EmailAccountLoginExceptionReason,
         EmailAccountPasswordResetException,
         EmailAccountPasswordResetExceptionReason;
+import 'package:digigym_backend_client/digigym_backend_client.dart'
+    show CompletedWorkout;
 
 import '../client.dart';
 import '../models/profile_mapping.dart';
@@ -40,6 +44,20 @@ class PasswordRecoveryException implements Exception {
   const PasswordRecoveryException(this.reason);
 }
 
+enum PasswordChangeFailure {
+  incorrectCurrentPassword,
+  policyViolation,
+  tooManyAttempts,
+  signInRequired,
+  unavailable,
+}
+
+class PasswordChangeException implements Exception {
+  final PasswordChangeFailure reason;
+
+  const PasswordChangeException(this.reason);
+}
+
 /// Frontend-facing wrapper around DigiGym's Serverpod API.
 ///
 /// Keeping the API boundary here makes the screens testable without a live
@@ -48,6 +66,9 @@ class DigiGymApi {
   const DigiGymApi();
 
   bool get isAuthenticated => client.auth.isAuthenticated;
+
+  String? get authenticatedAccountId =>
+      client.auth.authInfo?.authUserId.toString();
 
   Future<String> startPasswordReset(String email) => _recover(() async {
     final id = await client.emailIdp.startPasswordReset(email: email);
@@ -185,12 +206,108 @@ class DigiGymApi {
     return userProfileFromBackend(updatedProfile, email: profile.email);
   }
 
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    if (!isAuthenticated) {
+      throw const PasswordChangeException(PasswordChangeFailure.signInRequired);
+    }
+    try {
+      await client.profile.changePassword(currentPassword, newPassword);
+    } on EmailAccountLoginException catch (error) {
+      throw PasswordChangeException(switch (error.reason) {
+        EmailAccountLoginExceptionReason.invalidCredentials =>
+          PasswordChangeFailure.incorrectCurrentPassword,
+        EmailAccountLoginExceptionReason.tooManyAttempts =>
+          PasswordChangeFailure.tooManyAttempts,
+        EmailAccountLoginExceptionReason.unknown =>
+          PasswordChangeFailure.unavailable,
+      });
+    } on EmailAccountPasswordResetException catch (error) {
+      throw PasswordChangeException(
+        error.reason == EmailAccountPasswordResetExceptionReason.policyViolation
+            ? PasswordChangeFailure.policyViolation
+            : PasswordChangeFailure.unavailable,
+      );
+    } on ServerpodClientHttpException catch (error) {
+      throw PasswordChangeException(switch (error.statusCode) {
+        401 || 403 => PasswordChangeFailure.signInRequired,
+        429 => PasswordChangeFailure.tooManyAttempts,
+        _ => PasswordChangeFailure.unavailable,
+      });
+    } catch (_) {
+      throw const PasswordChangeException(PasswordChangeFailure.unavailable);
+    }
+  }
+
   Future<List<int>?> getMyWorkoutSchedule() {
     return client.workoutSchedule.getMyWorkoutSchedule();
   }
 
   Future<List<int>> updateMyWorkoutSchedule(List<int> workoutDays) {
     return client.workoutSchedule.updateMyWorkoutSchedule(workoutDays);
+  }
+
+  Future<CompletedWorkout> completeWorkout({
+    required String workoutName,
+    required int durationMinutes,
+    required String details,
+  }) async {
+    if (!isAuthenticated) {
+      throw StateError('Sign in to save completed workouts.');
+    }
+
+    return client.workoutHistory.completeWorkout(
+      workoutName,
+      durationMinutes,
+      details,
+    );
+  }
+
+  /// Local calendar day as yyyy-MM-dd; the streak is counted in this day.
+  static String localDay(DateTime now) {
+    final local = now.toLocal();
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${local.year.toString().padLeft(4, '0')}-${two(local.month)}-${two(local.day)}';
+  }
+
+  /// Creates or updates the streak for a completed workout; returns it.
+  Future<int> recordWorkoutCompletion(DateTime now) async {
+    if (!isAuthenticated) {
+      throw StateError('Sign in to track workout streaks.');
+    }
+
+    return client.workoutStreak.recordCompletion(localDay(now));
+  }
+
+  /// Current streak (0 when none or broken by a missed day).
+  Future<int> getWorkoutStreak(DateTime now) async {
+    if (!isAuthenticated) {
+      throw StateError('Sign in to view workout streaks.');
+    }
+
+    return client.workoutStreak.getMyStreak(localDay(now));
+  }
+
+  Future<List<CompletedWorkout>> getWorkoutHistory() async {
+    if (!isAuthenticated) {
+      throw StateError('Sign in to view workout history.');
+    }
+
+    return client.workoutHistory.getMyWorkoutHistory();
+  }
+
+  Future<int> deleteWorkoutHistory(List<int> workoutIds) async {
+    if (!isAuthenticated) {
+      throw StateError('Sign in to delete workout history.');
+    }
+
+    if (workoutIds.isEmpty) {
+      return 0;
+    }
+
+    return client.workoutHistory.deleteMyWorkoutHistory(workoutIds);
   }
 
   Future<void> signOut() async {

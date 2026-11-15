@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../models/user_profile.dart';
 import '../models/workout_plan.dart';
+import '../services/digigym_api.dart';
 import '../services/workout_schedule_controller.dart';
 import '../theme/digigym_dashboard_theme.dart';
 import '../theme/digigym_workout_theme.dart';
@@ -13,11 +14,14 @@ import '../widgets/workout_exercise_list.dart';
 import '../widgets/workout_glass_card.dart';
 import '../widgets/workout_app_bar.dart';
 import 'workout_exercises_screen.dart';
+import 'workout_history_screen.dart';
 
 enum WorkoutView { myPlan, exercises, moreWorkouts }
 
 class WorkoutsScreen extends StatefulWidget {
   final UserProfile user;
+  final DigiGymApi api;
+  final VoidCallback? onStreakUpdated;
   final WorkoutScheduleController? schedule;
   final DateTime Function()? clock;
   final bool focusSchedule;
@@ -25,6 +29,8 @@ class WorkoutsScreen extends StatefulWidget {
   const WorkoutsScreen({
     super.key,
     required this.user,
+    this.api = digiGymApi,
+    this.onStreakUpdated,
     this.schedule,
     this.clock,
     this.focusSchedule = false,
@@ -116,12 +122,27 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
         ?.writeState(context, view, identifier: _storageKey);
   }
 
+  bool get _hasWorkoutAccount =>
+      widget.user.accountId != null &&
+      !widget.user.isDemo &&
+      widget.api.authenticatedAccountId == widget.user.accountId;
+
+  void _openHistory() {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => WorkoutHistoryScreen(api: widget.api)),
+    );
+  }
+
   void _openExercises(WorkoutPlan plan, {bool walkthrough = false}) {
     if (plan.exercises.isEmpty) return;
     Navigator.of(context).push<void>(
       MaterialPageRoute(
-        builder: (_) =>
-            WorkoutExercisesScreen(plan: plan, walkthrough: walkthrough),
+        builder: (_) => WorkoutExercisesScreen(
+          plan: plan,
+          walkthrough: walkthrough,
+          completionApi: _hasWorkoutAccount ? widget.api : null,
+          onStreakUpdated: widget.onStreakUpdated,
+        ),
       ),
     );
   }
@@ -152,6 +173,15 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
             title: 'Workout',
             large: true,
             theme: theme,
+            actions: [
+              if (_hasWorkoutAccount)
+                IconButton(
+                  key: const ValueKey('open-workout-history'),
+                  tooltip: 'Workout History',
+                  onPressed: _openHistory,
+                  icon: const Icon(Icons.history),
+                ),
+            ],
           ),
           body: SafeArea(
             top: false,

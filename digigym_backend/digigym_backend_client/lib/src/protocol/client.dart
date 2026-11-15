@@ -23,6 +23,8 @@ import 'package:digigym_backend_client/src/protocol/user/fitness_level.dart'
     as _ir29g2zq;
 import 'package:digigym_backend_client/src/protocol/user/user.dart'
     as _iz9pf62b;
+import 'package:digigym_backend_client/src/protocol/workout/completed_workout.dart'
+    as _iwms7kgh;
 import 'package:digigym_backend_client/src/protocol/workout/workout_recommendation.dart'
     as _ir4uol1t;
 import 'package:http/http.dart' as _i85jenna;
@@ -354,6 +356,55 @@ class EndpointProfile extends _isc.EndpointRef {
       'fitnessGoal': fitnessGoal,
     },
   );
+
+  /// Changes the password for the currently authenticated email account.
+  _ida.Future<void> changePassword(
+    String currentPassword,
+    String newPassword,
+  ) => caller.callServerEndpoint<void>(
+    'profile',
+    'changePassword',
+    {
+      'currentPassword': currentPassword,
+      'newPassword': newPassword,
+    },
+  );
+}
+
+/// {@category Endpoint}
+class EndpointWorkoutHistory extends _isc.EndpointRef {
+  EndpointWorkoutHistory(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'workoutHistory';
+
+  _ida.Future<_iwms7kgh.CompletedWorkout> completeWorkout(
+    String workoutName,
+    int durationMinutes,
+    String details,
+  ) => caller.callServerEndpoint<_iwms7kgh.CompletedWorkout>(
+    'workoutHistory',
+    'completeWorkout',
+    {
+      'workoutName': workoutName,
+      'durationMinutes': durationMinutes,
+      'details': details,
+    },
+  );
+
+  _ida.Future<List<_iwms7kgh.CompletedWorkout>> getMyWorkoutHistory() =>
+      caller.callServerEndpoint<List<_iwms7kgh.CompletedWorkout>>(
+        'workoutHistory',
+        'getMyWorkoutHistory',
+        {},
+      );
+
+  _ida.Future<int> deleteMyWorkoutHistory(List<int> workoutIds) =>
+      caller.callServerEndpoint<int>(
+        'workoutHistory',
+        'deleteMyWorkoutHistory',
+        {'workoutIds': workoutIds},
+      );
 }
 
 /// Provides workout recommendations for the authenticated user.
@@ -394,6 +445,32 @@ class EndpointWorkoutSchedule extends _isc.EndpointRef {
         'workoutSchedule',
         'updateMyWorkoutSchedule',
         {'workoutDays': workoutDays},
+      );
+}
+
+/// Tracks the authenticated user's consecutive-day workout streak.
+/// {@category Endpoint}
+class EndpointWorkoutStreak extends _isc.EndpointRef {
+  EndpointWorkoutStreak(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'workoutStreak';
+
+  /// Creates or updates the streak for a completed workout and returns it.
+  /// Safe to call repeatedly: extra completions on one day change nothing.
+  _ida.Future<int> recordCompletion(String localDay) =>
+      caller.callServerEndpoint<int>(
+        'workoutStreak',
+        'recordCompletion',
+        {'localDay': localDay},
+      );
+
+  /// Current streak as of [localDay]; 0 if none or a day was missed.
+  _ida.Future<int> getMyStreak(String localDay) =>
+      caller.callServerEndpoint<int>(
+        'workoutStreak',
+        'getMyStreak',
+        {'localDay': localDay},
       );
 }
 
@@ -440,8 +517,10 @@ class Client extends _isc.ServerpodClientShared {
     greeting = EndpointGreeting(this);
     mealRecommendation = EndpointMealRecommendation(this);
     profile = EndpointProfile(this);
+    workoutHistory = EndpointWorkoutHistory(this);
     workoutRecommendation = EndpointWorkoutRecommendation(this);
     workoutSchedule = EndpointWorkoutSchedule(this);
+    workoutStreak = EndpointWorkoutStreak(this);
     modules = Modules(this);
   }
 
@@ -455,9 +534,13 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointProfile profile;
 
+  late final EndpointWorkoutHistory workoutHistory;
+
   late final EndpointWorkoutRecommendation workoutRecommendation;
 
   late final EndpointWorkoutSchedule workoutSchedule;
+
+  late final EndpointWorkoutStreak workoutStreak;
 
   late final Modules modules;
 
@@ -468,8 +551,10 @@ class Client extends _isc.ServerpodClientShared {
     'greeting': greeting,
     'mealRecommendation': mealRecommendation,
     'profile': profile,
+    'workoutHistory': workoutHistory,
     'workoutRecommendation': workoutRecommendation,
     'workoutSchedule': workoutSchedule,
+    'workoutStreak': workoutStreak,
   };
 
   @override

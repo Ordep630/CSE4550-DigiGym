@@ -11,6 +11,8 @@
 // ignore_for_file: dead_code, unnecessary_type_check
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:digigym_backend_server/src/generated/workout/completed_workout.dart'
+    as _ihjluj51;
 import 'package:serverpod/protocol.dart' as _isp;
 import 'package:serverpod/serverpod.dart' as _is;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
@@ -23,16 +25,20 @@ import 'meal/meal_recommendation.dart' as _icj2h90j;
 import 'user/fitness_goal.dart' as _ifss0aho;
 import 'user/fitness_level.dart' as _ifclzg6e;
 import 'user/user.dart' as _izvcgnx4;
+import 'workout/completed_workout.dart' as _ikkxl43r;
 import 'workout/workout_recommendation.dart' as _izdon4ck;
 import 'workout/workout_schedule.dart' as _ikxcc35h;
+import 'workout/workout_streak.dart' as _iext2gyt;
 export 'fitness/fitness_data.dart';
 export 'greetings/greeting.dart';
 export 'meal/meal_recommendation.dart';
 export 'user/fitness_goal.dart';
 export 'user/fitness_level.dart';
 export 'user/user.dart';
+export 'workout/completed_workout.dart';
 export 'workout/workout_recommendation.dart';
 export 'workout/workout_schedule.dart';
+export 'workout/workout_streak.dart';
 
 class Protocol extends _is.DatabaseSerializationManager {
   Protocol._();
@@ -42,6 +48,83 @@ class Protocol extends _is.DatabaseSerializationManager {
   static final Protocol _instance = Protocol._().._registerHostProtocols();
 
   static List<_isp.TableDefinition> get targetTableDefinitions => [
+    _isp.TableDefinition(
+      name: 'completed_workout',
+      dartName: 'CompletedWorkout',
+      schema: 'public',
+      module: 'digigym_backend',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'authUserId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'workoutName',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'durationMinutes',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'details',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'completedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'completed_workout_fk_0',
+          columns: ['authUserId'],
+          referenceTable: 'serverpod_auth_core_user',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'completed_workout_auth_user_completed_at_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'authUserId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'completedAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
     _isp.TableDefinition(
       name: 'digigym_user',
       dartName: 'DigiGymUser',
@@ -200,6 +283,67 @@ class Protocol extends _is.DatabaseSerializationManager {
       ],
       managed: true,
     ),
+    _isp.TableDefinition(
+      name: 'workout_streak',
+      dartName: 'WorkoutStreak',
+      schema: 'public',
+      module: 'digigym_backend',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'authUserId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'currentStreak',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'lastCompletedDate',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'workout_streak_fk_0',
+          columns: ['authUserId'],
+          referenceTable: 'serverpod_auth_core_user',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'workout_streak_auth_user_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'authUserId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
     ..._iacs.Protocol.targetTableDefinitions,
     ..._iais.Protocol.targetTableDefinitions,
     ..._isp.Protocol.targetTableDefinitions,
@@ -250,11 +394,17 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _izvcgnx4.DigiGymUser) {
       return _izvcgnx4.DigiGymUser.fromJson(data) as T;
     }
+    if (t == _ikkxl43r.CompletedWorkout) {
+      return _ikkxl43r.CompletedWorkout.fromJson(data) as T;
+    }
     if (t == _izdon4ck.WorkoutRecommendation) {
       return _izdon4ck.WorkoutRecommendation.fromJson(data) as T;
     }
     if (t == _ikxcc35h.WorkoutSchedule) {
       return _ikxcc35h.WorkoutSchedule.fromJson(data) as T;
+    }
+    if (t == _iext2gyt.WorkoutStreak) {
+      return _iext2gyt.WorkoutStreak.fromJson(data) as T;
     }
     if (t == _is.getType<_isdrmxyn.FitnessData?>()) {
       return (data != null ? _isdrmxyn.FitnessData.fromJson(data) : null) as T;
@@ -275,6 +425,10 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_izvcgnx4.DigiGymUser?>()) {
       return (data != null ? _izvcgnx4.DigiGymUser.fromJson(data) : null) as T;
     }
+    if (t == _is.getType<_ikkxl43r.CompletedWorkout?>()) {
+      return (data != null ? _ikkxl43r.CompletedWorkout.fromJson(data) : null)
+          as T;
+    }
     if (t == _is.getType<_izdon4ck.WorkoutRecommendation?>()) {
       return (data != null
               ? _izdon4ck.WorkoutRecommendation.fromJson(data)
@@ -285,8 +439,18 @@ class Protocol extends _is.DatabaseSerializationManager {
       return (data != null ? _ikxcc35h.WorkoutSchedule.fromJson(data) : null)
           as T;
     }
+    if (t == _is.getType<_iext2gyt.WorkoutStreak?>()) {
+      return (data != null ? _iext2gyt.WorkoutStreak.fromJson(data) : null)
+          as T;
+    }
     if (t == List<int>) {
       return (data as List).map((e) => deserialize<int>(e)).toList() as T;
+    }
+    if (t == List<_ihjluj51.CompletedWorkout>) {
+      return (data as List)
+              .map((e) => deserialize<_ihjluj51.CompletedWorkout>(e))
+              .toList()
+          as T;
     }
     if (t == List<int>) {
       return (data as List).map((e) => deserialize<int>(e)).toList() as T;
@@ -317,8 +481,10 @@ class Protocol extends _is.DatabaseSerializationManager {
       _ifss0aho.FitnessGoal => 'FitnessGoal',
       _ifclzg6e.FitnessLevel => 'FitnessLevel',
       _izvcgnx4.DigiGymUser => 'DigiGymUser',
+      _ikkxl43r.CompletedWorkout => 'CompletedWorkout',
       _izdon4ck.WorkoutRecommendation => 'WorkoutRecommendation',
       _ikxcc35h.WorkoutSchedule => 'WorkoutSchedule',
+      _iext2gyt.WorkoutStreak => 'WorkoutStreak',
       _ => null,
     };
   }
@@ -348,10 +514,14 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'FitnessLevel';
       case _izvcgnx4.DigiGymUser():
         return 'DigiGymUser';
+      case _ikkxl43r.CompletedWorkout():
+        return 'CompletedWorkout';
       case _izdon4ck.WorkoutRecommendation():
         return 'WorkoutRecommendation';
       case _ikxcc35h.WorkoutSchedule():
         return 'WorkoutSchedule';
+      case _iext2gyt.WorkoutStreak():
+        return 'WorkoutStreak';
     }
     className = _iacs.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -396,11 +566,17 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'DigiGymUser') {
       return deserialize<_izvcgnx4.DigiGymUser>(data['data']);
     }
+    if (dataClassName == 'CompletedWorkout') {
+      return deserialize<_ikkxl43r.CompletedWorkout>(data['data']);
+    }
     if (dataClassName == 'WorkoutRecommendation') {
       return deserialize<_izdon4ck.WorkoutRecommendation>(data['data']);
     }
     if (dataClassName == 'WorkoutSchedule') {
       return deserialize<_ikxcc35h.WorkoutSchedule>(data['data']);
+    }
+    if (dataClassName == 'WorkoutStreak') {
+      return deserialize<_iext2gyt.WorkoutStreak>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
@@ -445,8 +621,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     switch (t) {
       case _izvcgnx4.DigiGymUser:
         return _izvcgnx4.DigiGymUser.t;
+      case _ikkxl43r.CompletedWorkout:
+        return _ikkxl43r.CompletedWorkout.t;
       case _ikxcc35h.WorkoutSchedule:
         return _ikxcc35h.WorkoutSchedule.t;
+      case _iext2gyt.WorkoutStreak:
+        return _iext2gyt.WorkoutStreak.t;
     }
     return null;
   }

@@ -46,17 +46,52 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int selectedIndex = 0;
   GroceryListController? _groceries;
   late WorkoutScheduleController _schedule;
   bool _ownsSchedule = false;
   bool _focusSchedule = false;
+  int? _streakDays;
+  bool _streakUnavailable = false;
+  int _streakRequest = 0;
+
+  String? get _streakAccount =>
+      widget.user.isDemo ? null : widget.user.accountId;
+
+  Future<void> _loadStreak() async {
+    final request = ++_streakRequest;
+    final account = _streakAccount;
+    if (account == null) return;
+    int? days;
+    bool unavailable = false;
+    try {
+      if (widget.api.authenticatedAccountId == account) {
+        days = await widget.api.getWorkoutStreak(
+          (widget.clock ?? DateTime.now)(),
+        );
+      }
+    } catch (_) {
+      unavailable = true;
+    }
+    if (!mounted || request != _streakRequest) return;
+    setState(() {
+      _streakDays = days;
+      _streakUnavailable = unavailable;
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     _bindSchedule();
+    WidgetsBinding.instance.addObserver(this);
+    unawaited(_loadStreak());
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) unawaited(_loadStreak());
   }
 
   void _bindSchedule() {
@@ -82,6 +117,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void didUpdateWidget(HomeScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.user.accountId != widget.user.accountId ||
+        oldWidget.user.isDemo != widget.user.isDemo ||
+        oldWidget.api != widget.api) {
+      _streakDays = null;
+      _streakUnavailable = false;
+      unawaited(_loadStreak());
+    }
     if (oldWidget.user.accountId != widget.user.accountId ||
         oldWidget.workoutSchedule != widget.workoutSchedule ||
         (widget.user.accountId == null &&
@@ -109,6 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _groceries?.dispose();
     _schedule.removeListener(_scheduleChanged);
     if (_ownsSchedule) _schedule.dispose();
@@ -117,6 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void selectTab(int index) {
     setState(() => selectedIndex = index);
+    if (index == 0) unawaited(_loadStreak());
   }
 
   Future<void> editProfile() async {
@@ -144,6 +188,8 @@ class _HomeScreenState extends State<HomeScreen> {
       DashboardPage(
         user: widget.user,
         motivationalMessage: widget.motivationalMessage,
+        streakDays: _streakDays,
+        streakUnavailable: _streakUnavailable,
         clock: widget.clock,
         onSelectTab: selectTab,
         onEditProfile: editProfile,
@@ -153,6 +199,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       WorkoutsScreen(
         user: widget.user,
+        api: widget.api,
+        onStreakUpdated: _loadStreak,
         schedule: _schedule,
         clock: widget.clock,
         focusSchedule: _focusSchedule,
