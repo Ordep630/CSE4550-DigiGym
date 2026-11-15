@@ -1,0 +1,234 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="862" height="603" viewBox="0 0 862 603">
+  <title>DigiGym</title>
+  <desc>DigiGym logo traced from the official full-resolution artwork. The default preview is the stacked dark-theme variant on transparent.</desc>
+  <defs>
+    <!-- Face colors sampled inside each tile. Edge coverage is supplied by the vector. -->
+    <linearGradient id="tile-01" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#78fb57"/>
+      <stop offset="50%" stop-color="#74fb57"/>
+      <stop offset="100%" stop-color="#70fb56"/>
+    </linearGradient>
+    <linearGradient id="tile-02" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#6ffb56"/>
+      <stop offset="50%" stop-color="#6dfb57"/>
+      <stop offset="100%" stop-color="#6bfb56"/>
+    </linearGradient>
+    <linearGradient id="tile-03" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#91fb57"/>
+      <stop offset="50%" stop-color="#8dfb56"/>
+      <stop offset="100%" stop-color="#8afb54"/>
+    </linearGradient>
+    <linearGradient id="tile-04" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#94fb56"/>
+      <stop offset="50%" stop-color="#91fb58"/>
+      <stop offset="100%" stop-color="#8dfb56"/>
+    </linearGradient>
+    <linearGradient id="tile-05" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#2efa6a"/>
+      <stop offset="50%" stop-color="#2afa6c"/>
+      <stop offset="100%" stop-color="#24fb6d"/>
+    </linearGradient>
+    <linearGradient id="tile-06" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#4afb65"/>
+      <stop offset="50%" stop-color="#48fb64"/>
+      <stop offset="100%" stop-color="#46fb64"/>
+    </linearGradient>
+    <linearGradient id="tile-07" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#45fa66"/>
+      <stop offset="50%" stop-color="#42fa65"/>
+      <stop offset="100%" stop-color="#3ffb65"/>
+    </linearGradient>
+    <linearGradient id="tile-08" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#59fb63"/>
+      <stop offset="50%" stop-color="#57fb62"/>
+      <stop offset="100%" stop-color="#54fb60"/>
+    </linearGradient>
+    <linearGradient id="tile-09" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#54fb64"/>
+      <stop offset="50%" stop-color="#52fb64"/>
+      <stop offset="100%" stop-color="#50fc63"/>
+    </linearGradient>
+    <linearGradient id="tile-10" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#3cfa66"/>
+      <stop offset="50%" stop-color="#3bfa67"/>
+      <stop offset="100%" stop-color="#3afa67"/>
+    </linearGradient>
+    <linearGradient id="tile-11" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#45fb5a"/>
+      <stop offset="50%" stop-color="#3efb5e"/>
+      <stop offset="100%" stop-color="#34fb5d"/>
+    </linearGradient>
+    <linearGradient id="tile-12" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#56fb5c"/>
+      <stop offset="50%" stop-color="#49fb5e"/>
+      <stop offset="100%" stop-color="#40fb60"/>
+    </linearGradient>
+    <linearGradient id="tile-13" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#49fb5f"/>
+      <stop offset="50%" stop-color="#41fb61"/>
+      <stop offset="100%" stop-color="#3afb62"/>
+    </linearGradient>
+    <linearGradient id="tile-14" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#50fb5d"/>
+      <stop offset="50%" stop-color="#47fb5e"/>
+      <stop offset="100%" stop-color="#40fb5e"/>
+    </linearGradient>
+    <linearGradient id="tile-15" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#49fb5d"/>
+      <stop offset="50%" stop-color="#3ffb63"/>
+      <stop offset="100%" stop-color="#32fb66"/>
+    </linearGradient>
+    <linearGradient id="tile-16" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#43fb61"/>
+      <stop offset="50%" stop-color="#3cfb67"/>
+      <stop offset="100%" stop-color="#31fb68"/>
+    </linearGradient>
+    <linearGradient id="tile-17" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#42fb62"/>
+      <stop offset="50%" stop-color="#3cfb67"/>
+      <stop offset="100%" stop-color="#31fb68"/>
+    </linearGradient>
+    <linearGradient id="tile-18" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#41fb62"/>
+      <stop offset="50%" stop-color="#3bfa67"/>
+      <stop offset="100%" stop-color="#2efb69"/>
+    </linearGradient>
+    <linearGradient id="tile-19" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#5bfb5b"/>
+      <stop offset="50%" stop-color="#50fb5d"/>
+      <stop offset="100%" stop-color="#48fb5d"/>
+    </linearGradient>
+    <linearGradient id="tile-20" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#58fb5e"/>
+      <stop offset="50%" stop-color="#4ffb60"/>
+      <stop offset="100%" stop-color="#46fc5f"/>
+    </linearGradient>
+    <linearGradient id="tile-21" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#50fb5f"/>
+      <stop offset="50%" stop-color="#48fb62"/>
+      <stop offset="100%" stop-color="#40fb61"/>
+    </linearGradient>
+    <linearGradient id="tile-22" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#50fb5e"/>
+      <stop offset="50%" stop-color="#46fb61"/>
+      <stop offset="100%" stop-color="#3bfb62"/>
+    </linearGradient>
+    <linearGradient id="tile-23" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#14fa77"/>
+      <stop offset="50%" stop-color="#0df97b"/>
+      <stop offset="100%" stop-color="#06f982"/>
+    </linearGradient>
+    <linearGradient id="tile-24" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#2bfa66"/>
+      <stop offset="50%" stop-color="#24fa69"/>
+      <stop offset="100%" stop-color="#1dfa6c"/>
+    </linearGradient>
+    <linearGradient id="tile-25" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#3afb59"/>
+      <stop offset="50%" stop-color="#35fa5b"/>
+      <stop offset="100%" stop-color="#2efa5b"/>
+    </linearGradient>
+    <linearGradient id="tile-26" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#3cfb56"/>
+      <stop offset="50%" stop-color="#38fb59"/>
+      <stop offset="100%" stop-color="#32fb58"/>
+    </linearGradient>
+    <linearGradient id="tile-27" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#39fa5e"/>
+      <stop offset="50%" stop-color="#35fa61"/>
+      <stop offset="100%" stop-color="#31fb63"/>
+    </linearGradient>
+    <linearGradient id="tile-28" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#37fb63"/>
+      <stop offset="50%" stop-color="#32fa65"/>
+      <stop offset="100%" stop-color="#2cfa67"/>
+    </linearGradient>
+    <linearGradient id="tile-29" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#11f976"/>
+      <stop offset="50%" stop-color="#0af97e"/>
+      <stop offset="100%" stop-color="#03f782"/>
+    </linearGradient>
+    <linearGradient id="tile-30" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#31fa60"/>
+      <stop offset="50%" stop-color="#2bfa63"/>
+      <stop offset="100%" stop-color="#26fa61"/>
+    </linearGradient>
+    <linearGradient id="tile-31" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#0bf981"/>
+      <stop offset="50%" stop-color="#05f885"/>
+      <stop offset="100%" stop-color="#02f78a"/>
+    </linearGradient>
+    <linearGradient id="tile-32" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#32fa61"/>
+      <stop offset="50%" stop-color="#2ffb62"/>
+      <stop offset="100%" stop-color="#2cfa61"/>
+    </linearGradient>
+    <linearGradient id="gym-g" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#3afb65"/>
+      <stop offset="100%" stop-color="#3dfb64"/>
+    </linearGradient>
+    <linearGradient id="gym-y" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#3bfa64"/>
+      <stop offset="100%" stop-color="#3dfa60"/>
+    </linearGradient>
+    <linearGradient id="gym-m" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#3dfb66"/>
+      <stop offset="100%" stop-color="#3dfb60"/>
+    </linearGradient>
+    <g id="dumbbell">
+      <rect x="135" y="0" width="57" height="58" rx="5" fill="url(#tile-01)"/>
+      <rect x="202" y="0" width="57" height="58" rx="5" fill="url(#tile-02)"/>
+      <rect x="537" y="0" width="57" height="58" rx="5" fill="url(#tile-03)"/>
+      <rect x="604" y="0" width="57" height="58" rx="5" fill="url(#tile-04)"/>
+      <rect x="68" y="67" width="57" height="59" rx="5" fill="url(#tile-05)"/>
+      <rect x="135" y="67" width="57" height="59" rx="5" fill="url(#tile-06)"/>
+      <rect x="202" y="67" width="57" height="59" rx="5" fill="url(#tile-07)"/>
+      <rect x="537" y="67" width="57" height="59" rx="5" fill="url(#tile-08)"/>
+      <rect x="604" y="67" width="57" height="59" rx="5" fill="url(#tile-09)"/>
+      <rect x="671" y="67" width="57" height="59" rx="5" fill="url(#tile-10)"/>
+      <rect x="0" y="136" width="57" height="59" rx="5" fill="url(#tile-11)"/>
+      <rect x="68" y="135" width="57" height="60" rx="5" fill="url(#tile-12)"/>
+      <rect x="135" y="135" width="57" height="60" rx="5" fill="url(#tile-13)"/>
+      <rect x="202" y="135" width="57" height="60" rx="5" fill="url(#tile-14)"/>
+      <rect x="270" y="138" width="57" height="57" rx="5" fill="url(#tile-15)"/>
+      <rect x="336" y="138" width="57" height="57" rx="5" fill="url(#tile-16)"/>
+      <rect x="403" y="138" width="57" height="57" rx="5" fill="url(#tile-17)"/>
+      <rect x="469" y="138" width="58" height="57" rx="5" fill="url(#tile-18)"/>
+      <rect x="537" y="135" width="57" height="60" rx="5" fill="url(#tile-19)"/>
+      <rect x="604" y="135" width="57" height="60" rx="5" fill="url(#tile-20)"/>
+      <rect x="671" y="135" width="57" height="60" rx="5" fill="url(#tile-21)"/>
+      <rect x="739" y="135" width="57" height="60" rx="5" fill="url(#tile-22)"/>
+      <rect x="68" y="204" width="57" height="59" rx="5" fill="url(#tile-23)"/>
+      <rect x="135" y="204" width="57" height="59" rx="5" fill="url(#tile-24)"/>
+      <rect x="202" y="204" width="57" height="59" rx="5" fill="url(#tile-25)"/>
+      <rect x="537" y="204" width="57" height="59" rx="5" fill="url(#tile-26)"/>
+      <rect x="604" y="204" width="57" height="59" rx="5" fill="url(#tile-27)"/>
+      <rect x="671" y="204" width="57" height="59" rx="5" fill="url(#tile-28)"/>
+      <rect x="135" y="273" width="57" height="58" rx="5" fill="url(#tile-29)"/>
+      <rect x="202" y="273" width="57" height="58" rx="5" fill="url(#tile-30)"/>
+      <rect x="537" y="273" width="57" height="58" rx="5" fill="url(#tile-31)"/>
+      <rect x="604" y="273" width="57" height="58" rx="5" fill="url(#tile-32)"/>
+    </g>
+    <g id="wordmark">
+      <!-- Outlines are traced from the source. Counters use the even-odd fill rule. -->
+      <g id="digi" fill="#ffffff" fill-rule="evenodd">
+        <path id="letter-d" d="M0 7.5H125L148.5 31V122L124.5 145.5H0Z M35.5 39H108L112.5 43V110L108 114H35.5Z"/>
+        <path id="letter-i-first" d="M171.5 0H204.5V26.5H171.5Z M171.5 37.5H204.5V145H171.5Z"/>
+        <path id="letter-g-lower" d="M242 37.5H323L339 53.5V164L315 188.5H234.5V157.5H305V141.5H242L226 126V53.5Z M259.5 68H305V111.5H259.5Z"/>
+        <path id="letter-i-second" d="M358.5 0H392V26.5H358.5Z M358.5 37.5H392V145H358.5Z"/>
+      </g>
+      <path id="letter-g-upper" fill="url(#gym-g)" d="M437 6.5H559.5V37.5H451L448.5 40V112L451 114.5H526V91.5H482.5V60H561.5V127.5L544.5 145H434.5L412 122.5V31Z"/>
+      <path id="letter-y" fill="url(#gym-y)" d="M580 36.5H614.5V108H663.5V36.5H697.5V164L673 188.5H592.5V156.5H663.5V139.5H595.5L580 124Z"/>
+      <path id="letter-m" fill="url(#gym-m)" d="M714.5 36.5H840.5L861.5 57.5V144.5H827.5V72L824.5 68H803.5V144.5H769.5V68H751L748.5 70.5V144.5H714.5Z"/>
+    </g>
+    <g id="stacked">
+      <use xlink:href="#dumbbell" transform="translate(31 0)"/>
+      <use xlink:href="#wordmark" transform="translate(0 414)"/>
+    </g>
+    <g id="horizontal">
+      <use xlink:href="#dumbbell" transform="translate(0 0.499) scale(0.0603015075)"/>
+      <use xlink:href="#wordmark" transform="translate(58 0) scale(0.1108877722)"/>
+    </g>
+  </defs>
+  <use id="preview" xlink:href="#stacked"/>
+</svg>

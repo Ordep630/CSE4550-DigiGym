@@ -9,6 +9,7 @@ import 'package:digigym/widgets/floating_bottom_navigation_bar.dart';
 import 'package:digigym/widgets/dashboard_glass_card.dart';
 import 'package:digigym/widgets/recommended_workout_glass_card.dart';
 import 'package:flutter/foundation.dart';
+import 'package:digigym/widgets/digigym_brand_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -98,7 +99,10 @@ Future<WorkoutScheduleController> pumpWorkoutTheme(
   await tester.runAsync(() async {
     for (final asset in [
       'assets/images/digigym_workout_icon.png',
-      'assets/images/digigym_wordmark.png',
+      DigiGymBrandLogo.assetName(
+        DigiGymLogoLayout.horizontal,
+        light ? Brightness.light : Brightness.dark,
+      ),
     ]) {
       await precacheImage(
         AssetImage(asset),

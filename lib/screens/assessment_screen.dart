@@ -210,42 +210,63 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           ),
           const SizedBox(height: 20),
           DigiGymGlassField(
+            alignLightSurface: true,
             child: TextField(
               controller: nameController,
-              decoration: digiGymFormDecoration(context, 'Name'),
+              decoration: digiGymFormDecoration(
+                context,
+                'Name',
+                alignLightSurface: true,
+              ),
             ),
           ),
           const SizedBox(height: 15),
           DigiGymGlassField(
+            alignLightSurface: true,
             child: TextField(
               controller: ageController,
               keyboardType: TextInputType.number,
-              decoration: digiGymFormDecoration(context, 'Age'),
+              decoration: digiGymFormDecoration(
+                context,
+                'Age',
+                alignLightSurface: true,
+              ),
             ),
           ),
           const SizedBox(height: 15),
           ImperialHeightInput(
+            alignLightSurface: true,
             feetController: feetController,
             inchesController: inchesController,
           ),
           const SizedBox(height: 15),
           DigiGymGlassField(
+            alignLightSurface: true,
             child: TextField(
               key: const ValueKey('weight-lb'),
               controller: weightController,
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
-              decoration: digiGymFormDecoration(context, 'Weight (lb)'),
+              decoration: digiGymFormDecoration(
+                context,
+                'Weight (lb)',
+                alignLightSurface: true,
+              ),
             ),
           ),
           const SizedBox(height: 20),
           DigiGymGlassField(
+            alignLightSurface: true,
             child: DropdownButtonFormField<String>(
               isExpanded: true,
               itemHeight: null,
               initialValue: fitnessLevel,
-              decoration: digiGymFormDecoration(context, 'Fitness Level'),
+              decoration: digiGymFormDecoration(
+                context,
+                'Fitness Level',
+                alignLightSurface: true,
+              ),
               items: ['Beginner', 'Intermediate', 'Advanced']
                   .map(
                     (value) =>
@@ -261,11 +282,16 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           ),
           const SizedBox(height: 15),
           DigiGymGlassField(
+            alignLightSurface: true,
             child: DropdownButtonFormField<String>(
               isExpanded: true,
               itemHeight: null,
               initialValue: goal,
-              decoration: digiGymFormDecoration(context, 'Fitness Goal'),
+              decoration: digiGymFormDecoration(
+                context,
+                'Fitness Goal',
+                alignLightSurface: true,
+              ),
               items:
                   [
                         'Lose Weight',
@@ -287,11 +313,16 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           ),
           const SizedBox(height: 15),
           DigiGymGlassField(
+            alignLightSurface: true,
             child: DropdownButtonFormField<String>(
               isExpanded: true,
               itemHeight: null,
               initialValue: diet,
-              decoration: digiGymFormDecoration(context, 'Diet'),
+              decoration: digiGymFormDecoration(
+                context,
+                'Diet',
+                alignLightSurface: true,
+              ),
               items:
                   {
                         'No Restrictions',
@@ -314,11 +345,16 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           ),
           const SizedBox(height: 15),
           DigiGymGlassField(
+            alignLightSurface: true,
             child: DropdownButtonFormField<String>(
               isExpanded: true,
               itemHeight: null,
               initialValue: bodyType,
-              decoration: digiGymFormDecoration(context, 'Body Type'),
+              decoration: digiGymFormDecoration(
+                context,
+                'Body Type',
+                alignLightSurface: true,
+              ),
               items: {'Slim', 'Average', 'Athletic', 'Heavy', bodyType}
                   .map(
                     (value) =>
@@ -334,6 +370,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           ),
           const SizedBox(height: 15),
           DigiGymGlassField(
+            alignLightSurface: true,
             child: DropdownButtonFormField<int>(
               isExpanded: true,
               itemHeight: null,
@@ -341,6 +378,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               decoration: digiGymFormDecoration(
                 context,
                 'Available Workout Time',
+                alignLightSurface: true,
               ),
               items: {15, 30, 45, 60, workoutTime}
                   .map(

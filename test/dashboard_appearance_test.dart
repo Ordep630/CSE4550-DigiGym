@@ -20,6 +20,7 @@ import 'package:digigym/widgets/weekly_workout_schedule.dart';
 import 'package:digigym/widgets/daily_streak_indicator.dart';
 import 'package:digigym/widgets/dashboard_notification_button.dart';
 import 'package:flutter/foundation.dart';
+import 'package:digigym/widgets/digigym_brand_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -129,7 +130,10 @@ void main() {
       await tester.runAsync(() async {
         for (final asset in [
           'assets/images/digigym_workout_icon.png',
-          'assets/images/digigym_wordmark.png',
+          DigiGymBrandLogo.assetName(
+            DigiGymLogoLayout.horizontal,
+            Brightness.dark,
+          ),
           'assets/icons/biceps_flexed.png',
         ]) {
           await precacheImage(
@@ -190,7 +194,10 @@ void main() {
       await tester.runAsync(() async {
         for (final asset in [
           'assets/images/digigym_workout_icon.png',
-          'assets/images/digigym_wordmark.png',
+          DigiGymBrandLogo.assetName(
+            DigiGymLogoLayout.horizontal,
+            Brightness.dark,
+          ),
         ]) {
           await precacheImage(
             AssetImage(asset),
@@ -224,7 +231,10 @@ void main() {
       await tester.runAsync(() async {
         for (final asset in [
           'assets/images/digigym_workout_icon.png',
-          'assets/images/digigym_wordmark.png',
+          DigiGymBrandLogo.assetName(
+            DigiGymLogoLayout.horizontal,
+            Brightness.dark,
+          ),
           'assets/icons/biceps_flexed.png',
         ]) {
           await precacheImage(
@@ -234,46 +244,34 @@ void main() {
         }
       });
       await tester.pumpAndSettle();
-      final wordmark = find.byKey(const ValueKey('dashboard-wordmark'));
-      final row = find.ancestor(of: wordmark, matching: find.byType(Row)).first;
-      expect(tester.getRect(row), Rect.fromLTRB(20, 70, 1280 / 3 - 20, 101));
+      final logo = find.byKey(const ValueKey('dashboard-brand-logo'));
+      final alignment = find
+          .ancestor(of: logo, matching: find.byType(Align))
+          .first;
+      expect(
+        tester.getRect(alignment),
+        Rect.fromLTRB(20, 70, 1280 / 3 - 20, 101),
+      );
       expect(tester.getRect(find.text('Good Morning,')).top, 119);
       expect(find.text('DigiGym'), findsNothing);
-      final image = tester.widget<Image>(wordmark);
+      final image = tester.widget<Image>(
+        find.descendant(of: logo, matching: find.byType(Image)),
+      );
       expect(
         (image.image as AssetImage).assetName,
-        'assets/images/digigym_wordmark.png',
-      );
-      expect(image.semanticLabel, 'DigiGym');
-      expect(image.filterQuality, FilterQuality.none);
-      expect(image.fit, BoxFit.contain);
-      expect(image.color, isNull);
-      final dumbbell = find.descendant(
-        of: row,
-        matching: find.byWidgetPredicate(
-          (widget) =>
-              widget is Image &&
-              widget.image is AssetImage &&
-              (widget.image as AssetImage).assetName ==
-                  'assets/images/digigym_workout_icon.png',
+        DigiGymBrandLogo.assetName(
+          DigiGymLogoLayout.horizontal,
+          Brightness.dark,
         ),
       );
-      expect(tester.getRect(dumbbell).left, 20);
-      expect(tester.getRect(dumbbell).width, 48);
-      expect(tester.getRect(dumbbell).height, closeTo(48 * 331 / 796, 0.001));
-      expect(tester.getRect(wordmark).left, 78);
-      expect(
-        tester.getRect(wordmark).height / tester.getRect(dumbbell).height,
-        closeTo(1.05, 0.001),
-      );
-      expect(
-        tester.getRect(wordmark).center.dy,
-        closeTo(tester.getRect(dumbbell).center.dy, 0.001),
-      );
-      expect(
-        tester.getRect(wordmark).width / tester.getRect(wordmark).height,
-        closeTo(862 / 189, 0.001),
-      );
+      expect(image.semanticLabel, 'DigiGym');
+      expect(image.fit, BoxFit.contain);
+      expect(image.color, isNull);
+      final bounds = tester.getRect(logo);
+      expect(bounds.left, 20);
+      expect(bounds.width, closeTo(153.58525963149, .001));
+      expect(bounds.height, closeTo(20.9577889447, .001));
+      expect(bounds.center.dy, closeTo(85.5, .001));
       expect(find.byType(DailyStreakIndicator), findsOneWidget);
       expect(
         find.byType(DashboardNotificationButton),
@@ -332,7 +330,7 @@ void main() {
               find.byType(DashboardNotificationButton),
             );
             final artwork = tester.getRect(
-              find.byKey(const ValueKey('dashboard-wordmark')),
+              find.byKey(const ValueKey('dashboard-brand-logo')),
             );
             expect(bell.size, const Size(48, 48));
             expect(bell.right, size.width - 20);
@@ -340,7 +338,7 @@ void main() {
             expect(bell.center.dy, closeTo(pill.center.dy, .001));
             expect(
               artwork.width,
-              closeTo((48 * 331 / 796 * 1.05) * 862 / 189, .001),
+              closeTo(DigiGymBrandLogo.dashboardWidth, .001),
             );
             if (pill.left >= artwork.right + 12) {
               expect(bell.center.dy, closeTo(artwork.center.dy, .001));
@@ -485,7 +483,10 @@ void main() {
       await tester.runAsync(() async {
         for (final asset in [
           'assets/images/digigym_workout_icon.png',
-          'assets/images/digigym_wordmark.png',
+          DigiGymBrandLogo.assetName(
+            DigiGymLogoLayout.horizontal,
+            Brightness.dark,
+          ),
         ]) {
           await precacheImage(
             AssetImage(asset),
@@ -745,21 +746,14 @@ void main() {
           );
           await tester.pumpAndSettle();
           expect(tester.takeException(), isNull, reason: '$size at $scale');
-          final wordmark = find.byKey(const ValueKey('dashboard-wordmark'));
-          final header = find
-              .ancestor(of: wordmark, matching: find.byType(Row))
-              .first;
-          final dumbbell = find
-              .descendant(of: header, matching: find.byType(Image))
-              .first;
+          final logo = find.byKey(const ValueKey('dashboard-brand-logo'));
+          final bounds = tester.getRect(logo);
+          expect(bounds.width, closeTo(DigiGymBrandLogo.dashboardWidth, .001));
           expect(
-            tester.getRect(wordmark).height / tester.getRect(dumbbell).height,
-            closeTo(1.05, 0.001),
+            bounds.height,
+            closeTo(DigiGymBrandLogo.dashboardHeight, .001),
           );
-          expect(
-            tester.getRect(wordmark).center.dy,
-            closeTo(tester.getRect(dumbbell).center.dy, 0.001),
-          );
+          expect(bounds.left, 20);
           final scrollable = tester.state<ScrollableState>(
             find.byType(Scrollable),
           );

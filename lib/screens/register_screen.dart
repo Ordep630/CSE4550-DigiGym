@@ -84,7 +84,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   InputDecoration _decoration(String label, {IconData? icon}) {
-    final decoration = digiGymFormDecoration(context, label, icon: icon);
+    final decoration = digiGymFormDecoration(
+      context,
+      label,
+      icon: icon,
+      alignLightSurface: true,
+    );
     // Errors remain readable below the field while focus stays DigiGym green.
     return decoration.copyWith(focusedErrorBorder: decoration.focusedBorder);
   }
@@ -158,6 +163,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           children: [
             const DigiGymFormBranding(),
             DigiGymGlassField(
+              alignLightSurface: true,
               key: const ValueKey('registration-name'),
               child: TextFormField(
                 key: _fields[_RegistrationInput.name],
@@ -176,6 +182,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             const SizedBox(height: 14),
             DigiGymGlassField(
+              alignLightSurface: true,
               key: const ValueKey('registration-email'),
               child: TextFormField(
                 key: _fields[_RegistrationInput.email],
@@ -199,6 +206,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             const SizedBox(height: 14),
             DigiGymGlassField(
+              alignLightSurface: true,
               key: const ValueKey('registration-password'),
               child: TextFormField(
                 key: _fields[_RegistrationInput.password],
@@ -263,6 +271,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             const SizedBox(height: 14),
             DigiGymGlassField(
+              alignLightSurface: true,
               key: const ValueKey('registration-confirm-password'),
               child: TextFormField(
                 key: _fields[_RegistrationInput.confirmation],

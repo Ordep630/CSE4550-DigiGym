@@ -237,7 +237,6 @@ class DigiGymSurfaces extends ThemeExtension<DigiGymSurfaces> {
   final Color iconWellBottom;
   final Color iconShadow;
   final Gradient iconLighting;
-  final Color brandingInk;
   final double numberScale;
   final double dotoWeightBoost;
   final double dotFillRatio;
@@ -279,7 +278,6 @@ class DigiGymSurfaces extends ThemeExtension<DigiGymSurfaces> {
     required this.iconWellBottom,
     required this.iconShadow,
     required this.iconLighting,
-    required this.brandingInk,
     this.numberScale = 1,
     this.dotoWeightBoost = 0,
     this.dotFillRatio = .68,
@@ -407,7 +405,6 @@ class DigiGymSurfaces extends ThemeExtension<DigiGymSurfaces> {
       colors: [Color(0x24FFFFFF), Color(0x00FFFFFF), Color(0x28000000)],
       stops: [0, 0.5, 1],
     ),
-    brandingInk: DigiGymDarkColors.primaryText,
   );
 
   static const light = DigiGymSurfaces(
@@ -515,7 +512,6 @@ class DigiGymSurfaces extends ThemeExtension<DigiGymSurfaces> {
       colors: [Color(0x80FFFFFF), Color(0x00FFFFFF), Color(0x0C304535)],
       stops: [0, 0.5, 1],
     ),
-    brandingInk: Color(0xFF18211D),
     numberScale: 1.06,
     dotoWeightBoost: 40,
     dotFillRatio: .74,
@@ -531,31 +527,6 @@ class DigiGymSurfaces extends ThemeExtension<DigiGymSurfaces> {
     navigationBackdropSigma: 16,
     numeralInk: Colors.black,
   );
-
-  /// Re-ink neutral lettering while retaining the source artwork's green and
-  /// alpha. Applied only in light mode; the approved dark asset is untouched.
-  ColorFilter get wordmarkFilter => ColorFilter.matrix([
-    brandingInk.r,
-    0,
-    0,
-    0,
-    0,
-    brandingInk.g - 1,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    brandingInk.b,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    0,
-  ]);
 
   @override
   DigiGymSurfaces copyWith({
@@ -584,7 +555,6 @@ class DigiGymSurfaces extends ThemeExtension<DigiGymSurfaces> {
     Color? iconWellBottom,
     Color? iconShadow,
     Gradient? iconLighting,
-    Color? brandingInk,
     double? numberScale,
     double? dotoWeightBoost,
     double? dotFillRatio,
@@ -625,7 +595,6 @@ class DigiGymSurfaces extends ThemeExtension<DigiGymSurfaces> {
     iconWellBottom: iconWellBottom ?? this.iconWellBottom,
     iconShadow: iconShadow ?? this.iconShadow,
     iconLighting: iconLighting ?? this.iconLighting,
-    brandingInk: brandingInk ?? this.brandingInk,
     numberScale: numberScale ?? this.numberScale,
     dotoWeightBoost: dotoWeightBoost ?? this.dotoWeightBoost,
     dotFillRatio: dotFillRatio ?? this.dotFillRatio,
@@ -696,7 +665,6 @@ class DigiGymSurfaces extends ThemeExtension<DigiGymSurfaces> {
       iconWellBottom: Color.lerp(iconWellBottom, other.iconWellBottom, t)!,
       iconShadow: Color.lerp(iconShadow, other.iconShadow, t)!,
       iconLighting: Gradient.lerp(iconLighting, other.iconLighting, t)!,
-      brandingInk: Color.lerp(brandingInk, other.brandingInk, t)!,
       numberScale: mix(numberScale, other.numberScale),
       dotoWeightBoost: mix(dotoWeightBoost, other.dotoWeightBoost),
       dotFillRatio: mix(dotFillRatio, other.dotFillRatio),

@@ -8,6 +8,7 @@ import 'package:digigym/widgets/dashboard_progress_card.dart';
 import 'package:digigym/widgets/segmented_progress_ring.dart';
 import 'package:digigym/widgets/floating_bottom_navigation_bar.dart';
 import 'package:digigym/widgets/dashboard_number.dart';
+import 'package:digigym/widgets/digigym_brand_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:digigym/widgets/dot_matrix_text.dart';
@@ -304,7 +305,10 @@ void main() {
       await tester.runAsync(() async {
         for (final asset in [
           'assets/images/digigym_workout_icon.png',
-          'assets/images/digigym_wordmark.png',
+          DigiGymBrandLogo.assetName(
+            DigiGymLogoLayout.horizontal,
+            Brightness.dark,
+          ),
         ]) {
           await precacheImage(
             AssetImage(asset),

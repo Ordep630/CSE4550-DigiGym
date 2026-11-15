@@ -200,8 +200,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     TextInputAction action = TextInputAction.done,
     List<String>? autofillHints,
   }) {
-    final decoration = digiGymFormDecoration(context, label, icon: icon);
+    final decoration = digiGymFormDecoration(
+      context,
+      label,
+      icon: icon,
+      alignLightSurface: true,
+    );
     return DigiGymGlassField(
+      alignLightSurface: true,
       key: ValueKey('recovery-$id'),
       child: TextFormField(
         key: _fields[id],

@@ -26,7 +26,6 @@ void main() {
     expect(theme.colorScheme.primary, const Color(0xFF70FF45));
     expect(theme.colorScheme.primaryContainer, const Color(0xFFE0F0E2));
     expect(theme.colorScheme.onPrimaryContainer, const Color(0xFF237C47));
-    expect(surfaces.brandingInk, const Color(0xFF18211D));
     expect(surfaces.progressTrack, const Color(0xFFD4DDD5));
   });
 

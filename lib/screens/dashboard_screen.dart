@@ -15,6 +15,7 @@ import '../utils/calorie_format.dart';
 import '../utils/bmi_category.dart';
 import '../widgets/dashboard_information_dialogs.dart';
 import '../widgets/digigym_dialog.dart';
+import '../widgets/digigym_brand_logo.dart';
 import '../widgets/monthly_activity_calendar.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/dashboard_greeting.dart';
@@ -226,28 +227,13 @@ class DashboardPage extends StatelessWidget {
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 18,
                                   ),
-                                  child: Row(
-                                    children: [
-                                      Image.asset(
-                                        'assets/images/digigym_workout_icon.png',
-                                        width: 48,
-                                        fit: BoxFit.contain,
-                                        filterQuality: FilterQuality.none,
-                                        excludeFromSemantics: true,
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: _DashboardWordmark(
-                                          style: theme.textTheme.titleLarge
-                                              ?.copyWith(
-                                                fontSize: 26,
-                                                height: 1.2,
-                                                fontWeight: FontWeight.w600,
-                                                letterSpacing: -0.7,
-                                              ),
-                                        ),
-                                      ),
-                                    ],
+                                  child: _DashboardBranding(
+                                    style: theme.textTheme.titleLarge?.copyWith(
+                                      fontSize: 26,
+                                      height: 1.2,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: -0.7,
+                                    ),
                                   ),
                                 );
                                 final hasBell =
@@ -301,9 +287,7 @@ class DashboardPage extends StatelessWidget {
                                 // Measure actual lettering at the active text
                                 // scale. Artwork keeps its approved dimensions.
                                 const brandWidth =
-                                    48 +
-                                    10 +
-                                    (48 * 331 / 796 * 1.05) * 862 / 189;
+                                    DigiGymBrandLogo.dashboardWidth;
                                 final actionsWidth =
                                     DailyStreakIndicator.preferredWidth(
                                       context,
@@ -451,47 +435,39 @@ class _DashboardName extends StatelessWidget {
   );
 }
 
-class _DashboardWordmark extends StatelessWidget {
+class _DashboardBranding extends StatelessWidget {
   final TextStyle? style;
 
-  const _DashboardWordmark({required this.style});
+  const _DashboardBranding({required this.style});
 
   @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Keep the previous title's line box, including text-scaling wraps,
-        // so the artwork replacement does not move the dashboard below it.
-        final title = TextPainter(
-          text: TextSpan(text: 'DigiGym', style: style),
-          textDirection: Directionality.of(context),
-          textScaler: MediaQuery.textScalerOf(context),
-          locale: Localizations.maybeLocaleOf(context),
-        )..layout(maxWidth: constraints.maxWidth);
-        final height = title.height;
-        title.dispose();
-
-        final image = Image.asset(
-          'assets/images/digigym_wordmark.png',
-          key: const ValueKey('dashboard-wordmark'),
-          height: 48 * 331 / 796 * 1.05,
-          fit: BoxFit.contain,
-          filterQuality: FilterQuality.none,
-          semanticLabel: 'DigiGym',
-        );
-        return SizedBox(
-          height: height,
-          child: Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: Theme.of(context).brightness == Brightness.dark
-                ? image
-                : ColorFiltered(
-                    colorFilter: DigiGymSurfaces.of(context).wordmarkFilter,
-                    child: image,
-                  ),
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      // Preserve the prior wordmark line box and the responsive header height.
+      // The original icon and gap occupied 58 logical pixels beside that box.
+      final title =
+          TextPainter(
+            text: TextSpan(text: 'DigiGym', style: style),
+            textDirection: Directionality.of(context),
+            textScaler: MediaQuery.textScalerOf(context),
+            locale: Localizations.maybeLocaleOf(context),
+          )..layout(
+            maxWidth: (constraints.maxWidth - 58).clamp(0, double.infinity),
+          );
+      final height = title.height.clamp(48 * 331 / 796, double.infinity);
+      title.dispose();
+      return SizedBox(
+        height: height,
+        child: const Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: DigiGymBrandLogo(
+            key: ValueKey('dashboard-brand-logo'),
+            layout: DigiGymLogoLayout.horizontal,
+            width: DigiGymBrandLogo.dashboardWidth,
+            height: DigiGymBrandLogo.dashboardHeight,
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
 }

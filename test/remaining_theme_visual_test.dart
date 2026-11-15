@@ -4,11 +4,13 @@ import 'package:digigym/services/meal_recommendation_service.dart';
 import 'package:digigym/theme/digigym_dashboard_theme.dart';
 import 'package:digigym/utils/measurement_units.dart';
 import 'package:digigym/widgets/dashboard_number.dart';
+import 'package:digigym/widgets/digigym_brand_logo.dart';
 import 'package:digigym/widgets/dot_matrix_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_digigym_api.dart';
+import 'support/golden_region_checks.dart';
 import 'meals_groceries_screen_test.dart' as shopping;
 import 'workout_theme_visual_test.dart' as fixtures;
 import 'workouts_screen_test.dart' as actions;
@@ -32,12 +34,17 @@ Future<void> openThemeScene(
       ),
     );
     await tester.runAsync(() async {
-      for (final asset in ['digigym_workout_icon', 'digigym_wordmark']) {
-        await precacheImage(
-          AssetImage('assets/images/$asset.png'),
-          tester.element(find.byType(LoginScreen)),
-        );
-      }
+      await precacheImage(
+        AssetImage(
+          light
+              ? DigiGymBrandLogo.lightFormAsset
+              : DigiGymBrandLogo.assetName(
+                  DigiGymLogoLayout.stacked,
+                  Brightness.dark,
+                ),
+        ),
+        tester.element(find.byType(LoginScreen)),
+      );
     });
     await tester.pumpAndSettle();
     return;
@@ -88,7 +95,6 @@ const _scenes = [
   'profile_details',
   'profile_edit',
   'profile_logout',
-  'login',
 ];
 
 void main() {
@@ -245,6 +251,14 @@ void main() {
         final theme = Theme.of(tester.element(field));
         expect(theme.brightness, Brightness.light);
         expect(theme.colorScheme.primary, DigiGymSurfaces.light.accent);
+        final logo = find.descendant(
+          of: find.byType(DigiGymBrandLogo),
+          matching: find.byType(Image),
+        );
+        expect(
+          (tester.widget<Image>(logo).image as AssetImage).assetName,
+          DigiGymBrandLogo.lightFormAsset,
+        );
         expect(tester.takeException(), isNull);
         await tester.pageBack();
         await tester.pumpAndSettle();
@@ -269,36 +283,73 @@ void main() {
 
   for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
     for (final light in [false, true]) {
-      testWidgets(
-        '${light ? 'Light' : 'Protected dark'} remaining screens ${platform.name}',
-        (tester) async {
-          final shadows = debugDisableShadows;
-          debugDisableShadows = false;
-          tester.view.devicePixelRatio = 1;
-          tester.view.physicalSize = const Size(426, 952);
-          addTearDown(tester.view.resetDevicePixelRatio);
-          addTearDown(tester.view.resetPhysicalSize);
-          try {
-            for (final scene in _scenes) {
-              await openThemeScene(
-                tester,
-                scene,
-                light: light,
-                platform: platform,
-              );
-              expect(tester.takeException(), isNull, reason: scene);
-              await expectLater(
-                find.byType(MaterialApp),
-                matchesGoldenFile(
-                  'goldens/remaining_${light ? 'light' : 'dark_baseline'}_${scene}_${platform.name}.png',
-                ),
-              );
+      for (final loginOnly in [false, true]) {
+        testWidgets(
+          '${light ? 'Light' : 'Protected dark'} ${loginOnly ? 'Login branding' : 'remaining screens'} ${platform.name}',
+          (tester) async {
+            final shadows = debugDisableShadows;
+            debugDisableShadows = false;
+            tester.view.devicePixelRatio = 1;
+            tester.view.physicalSize = const Size(426, 952);
+            addTearDown(tester.view.resetDevicePixelRatio);
+            addTearDown(tester.view.resetPhysicalSize);
+            try {
+              for (final scene in loginOnly ? ['login'] : _scenes) {
+                await openThemeScene(
+                  tester,
+                  scene,
+                  light: light,
+                  platform: platform,
+                );
+                expect(tester.takeException(), isNull, reason: scene);
+                final previous =
+                    'remaining_${light ? 'light' : 'dark_baseline'}_${scene}_${platform.name}.png';
+                if (scene == 'login') {
+                  final logo = find.byKey(const ValueKey('login-brand-logo'));
+                  final image = tester.widget<Image>(
+                    find.descendant(of: logo, matching: find.byType(Image)),
+                  );
+                  expect(
+                    (image.image as AssetImage).assetName,
+                    light
+                        ? DigiGymBrandLogo.lightFormAsset
+                        : DigiGymBrandLogo.assetName(
+                            DigiGymLogoLayout.stacked,
+                            Brightness.dark,
+                          ),
+                  );
+                  await expectOnlyRegionsChanged(
+                    tester,
+                    find.byType(MaterialApp),
+                    reference: light
+                        ? 'test/goldens/remaining_brand_light_login_${platform.name}.png'
+                        : 'test/goldens/$previous',
+                    regions: [
+                      tester.getRect(logo).inflate(light ? 4 : 1),
+                      if (light)
+                        for (final field in ['login-email', 'login-password'])
+                          tester
+                              .getRect(find.byKey(ValueKey(field)))
+                              .inflate(1),
+                    ],
+                    reason: 'Only light logo and input surfaces may differ.',
+                  );
+                }
+                await expectLater(
+                  find.byType(MaterialApp),
+                  matchesGoldenFile(
+                    scene == 'login'
+                        ? 'goldens/remaining_${light ? 'form_light' : 'brand_dark'}_login_${platform.name}.png'
+                        : 'goldens/$previous',
+                  ),
+                );
+              }
+            } finally {
+              debugDisableShadows = shadows;
             }
-          } finally {
-            debugDisableShadows = shadows;
-          }
-        },
-      );
+          },
+        );
+      }
     }
   }
 }

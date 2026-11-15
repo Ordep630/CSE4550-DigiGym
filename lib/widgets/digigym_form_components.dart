@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/digigym_dashboard_theme.dart';
 import '../theme/digigym_screen_theme.dart';
+import 'digigym_brand_logo.dart';
 import 'digigym_page_shell.dart';
 
 /// Shared authentication/profile presentation. Login keeps its approved layout.
@@ -70,61 +71,18 @@ class DigiGymFormBranding extends StatelessWidget {
   const DigiGymFormBranding({super.key});
 
   @override
-  Widget build(BuildContext context) => Semantics(
-    label: 'DigiGym',
-    image: true,
-    excludeSemantics: true,
-    child: Padding(
-      padding: const EdgeInsets.only(top: 8, bottom: 24),
-      child: Column(
-        children: [
-          Image.asset(
-            'assets/images/digigym_workout_icon.png',
-            width: 96,
-            fit: BoxFit.contain,
-            filterQuality: FilterQuality.none,
-          ),
-          const SizedBox(height: 12),
-          DigiGymArtworkBacking(
-            child: Image.asset(
-              'assets/images/digigym_wordmark.png',
-              width: 152,
-              fit: BoxFit.contain,
-              filterQuality: FilterQuality.none,
-            ),
-          ),
-        ],
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: 8, bottom: 24),
+    child: DigiGymBrandLogo(
+      layout: DigiGymLogoLayout.stacked,
+      width: 152,
+      height: DigiGymBrandLogo.stackedSlotHeight(
+        dumbbellWidth: 96,
+        wordmarkWidth: 152,
+        gap: 12,
       ),
     ),
   );
-}
-
-/// Gives artwork with white lettering a contrasting backing in light mode.
-class DigiGymArtworkBacking extends StatelessWidget {
-  final Widget child;
-  const DigiGymArtworkBacking({super.key, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    if (!DigiGymScreenTheme.isLight(context)) return child;
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Positioned(
-          left: -8,
-          right: -8,
-          top: -4,
-          bottom: -4,
-          child: DecoratedBox(
-            decoration: DigiGymSurfaces.dark.glass.copyWith(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        ),
-        child,
-      ],
-    );
-  }
 }
 
 BoxDecoration digiGymFieldSurface(BuildContext context) =>
@@ -141,17 +99,27 @@ BoxDecoration digiGymFieldSurface(BuildContext context) =>
 /// Blur is confined to each input, while inline errors can grow without clips.
 class DigiGymGlassField extends StatelessWidget {
   final Widget child;
-  const DigiGymGlassField({super.key, required this.child});
+  final bool alignLightSurface;
+  final double radius;
+
+  const DigiGymGlassField({
+    super.key,
+    required this.child,
+    this.alignLightSurface = false,
+    this.radius = 28,
+  });
 
   @override
   Widget build(BuildContext context) => Stack(
     children: [
       Positioned.fill(
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(radius),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-            child: DecoratedBox(decoration: digiGymFieldSurface(context)),
+            child: alignLightSurface && DigiGymScreenTheme.isLight(context)
+                ? const SizedBox.expand()
+                : DecoratedBox(decoration: digiGymFieldSurface(context)),
           ),
         ),
       ),
@@ -164,6 +132,7 @@ InputDecoration digiGymFormDecoration(
   BuildContext context,
   String label, {
   IconData? icon,
+  bool alignLightSurface = false,
 }) {
   final light = DigiGymScreenTheme.isLight(context);
   final colors = Theme.of(context).colorScheme;
@@ -177,9 +146,11 @@ InputDecoration digiGymFormDecoration(
       ? DigiGymSurfaces.light.accent
       : DigiGymDarkColors.electricGreen.withValues(alpha: .55);
   final error = light ? colors.error : const Color(0xFFFFB4AB);
-  OutlineInputBorder border(Color color) => OutlineInputBorder(
-    borderRadius: BorderRadius.circular(28),
-    borderSide: BorderSide(color: color),
+  OutlineInputBorder border(Color color) => digiGymFieldOutline(
+    context,
+    radius: 28,
+    color: color,
+    alignLightSurface: alignLightSurface,
   );
   return InputDecoration(
     labelText: label,
@@ -197,6 +168,92 @@ InputDecoration digiGymFormDecoration(
     focusedErrorBorder: border(error),
     errorMaxLines: 10,
   );
+}
+
+OutlineInputBorder digiGymFieldOutline(
+  BuildContext context, {
+  required double radius,
+  required Color color,
+  required bool alignLightSurface,
+}) {
+  final corners = BorderRadius.circular(radius);
+  final side = BorderSide(color: color);
+  final gradient = alignLightSurface && DigiGymScreenTheme.isLight(context)
+      ? digiGymFieldSurface(context).gradient
+      : null;
+  return gradient == null
+      ? OutlineInputBorder(borderRadius: corners, borderSide: side)
+      : _GlassFieldOutline(
+          gradient: gradient,
+          borderRadius: corners,
+          borderSide: side,
+        );
+}
+
+/// Paint the tint in the input decorator's outline bounds. The complete
+/// TextField also owns reservations for its minimum height and validation.
+class _GlassFieldOutline extends OutlineInputBorder {
+  final Gradient gradient;
+
+  const _GlassFieldOutline({
+    required this.gradient,
+    required super.borderRadius,
+    required super.borderSide,
+    super.gapPadding,
+  });
+
+  @override
+  _GlassFieldOutline copyWith({
+    BorderSide? borderSide,
+    BorderRadius? borderRadius,
+    double? gapPadding,
+  }) => _GlassFieldOutline(
+    gradient: gradient,
+    borderRadius: borderRadius ?? this.borderRadius,
+    borderSide: borderSide ?? this.borderSide,
+    gapPadding: gapPadding ?? this.gapPadding,
+  );
+
+  @override
+  ShapeBorder? lerpFrom(ShapeBorder? a, double t) => a is _GlassFieldOutline
+      ? copyWith(
+          borderSide: BorderSide.lerp(a.borderSide, borderSide, t),
+          borderRadius: BorderRadius.lerp(a.borderRadius, borderRadius, t),
+        )
+      : super.lerpFrom(a, t);
+
+  @override
+  void paint(
+    Canvas canvas,
+    Rect rect, {
+    double? gapStart,
+    double gapExtent = 0,
+    double gapPercentage = 0,
+    TextDirection? textDirection,
+  }) {
+    canvas.drawPath(
+      getOuterPath(rect, textDirection: textDirection),
+      Paint()
+        ..shader = gradient.createShader(rect, textDirection: textDirection),
+    );
+    super.paint(
+      canvas,
+      rect,
+      gapStart: gapStart,
+      gapExtent: gapExtent,
+      gapPercentage: gapPercentage,
+      textDirection: textDirection,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is _GlassFieldOutline &&
+      super == other &&
+      gradient == other.gradient;
+
+  @override
+  int get hashCode => Object.hash(super.hashCode, gradient);
 }
 
 BoxDecoration digiGymFormActionSurface(BuildContext context, bool loading) {

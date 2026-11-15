@@ -66,6 +66,11 @@ flutter:
     - assets/images/digigym_logo_official.png
     - assets/images/digigym_workout_icon.png
     - assets/images/digigym_wordmark.png
+    - assets/branding/digigym_stacked_dark.png
+    - assets/branding/digigym_stacked_light.png
+    - assets/branding/digigym_stacked_light_form.png
+    - assets/branding/digigym_horizontal_dark.png
+    - assets/branding/digigym_horizontal_light.png
     - assets/images/digigym_coming_soon.png
     - assets/icons/biceps_flexed.png
     - assets/icons/LUCIDE-LICENSE.txt

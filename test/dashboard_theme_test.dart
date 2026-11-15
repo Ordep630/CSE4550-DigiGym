@@ -14,6 +14,7 @@ import 'package:digigym/widgets/segmented_progress_ring.dart';
 import 'package:digigym/widgets/plan_card.dart';
 import 'package:digigym/widgets/stat_card.dart';
 import 'package:digigym/widgets/dashboard_number.dart';
+import 'package:digigym/widgets/digigym_brand_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -280,21 +281,17 @@ void main() {
       expect(goal.height, greaterThanOrEqualTo(190));
       final headerImage = tester.widget<Image>(
         find.descendant(
-          of: find.byType(DashboardPage),
-          matching: find.byWidgetPredicate(
-            (widget) =>
-                widget is Image &&
-                widget.image is AssetImage &&
-                (widget.image as AssetImage).assetName ==
-                    'assets/images/digigym_workout_icon.png',
-          ),
+          of: find.byKey(const ValueKey('dashboard-brand-logo')),
+          matching: find.byType(Image),
         ),
       );
       expect(
         (headerImage.image as AssetImage).assetName,
-        'assets/images/digigym_workout_icon.png',
+        DigiGymBrandLogo.assetName(
+          DigiGymLogoLayout.horizontal,
+          Brightness.dark,
+        ),
       );
-      expect(headerImage.filterQuality, FilterQuality.none);
       expect(headerImage.color, isNull);
       expect(tester.takeException(), isNull);
     },

@@ -7,6 +7,7 @@ import '../models/session.dart';
 import '../services/digigym_api.dart';
 import '../theme/digigym_dashboard_theme.dart';
 import '../theme/digigym_screen_theme.dart';
+import '../widgets/digigym_brand_logo.dart';
 import '../widgets/digigym_form_components.dart';
 import '../widgets/digigym_page_shell.dart';
 import 'register_screen.dart';
@@ -176,30 +177,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         Column(
                           children: [
                             SizedBox(height: topSpace),
-                            Semantics(
-                              label: 'DigiGym',
-                              image: true,
-                              excludeSemantics: true,
-                              child: Column(
-                                children: [
-                                  Image.asset(
-                                    'assets/images/digigym_workout_icon.png',
-                                    key: const ValueKey('login-dumbbell'),
-                                    width: dumbbellWidth,
-                                    fit: BoxFit.contain,
-                                    filterQuality: FilterQuality.none,
-                                  ),
-                                  const SizedBox(height: 18),
-                                  DigiGymArtworkBacking(
-                                    child: Image.asset(
-                                      'assets/images/digigym_wordmark.png',
-                                      key: const ValueKey('login-wordmark'),
-                                      width: wordmarkWidth,
-                                      fit: BoxFit.contain,
-                                      filterQuality: FilterQuality.none,
-                                    ),
-                                  ),
-                                ],
+                            DigiGymBrandLogo(
+                              key: const ValueKey('login-brand-logo'),
+                              layout: DigiGymLogoLayout.stacked,
+                              width: wordmarkWidth,
+                              height: DigiGymBrandLogo.stackedSlotHeight(
+                                dumbbellWidth: dumbbellWidth,
+                                wordmarkWidth: wordmarkWidth,
+                                gap: 18,
                               ),
                             ),
                             SizedBox(height: brandingGap),
@@ -376,9 +361,11 @@ class _LoginScreenState extends State<LoginScreen> {
     final rim = light
         ? DigiGymSurfaces.light.navigationBorder
         : const Color(0x25D9E7DE);
-    OutlineInputBorder border(Color color) => OutlineInputBorder(
-      borderRadius: BorderRadius.circular(_loginFieldRadius(context)),
-      borderSide: BorderSide(color: color),
+    OutlineInputBorder border(Color color) => digiGymFieldOutline(
+      context,
+      radius: _loginFieldRadius(context),
+      color: color,
+      alignLightSurface: true,
     );
     return InputDecoration(
       hintText: hint,
@@ -416,19 +403,32 @@ class _LoginGlassField extends StatelessWidget {
   const _LoginGlassField({required this.child});
 
   @override
-  Widget build(BuildContext context) => ClipRRect(
-    borderRadius: BorderRadius.circular(_loginFieldRadius(context)),
-    child: BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-      child: DecoratedBox(
-        decoration: digiGymFieldSurface(context),
+  Widget build(BuildContext context) {
+    final radius = _loginFieldRadius(context);
+    if (DigiGymScreenTheme.isLight(context)) {
+      return DigiGymGlassField(
+        radius: radius,
+        alignLightSurface: true,
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 64),
           child: child,
         ),
+      );
+    }
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: DecoratedBox(
+          decoration: digiGymFieldSurface(context),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 64),
+            child: child,
+          ),
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class _LoginButton extends StatelessWidget {

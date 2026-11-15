@@ -6,6 +6,7 @@ import 'package:digigym/screens/home_screen.dart';
 import 'package:digigym/models/user_profile.dart';
 import 'package:digigym/widgets/monthly_activity_calendar.dart';
 import 'package:digigym/widgets/dashboard_glass_card.dart';
+import 'package:digigym/widgets/digigym_brand_logo.dart';
 import 'package:digigym/widgets/dashboard_number.dart';
 import 'package:digigym/widgets/dot_matrix_text.dart';
 import 'package:digigym/widgets/soft_glow_icon.dart';
@@ -90,7 +91,10 @@ void main() {
             await tester.runAsync(() async {
               for (final asset in [
                 'assets/images/digigym_workout_icon.png',
-                'assets/images/digigym_wordmark.png',
+                DigiGymBrandLogo.assetName(
+                  DigiGymLogoLayout.horizontal,
+                  light ? Brightness.light : Brightness.dark,
+                ),
               ]) {
                 await precacheImage(
                   AssetImage(asset),
@@ -105,27 +109,19 @@ void main() {
               platform,
               light: light,
             );
-            if (light) {
-              await expectOnlyRegionsChanged(
-                tester,
-                find.byType(HomeScreen),
-                reference:
-                    'test/goldens/dashboard_sprint3_light_calorie_shadow_${platform.name}.png',
-                regions: [
-                  tester.getRect(
-                    find.descendant(
-                      of: find.byType(FloatingBottomNavigationBar),
-                      matching: find.byType(BackdropFilter),
-                    ),
-                  ),
-                ],
-                reason: 'Home background, cards, icons, flame and typography must remain unchanged outside shared navigation.',
-              );
-            }
+            final brandRegion = _brandRegion(tester);
+            await expectOnlyRegionsChanged(
+              tester,
+              find.byType(HomeScreen),
+              reference:
+                  'test/goldens/dashboard_sprint3_${light ? 'light_nav30' : 'dark_typography_correction'}_${platform.name}.png',
+              regions: [brandRegion],
+              reason: 'Only the header logo may differ from the approved Home reference.',
+            );
             await expectLater(
               find.byType(HomeScreen),
               matchesGoldenFile(
-                'goldens/dashboard_sprint3_${light ? 'light_nav30' : 'dark_typography_correction'}_${platform.name}.png',
+                'goldens/dashboard_sprint3_brand_${light ? 'light' : 'dark'}_${platform.name}.png',
               ),
             );
             if (light) {
@@ -137,21 +133,14 @@ void main() {
                 tester,
                 find.byType(MaterialApp),
                 reference:
-                    'test/goldens/dashboard_sprint3_light_bmi_calorie_shadow_${platform.name}.png',
-                regions: [
-                  tester.getRect(
-                    find.descendant(
-                      of: find.byType(FloatingBottomNavigationBar),
-                      matching: find.byType(BackdropFilter),
-                    ),
-                  ),
-                ],
-                reason: 'The BMI popup and all content outside navigation must remain unchanged.',
+                    'test/goldens/dashboard_sprint3_light_bmi_nav30_${platform.name}.png',
+                regions: [brandRegion],
+                reason: 'The popup and underlying content must match outside the header logo.',
               );
               await expectLater(
                 find.byType(MaterialApp),
                 matchesGoldenFile(
-                  'goldens/dashboard_sprint3_light_bmi_nav30_${platform.name}.png',
+                  'goldens/dashboard_sprint3_brand_light_bmi_${platform.name}.png',
                 ),
               );
             }
@@ -211,7 +200,7 @@ void main() {
                 await tester.pumpAndSettle();
                 final bounds = [
                   for (final key in [
-                    'dashboard-wordmark',
+                    'dashboard-brand-logo',
                     'dashboard-progress-action',
                     'dashboard-workout-action',
                     'dashboard-statistics-panel',
@@ -277,6 +266,10 @@ void main() {
   );
 }
 
+Rect _brandRegion(WidgetTester tester) => tester
+    .getRect(find.byKey(const ValueKey('dashboard-brand-logo')))
+    .inflate(1);
+
 /// Stage 1C typography is restored everywhere except the three statistics.
 /// Light Stage 1D icon, flame and navigation improvements remain allowed here;
 /// the separate pre-experiment check freezes everything outside Stage 1E regions.
@@ -301,15 +294,29 @@ Future<void> _expectProtectedAppearance(
     final finder = switch (entry.key) {
       'navigation' => find.byType(FloatingBottomNavigationBar),
       'calendar' => find.byType(MonthlyActivityCalendar),
+      'dashboard-wordmark' => find.byKey(
+        const ValueKey('dashboard-brand-logo'),
+      ),
       _ => find.byKey(ValueKey(entry.key as String)),
     };
-    expect(
-      tester.getRect(finder),
-      rect(entry.value as List),
-      reason: '${platform.name}: ${entry.key} geometry',
-    );
+    final expected = rect(entry.value as List);
+    final actual = tester.getRect(finder);
+    if (entry.key == 'dashboard-wordmark') {
+      // The combined art occupies the wordmark plus the original icon and gap.
+      expect(actual.left, closeTo(expected.left - 58, .000001));
+      expect(actual.top, closeTo(expected.top, .000001));
+      expect(actual.right, closeTo(expected.right, .000001));
+      expect(actual.bottom, closeTo(expected.bottom, .000001));
+    } else {
+      expect(
+        actual,
+        expected,
+        reason: '${platform.name}: ${entry.key} geometry',
+      );
+    }
   }
   final masks = [
+    _brandRegion(tester),
     for (final value in (baseline['numerals'] as List).skip(1).take(3))
       rect(value as List).inflate(1),
     for (final element
@@ -391,7 +398,7 @@ Future<void> _expectTypographyCorrectionPreserved(
     (values[2] as num).toDouble(),
     (values[3] as num).toDouble(),
   );
-  final masks = <Rect>[];
+  final masks = <Rect>[_brandRegion(tester)];
   for (final element in find.byType(DashboardNumber).evaluate()) {
     final widget = element.widget as DashboardNumber;
     final number = find.byWidget(widget);
@@ -482,7 +489,7 @@ Future<void> _expectTypographyCorrectionPreserved(
         changed,
         0,
         reason:
-            'All pre-Stage-1E pixels outside the calorie shadow must match exactly, including active/inactive navigation, typography, streak, other icons, glass and background. First differences: $changedPixels',
+            'All pre-Stage-1E pixels outside the calorie shadow and logo must match exactly, including active/inactive navigation, typography, streak, other icons, glass and background. First differences: $changedPixels',
       );
     } finally {
       before.dispose();

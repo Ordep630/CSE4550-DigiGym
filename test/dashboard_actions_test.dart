@@ -14,6 +14,7 @@ import 'package:digigym/widgets/floating_bottom_navigation_bar.dart';
 import 'package:digigym/widgets/monthly_activity_calendar.dart';
 import 'package:digigym/widgets/soft_glow_icon.dart';
 import 'package:digigym/widgets/stat_card.dart';
+import 'package:digigym/widgets/digigym_brand_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -413,7 +414,10 @@ void main() {
         );
         await tester.runAsync(() async {
           for (final asset in [
-            'assets/images/digigym_wordmark.png',
+            DigiGymBrandLogo.assetName(
+              DigiGymLogoLayout.horizontal,
+              Brightness.dark,
+            ),
             'assets/images/digigym_workout_icon.png',
             'assets/icons/biceps_flexed.png',
           ]) {

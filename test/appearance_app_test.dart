@@ -8,6 +8,7 @@ import 'package:digigym/theme/appearance_controller.dart';
 import 'package:digigym/theme/digigym_dashboard_theme.dart';
 import 'package:digigym/utils/measurement_units.dart';
 import 'package:digigym/widgets/dashboard_glass_card.dart';
+import 'package:digigym/widgets/digigym_brand_logo.dart';
 import 'package:digigym/widgets/floating_bottom_navigation_bar.dart';
 import 'package:digigym/widgets/segmented_progress_ring.dart';
 import 'package:digigym/widgets/dashboard_number.dart';
@@ -134,6 +135,17 @@ void main() {
   testWidgets(
     'Follow System responds live and survives restart; explicit modes ignore changes',
     (tester) async {
+      void expectBrand(Brightness brightness) {
+        final image = find.descendant(
+          of: find.byKey(const ValueKey('dashboard-brand-logo')),
+          matching: find.byType(Image),
+        );
+        expect(
+          (tester.widget<Image>(image).image as AssetImage).assetName,
+          DigiGymBrandLogo.assetName(DigiGymLogoLayout.horizontal, brightness),
+        );
+      }
+
       final storage = MemoryScheduleStorage();
       final appearance = AppearanceController(storage: storage);
       addTearDown(appearance.dispose);
@@ -143,9 +155,11 @@ void main() {
       appearance.select(ThemeMode.system);
       await tester.pumpAndSettle();
       expect(dashboardBrightness(tester), Brightness.light);
+      expectBrand(Brightness.light);
       tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
       await tester.pumpAndSettle();
       expect(dashboardBrightness(tester), Brightness.dark);
+      expectBrand(Brightness.dark);
       await appearance.flush();
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpAndSettle();
@@ -154,17 +168,21 @@ void main() {
       await start(tester, restarted);
       expect(restarted.mode, ThemeMode.system);
       expect(dashboardBrightness(tester), Brightness.dark);
+      expectBrand(Brightness.dark);
       tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
       await tester.pumpAndSettle();
       expect(dashboardBrightness(tester), Brightness.light);
+      expectBrand(Brightness.light);
       restarted.select(ThemeMode.dark);
       await tester.pumpAndSettle();
       expect(dashboardBrightness(tester), Brightness.dark);
+      expectBrand(Brightness.dark);
       restarted.select(ThemeMode.light);
       await tester.pumpAndSettle();
       tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
       await tester.pumpAndSettle();
       expect(dashboardBrightness(tester), Brightness.light);
+      expectBrand(Brightness.light);
       expect(tester.takeException(), isNull);
     },
   );

@@ -91,6 +91,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
             ),
           const SizedBox(height: 20),
           DigiGymGlassField(
+            alignLightSurface: true,
             child: TextField(
               key: const ValueKey('verification-code'),
               controller: codeController,
@@ -105,6 +106,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
               decoration: digiGymFormDecoration(
                 context,
                 'Verification Code',
+                alignLightSurface: true,
                 icon: Icons.verified_user_outlined,
               ),
             ),

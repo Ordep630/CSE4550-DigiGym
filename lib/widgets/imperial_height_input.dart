@@ -6,11 +6,13 @@ import 'digigym_form_components.dart';
 class ImperialHeightInput extends StatelessWidget {
   final TextEditingController feetController;
   final TextEditingController inchesController;
+  final bool alignLightSurface;
 
   const ImperialHeightInput({
     super.key,
     required this.feetController,
     required this.inchesController,
+    this.alignLightSurface = false,
   });
 
   @override
@@ -21,12 +23,17 @@ class ImperialHeightInput extends StatelessWidget {
         TextEditingController controller, {
         bool decimal = false,
       }) => DigiGymGlassField(
+        alignLightSurface: alignLightSurface,
         child: TextField(
           key: ValueKey('height-$unit'),
           controller: controller,
           keyboardType: TextInputType.numberWithOptions(decimal: decimal),
           textInputAction: TextInputAction.next,
-          decoration: digiGymFormDecoration(context, 'Height ($unit)'),
+          decoration: digiGymFormDecoration(
+            context,
+            'Height ($unit)',
+            alignLightSurface: alignLightSurface,
+          ),
         ),
       );
       final feet = field('ft', feetController);

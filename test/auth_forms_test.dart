@@ -77,9 +77,16 @@ Future<void> submitRegistration(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
-Future<void> pumpRegistration(WidgetTester tester, AuthTestApi api) async {
+Future<void> pumpRegistration(
+  WidgetTester tester,
+  AuthTestApi api, {
+  bool light = false,
+}) async {
   await tester.pumpWidget(
     MaterialApp(
+      theme: light
+          ? DigiGymDashboardTheme.light(ThemeData(useMaterial3: true))
+          : null,
       home: RegisterScreen(api: api),
       routes: {
         '/verify-email': (_) =>
@@ -163,31 +170,48 @@ void main() {
     },
   );
 
-  testWidgets(
-    'Email has field-specific blur validation and keeps green focus when correcting errors',
-    (tester) async {
-      await pumpRegistration(tester, AuthTestApi());
-      await tester.enterText(field('email'), 'invalid');
-      await tester.pumpAndSettle();
-      expect(fieldState(tester, 'email').hasError, isFalse);
-      await blurField(tester, 'email');
-      expect(
-        fieldState(tester, 'email').errorText,
-        'Enter a valid email address.',
-      );
-      for (final id in ['name', 'password', 'confirm-password']) {
-        expect(fieldState(tester, id).hasError, isFalse);
-      }
-      inputWidget(tester, 'email').focusNode!.requestFocus();
-      await tester.pumpAndSettle();
-      final decoration = inputWidget(tester, 'email').decoration!;
-      expect(decoration.focusedErrorBorder, decoration.focusedBorder);
-      await tester.enterText(field('email'), 'correct@example.com');
-      await tester.pumpAndSettle();
-      expect(fieldState(tester, 'email').hasError, isFalse);
-      expect(fieldState(tester, 'name').hasError, isFalse);
-    },
-  );
+  for (final light in [false, true]) {
+    testWidgets(
+      'Email blur validation and green focus stay consistent in ${light ? 'light' : 'dark'} mode',
+      (tester) async {
+        await pumpRegistration(tester, AuthTestApi(), light: light);
+        await tester.enterText(field('email'), 'invalid');
+        await tester.pumpAndSettle();
+        expect(fieldState(tester, 'email').hasError, isFalse);
+        await blurField(tester, 'email');
+        expect(
+          fieldState(tester, 'email').errorText,
+          'Enter a valid email address.',
+        );
+        for (final id in ['name', 'password', 'confirm-password']) {
+          expect(fieldState(tester, id).hasError, isFalse);
+        }
+        inputWidget(tester, 'email').focusNode!.requestFocus();
+        await tester.pumpAndSettle();
+        final decoration = inputWidget(tester, 'email').decoration!;
+        expect(decoration.focusedErrorBorder, decoration.focusedBorder);
+        if (light) {
+          expect(
+            decoration.focusedBorder!.borderSide.color,
+            DigiGymSurfaces.light.accent,
+          );
+          final input = find.descendant(
+            of: field('email'),
+            matching: find.byType(EditableText),
+          );
+          final container = InputDecorator.containerOf(tester.element(input))!;
+          expect(
+            container.size.height,
+            lessThan(tester.getSize(field('email')).height),
+          );
+        }
+        await tester.enterText(field('email'), 'correct@example.com');
+        await tester.pumpAndSettle();
+        expect(fieldState(tester, 'email').hasError, isFalse);
+        expect(fieldState(tester, 'name').hasError, isFalse);
+      },
+    );
+  }
 
   testWidgets(
     'password helper stays neutral until blur, errors clear live, and whitespace remains invalid',

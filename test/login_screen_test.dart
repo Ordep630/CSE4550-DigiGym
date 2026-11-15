@@ -8,6 +8,7 @@ import 'package:digigym/screens/register_screen.dart';
 import 'package:digigym/screens/forgot_password_screen.dart';
 import 'package:digigym/services/digigym_api.dart';
 import 'package:digigym/theme/digigym_dashboard_theme.dart';
+import 'package:digigym/widgets/digigym_brand_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -61,12 +62,12 @@ Future<void> pumpLogin(
     ),
   );
   await tester.runAsync(() async {
-    for (final asset in [
-      'assets/images/digigym_workout_icon.png',
-      'assets/images/digigym_wordmark.png',
-    ]) {
-      await precacheImage(AssetImage(asset), tester.element(email));
-    }
+    await precacheImage(
+      AssetImage(
+        DigiGymBrandLogo.assetName(DigiGymLogoLayout.stacked, Brightness.dark),
+      ),
+      tester.element(email),
+    );
   });
   await tester.pumpAndSettle();
 }
@@ -95,29 +96,26 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetPhysicalSize);
     await pumpLogin(tester);
-    final dumbbell = find.byKey(const ValueKey('login-dumbbell'));
-    final wordmark = find.byKey(const ValueKey('login-wordmark'));
-    for (final artwork in [dumbbell, wordmark]) {
-      final image = tester.widget<Image>(artwork);
-      expect(image.filterQuality, FilterQuality.none);
-      expect(image.color, isNull);
-      expect(image.fit, BoxFit.contain);
-      expect(tester.getRect(artwork).center.dx, closeTo(1280 / 6, .001));
-    }
-    final dumbbellBounds = tester.getRect(dumbbell);
-    final wordmarkBounds = tester.getRect(wordmark);
-    expect(dumbbellBounds.width, closeTo(180, .001));
-    expect(
-      dumbbellBounds.width / dumbbellBounds.height,
-      closeTo(796 / 331, .001),
+    final logo = find.byKey(const ValueKey('login-brand-logo'));
+    final image = tester.widget<Image>(
+      find.descendant(of: logo, matching: find.byType(Image)),
     );
     expect(
-      wordmarkBounds.width / wordmarkBounds.height,
-      closeTo(862 / 189, .001),
+      (image.image as AssetImage).assetName,
+      DigiGymBrandLogo.assetName(DigiGymLogoLayout.stacked, Brightness.dark),
     );
-    expect(wordmarkBounds.top - dumbbellBounds.bottom, closeTo(18, .001));
-    expect(dumbbellBounds.top, inInclusiveRange(160, 200));
-    expect(tester.getRect(email).top - wordmarkBounds.bottom, greaterThan(100));
+    expect(image.color, isNull);
+    expect(image.semanticLabel, 'DigiGym');
+    expect(image.fit, BoxFit.contain);
+    final bounds = tester.getRect(logo);
+    expect(bounds.center.dx, closeTo(1280 / 6, .001));
+    expect(bounds.width, closeTo(228, .001));
+    expect(
+      bounds.height,
+      closeTo(180 * 331 / 796 + 18 + 228 * 189 / 862, .001),
+    );
+    expect(bounds.top, inInclusiveRange(160, 200));
+    expect(tester.getRect(email).top - bounds.bottom, greaterThan(100));
     expect(find.text('Your personal fitness companion'), findsNothing);
     expect(find.text('Welcome Back'), findsNothing);
     expect(find.byIcon(Icons.fitness_center), findsNothing);
@@ -168,14 +166,14 @@ void main() {
         find.byType(Scrollable).first,
       );
       expect(scroll.position.maxScrollExtent, 0);
-      final dumbbell = tester.getRect(
-        find.byKey(const ValueKey('login-dumbbell')),
+      final logo = tester.getRect(
+        find.byKey(const ValueKey('login-brand-logo')),
       );
-      final wordmark = tester.getRect(
-        find.byKey(const ValueKey('login-wordmark')),
+      expect(logo.width, 228);
+      expect(
+        logo.height,
+        closeTo(178.6 * 331 / 796 + 18 + 228 * 189 / 862, .001),
       );
-      expect(dumbbell.width, closeTo(178.6, .001));
-      expect(wordmark.width, 228);
       for (final target in [
         email,
         password,
