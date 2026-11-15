@@ -114,10 +114,9 @@ void main() {
       );
       await tester.pageBack();
       await tester.pumpAndSettle();
-      // Remaining tabs stay on their approved Sprint 2 styling during Stage 1.
       expect(
         Theme.of(tester.element(find.byType(ProfilePage))).brightness,
-        Brightness.dark,
+        Brightness.light,
       );
       await tapTab(tester, 'Home');
       expect(dashboardBrightness(tester), Brightness.light);

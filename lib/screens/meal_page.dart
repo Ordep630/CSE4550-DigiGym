@@ -4,7 +4,6 @@ import '../models/user_profile.dart';
 import '../models/meal.dart';
 import '../services/meal_recommendation_service.dart';
 import '../utils/calorie_format.dart';
-import '../theme/digigym_dashboard_theme.dart';
 import '../widgets/dashboard_glass_card.dart';
 import '../widgets/dashboard_card_action.dart';
 import '../widgets/dashboard_number.dart';
@@ -199,7 +198,7 @@ class MealPage extends StatelessWidget {
                           const SizedBox(width: 8),
                           Icon(
                             Icons.chevron_right_rounded,
-                            color: DigiGymDarkColors.secondaryText,
+                            color: theme.colorScheme.onSurfaceVariant,
                             size: 20,
                           ),
                         ],

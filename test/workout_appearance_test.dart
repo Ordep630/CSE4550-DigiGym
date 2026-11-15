@@ -244,29 +244,30 @@ void main() {
     },
   );
 
-  testWidgets(
-    'only Home and Workout opt into light; remaining tabs stay dark',
-    (tester) async {
-      await visuals.pumpWorkoutTheme(tester, light: true);
-      for (final entry in {
-        'Meals': MealPage,
-        'Groceries': GroceryScreen,
-        'Profile': ProfilePage,
-      }.entries) {
-        await actions.tab(tester, entry.key);
-        expect(
-          themeAt(tester, find.byType(entry.value)).brightness,
-          Brightness.dark,
-        );
-      }
-      await actions.tab(tester, 'Workout');
-      expectLightSurface(
-        tester,
-        find.byKey(const ValueKey('workout-featured')),
+  testWidgets('all destinations follow light appearance in the shared shell', (
+    tester,
+  ) async {
+    await visuals.pumpWorkoutTheme(tester, light: true);
+    for (final entry in {
+      'Meals': MealPage,
+      'Groceries': GroceryScreen,
+      'Profile': ProfilePage,
+    }.entries) {
+      await actions.tab(tester, entry.key);
+      expect(
+        themeAt(tester, find.byType(entry.value)).brightness,
+        Brightness.light,
       );
-      expect(tester.takeException(), isNull);
-    },
-  );
+    }
+    await actions.tab(tester, 'Home');
+    expectLightSurface(
+      tester,
+      find.byKey(const ValueKey('dashboard-progress-action')),
+    );
+    await actions.tab(tester, 'Workout');
+    expectLightSurface(tester, find.byKey(const ValueKey('workout-featured')));
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets(
     'Workout switching, persistence and Follow System retain the selected view',

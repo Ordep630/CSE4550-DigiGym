@@ -103,6 +103,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
               autofillHints: const [AutofillHints.oneTimeCode],
               onSubmitted: (_) => verifyEmail(),
               decoration: digiGymFormDecoration(
+                context,
                 'Verification Code',
                 icon: Icons.verified_user_outlined,
               ),

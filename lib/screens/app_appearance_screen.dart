@@ -14,7 +14,6 @@ class AppAppearanceScreen extends StatelessWidget {
     final mode = controller?.mode ?? ThemeMode.dark;
     return ProfileDestinationScaffold(
       title: 'App Appearance',
-      followAppearance: true,
       child: Builder(
         builder: (context) {
           final theme = Theme.of(context);

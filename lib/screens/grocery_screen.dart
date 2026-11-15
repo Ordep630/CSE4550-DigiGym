@@ -8,6 +8,7 @@ import '../models/user_profile.dart';
 import '../services/grocery_list_controller.dart';
 import '../services/meal_recommendation_service.dart';
 import '../theme/digigym_dashboard_theme.dart';
+import '../theme/digigym_screen_theme.dart';
 import '../widgets/dashboard_glass_card.dart';
 import '../widgets/digigym_dialog.dart';
 import '../widgets/workout_app_bar.dart';
@@ -97,6 +98,9 @@ class _GroceryScreenState extends State<GroceryScreen> {
                       const SizedBox(height: 12),
                       LinearProgressIndicator(
                         value: items.isEmpty ? 0 : purchased / items.length,
+                        backgroundColor: DigiGymScreenTheme.isLight(context)
+                            ? DigiGymSurfaces.light.progressTrack
+                            : null,
                         semanticsLabel:
                             'Grocery purchases: $purchased of ${items.length} items',
                         borderRadius: BorderRadius.circular(8),
@@ -124,7 +128,7 @@ class _GroceryScreenState extends State<GroceryScreen> {
                 OutlinedButton.icon(
                   key: const ValueKey('grocery-add'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: DigiGymDarkColors.softGreen,
+                    foregroundColor: DigiGymSurfaces.of(context).accent,
                     minimumSize: const Size(48, 48),
                     padding: const EdgeInsets.all(12),
                   ),
@@ -241,10 +245,10 @@ class _GroceryScreenState extends State<GroceryScreen> {
                                       },
                                     );
                                   },
-                                  icon: const Icon(
+                                  icon: Icon(
                                     Icons.close_rounded,
                                     size: 20,
-                                    color: DigiGymDarkColors.secondaryText,
+                                    color: theme.colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                               ],
@@ -285,6 +289,7 @@ class _CustomGroceryDialogState extends State<_CustomGroceryDialog> {
   @override
   Widget build(BuildContext context) => DigiGymDialog(
     title: 'Add grocery item',
+    translucentSurface: DigiGymScreenTheme.isLight(context),
     content: Form(
       key: _form,
       child: Column(

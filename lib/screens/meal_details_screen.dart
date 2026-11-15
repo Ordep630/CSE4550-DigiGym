@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/meal.dart';
 import '../utils/calorie_format.dart';
-import '../theme/digigym_dashboard_theme.dart';
+import '../theme/digigym_screen_theme.dart';
 import '../widgets/dashboard_glass_card.dart';
 import '../widgets/dashboard_number.dart';
 import '../widgets/digigym_atmospheric_background.dart';
@@ -14,9 +14,7 @@ class MealDetailsScreen extends StatelessWidget {
   const MealDetailsScreen({super.key, required this.meal});
   @override
   Widget build(BuildContext context) {
-    final theme = DigiGymDashboardTheme.content(
-      DigiGymDashboardTheme.dark(Theme.of(context)),
-    );
+    final theme = DigiGymScreenTheme.route(context);
     return Theme(
       data: theme,
       child: DigiGymAtmosphericBackground(

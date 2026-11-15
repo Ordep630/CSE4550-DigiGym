@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../services/digigym_api.dart';
 import '../theme/digigym_dashboard_theme.dart';
+import '../theme/digigym_screen_theme.dart';
 import '../widgets/digigym_form_components.dart';
 
 enum _RecoveryStep { email, code, password, success }
@@ -199,7 +200,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     TextInputAction action = TextInputAction.done,
     List<String>? autofillHints,
   }) {
-    final decoration = digiGymFormDecoration(label, icon: icon);
+    final decoration = digiGymFormDecoration(context, label, icon: icon);
     return DigiGymGlassField(
       key: ValueKey('recovery-$id'),
       child: TextFormField(
@@ -318,14 +319,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                     if (_password.text.length < 8 &&
                         !(_fields['password']!.currentState?.hasError ?? false))
-                      const Padding(
-                        padding: EdgeInsets.fromLTRB(18, 4, 18, 0),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(18, 4, 18, 0),
                         child: Text(
                           'Use at least 8 characters.',
                           style: TextStyle(
                             fontSize: 12,
                             height: 1.3,
-                            color: DigiGymDarkColors.secondaryText,
+                            color: DigiGymScreenTheme.isLight(context)
+                                ? Theme.of(context).colorScheme.onSurfaceVariant
+                                : DigiGymDarkColors.secondaryText,
                           ),
                         ),
                       ),
@@ -362,7 +365,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               child: Text(
                 _error!,
                 key: const ValueKey('recovery-error'),
-                style: const TextStyle(color: Color(0xFFFFB4AB)),
+                style: TextStyle(
+                  color: DigiGymScreenTheme.isLight(context)
+                      ? Theme.of(context).colorScheme.error
+                      : const Color(0xFFFFB4AB),
+                ),
               ),
             ),
           ],

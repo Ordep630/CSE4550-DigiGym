@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../theme/digigym_dashboard_theme.dart';
+import '../theme/digigym_screen_theme.dart';
 import 'digigym_page_shell.dart';
 
 /// Shared authentication/profile presentation. Login keeps its approved layout.
@@ -32,7 +33,11 @@ class DigiGymFormPage extends StatelessWidget {
               child: Row(
                 children: [
                   if (showBack && Navigator.canPop(context))
-                    const BackButton(color: DigiGymDarkColors.electricGreen)
+                    BackButton(
+                      color: DigiGymScreenTheme.isLight(context)
+                          ? DigiGymSurfaces.light.accent
+                          : DigiGymDarkColors.electricGreen,
+                    )
                   else
                     const SizedBox(width: 12),
                   Expanded(
@@ -80,17 +85,58 @@ class DigiGymFormBranding extends StatelessWidget {
             filterQuality: FilterQuality.none,
           ),
           const SizedBox(height: 12),
-          Image.asset(
-            'assets/images/digigym_wordmark.png',
-            width: 152,
-            fit: BoxFit.contain,
-            filterQuality: FilterQuality.none,
+          DigiGymArtworkBacking(
+            child: Image.asset(
+              'assets/images/digigym_wordmark.png',
+              width: 152,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.none,
+            ),
           ),
         ],
       ),
     ),
   );
 }
+
+/// Gives artwork with white lettering a contrasting backing in light mode.
+class DigiGymArtworkBacking extends StatelessWidget {
+  final Widget child;
+  const DigiGymArtworkBacking({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    if (!DigiGymScreenTheme.isLight(context)) return child;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned(
+          left: -8,
+          right: -8,
+          top: -4,
+          bottom: -4,
+          child: DecoratedBox(
+            decoration: DigiGymSurfaces.dark.glass.copyWith(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+        child,
+      ],
+    );
+  }
+}
+
+BoxDecoration digiGymFieldSurface(BuildContext context) =>
+    DigiGymScreenTheme.isLight(context)
+    ? DigiGymSurfaces.of(context).glass
+    : const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0x801F2925), Color(0x40101815)],
+        ),
+      );
 
 /// Blur is confined to each input, while inline errors can grow without clips.
 class DigiGymGlassField extends StatelessWidget {
@@ -105,15 +151,7 @@ class DigiGymGlassField extends StatelessWidget {
           borderRadius: BorderRadius.circular(28),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-            child: const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0x801F2925), Color(0x40101815)],
-                ),
-              ),
-            ),
+            child: DecoratedBox(decoration: digiGymFieldSurface(context)),
           ),
         ),
       ),
@@ -122,30 +160,78 @@ class DigiGymGlassField extends StatelessWidget {
   );
 }
 
-InputDecoration digiGymFormDecoration(String label, {IconData? icon}) {
+InputDecoration digiGymFormDecoration(
+  BuildContext context,
+  String label, {
+  IconData? icon,
+}) {
+  final light = DigiGymScreenTheme.isLight(context);
+  final colors = Theme.of(context).colorScheme;
+  final secondary = light
+      ? colors.onSurfaceVariant
+      : DigiGymDarkColors.secondaryText;
+  final rim = light
+      ? DigiGymSurfaces.light.navigationBorder
+      : const Color(0x25D9E7DE);
+  final focus = light
+      ? DigiGymSurfaces.light.accent
+      : DigiGymDarkColors.electricGreen.withValues(alpha: .55);
+  final error = light ? colors.error : const Color(0xFFFFB4AB);
   OutlineInputBorder border(Color color) => OutlineInputBorder(
     borderRadius: BorderRadius.circular(28),
     borderSide: BorderSide(color: color),
   );
   return InputDecoration(
     labelText: label,
-    labelStyle: const TextStyle(color: DigiGymDarkColors.secondaryText),
+    labelStyle: TextStyle(color: secondary),
     prefixIcon: icon == null ? null : Icon(icon, size: 24),
-    prefixIconColor: DigiGymDarkColors.secondaryText,
-    suffixIconColor: DigiGymDarkColors.secondaryText,
+    prefixIconColor: secondary,
+    suffixIconColor: secondary,
     contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
     constraints: const BoxConstraints(minHeight: 60),
     filled: false,
-    border: border(const Color(0x25D9E7DE)),
-    enabledBorder: border(const Color(0x25D9E7DE)),
-    focusedBorder: border(
-      DigiGymDarkColors.electricGreen.withValues(alpha: .55),
-    ),
-    errorBorder: border(const Color(0xFFFFB4AB)),
-    focusedErrorBorder: border(const Color(0xFFFFB4AB)),
+    border: border(rim),
+    enabledBorder: border(rim),
+    focusedBorder: border(focus),
+    errorBorder: border(error),
+    focusedErrorBorder: border(error),
     errorMaxLines: 10,
   );
 }
+
+BoxDecoration digiGymFormActionSurface(BuildContext context, bool loading) {
+  final light = DigiGymScreenTheme.isLight(context);
+  final accent = light
+      ? DigiGymSurfaces.light.accent
+      : DigiGymDarkColors.electricGreen;
+  final opacity = loading ? .40 : 1.0;
+  return BoxDecoration(
+    borderRadius: BorderRadius.circular(999),
+    color: light ? accent.withValues(alpha: opacity) : null,
+    gradient: light
+        ? null
+        : LinearGradient(
+            colors: [
+              const Color(0xFF3CBF5F).withValues(alpha: opacity),
+              const Color(0xFF67E780).withValues(alpha: opacity),
+            ],
+          ),
+    boxShadow: loading
+        ? null
+        : [
+            BoxShadow(
+              color: accent.withValues(alpha: .15),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
+          ],
+  );
+}
+
+Color digiGymFormActionInk(BuildContext context) =>
+    DigiGymScreenTheme.isLight(context)
+    ? DigiGymSurfaces.light.onAccent
+    : DigiGymDarkColors.graphite;
 
 class DigiGymPrimaryButton extends StatelessWidget {
   final String label;
@@ -163,30 +249,13 @@ class DigiGymPrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => DecoratedBox(
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(999),
-      gradient: LinearGradient(
-        colors: [
-          const Color(0xFF3CBF5F).withValues(alpha: loading ? .40 : 1),
-          const Color(0xFF67E780).withValues(alpha: loading ? .40 : 1),
-        ],
-      ),
-      boxShadow: loading
-          ? null
-          : [
-              BoxShadow(
-                color: DigiGymDarkColors.electricGreen.withValues(alpha: .15),
-                blurRadius: 20,
-                offset: const Offset(0, 4),
-              ),
-            ],
-    ),
+    decoration: digiGymFormActionSurface(context, loading),
     child: ElevatedButton(
       onPressed: loading ? null : onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.transparent,
         disabledBackgroundColor: Colors.transparent,
-        foregroundColor: DigiGymDarkColors.graphite,
+        foregroundColor: digiGymFormActionInk(context),
         shadowColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -200,7 +269,7 @@ class DigiGymPrimaryButton extends StatelessWidget {
               dimension: 24,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: DigiGymDarkColors.graphite,
+                color: digiGymFormActionInk(context),
                 semanticsLabel: label,
               ),
             )

@@ -24,9 +24,14 @@ Widget host(
   UserProfile profile, {
   double scale = 1,
   bool keyboard = false,
+  bool light = false,
   TargetPlatform platform = TargetPlatform.android,
 }) => MaterialApp(
-  theme: ThemeData(useMaterial3: true, platform: platform),
+  theme: light
+      ? DigiGymDashboardTheme.light(
+          ThemeData(useMaterial3: true, platform: platform),
+        )
+      : ThemeData(useMaterial3: true, platform: platform),
   builder: (context, child) => MediaQuery(
     data: MediaQuery.of(context).copyWith(
       padding: const EdgeInsets.only(top: 52, bottom: 34),
@@ -510,7 +515,7 @@ void main() {
     },
   );
 
-  testWidgets('custom grocery input remains usable with keyboard and 3x text', (
+  testWidgets('light grocery input remains usable with keyboard and 3x text', (
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
@@ -518,11 +523,13 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetPhysicalSize);
     final profile = testUser();
-    await tester.pumpWidget(host(profile, scale: 3));
+    await tester.pumpWidget(host(profile, scale: 3, light: true));
     await tester.pumpAndSettle();
     await tab(tester, 'Groceries');
     await press(tester, find.byKey(const ValueKey('grocery-add')));
-    await tester.pumpWidget(host(profile, scale: 3, keyboard: true));
+    await tester.pumpWidget(
+      host(profile, scale: 3, keyboard: true, light: true),
+    );
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const ValueKey('grocery-custom-name')),
@@ -536,7 +543,7 @@ void main() {
   for (final width in [280.0, 320.0, 420.0]) {
     for (final scale in [1.0, 2.0, 3.0]) {
       testWidgets(
-        'Meals Groceries and details fit $width with $scale text and measured navigation clearance',
+        'Light Meals Groceries and details fit $width with $scale text and measured navigation clearance',
         (tester) async {
           tester.view.devicePixelRatio = 1;
           tester.view.physicalSize = Size(width, 912);
@@ -547,6 +554,7 @@ void main() {
             host(
               profile,
               scale: scale,
+              light: true,
               platform: width == 420
                   ? TargetPlatform.iOS
                   : TargetPlatform.android,

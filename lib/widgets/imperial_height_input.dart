@@ -26,7 +26,7 @@ class ImperialHeightInput extends StatelessWidget {
           controller: controller,
           keyboardType: TextInputType.numberWithOptions(decimal: decimal),
           textInputAction: TextInputAction.next,
-          decoration: digiGymFormDecoration('Height ($unit)'),
+          decoration: digiGymFormDecoration(context, 'Height ($unit)'),
         ),
       );
       final feet = field('ft', feetController);

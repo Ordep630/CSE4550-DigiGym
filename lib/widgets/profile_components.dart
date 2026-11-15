@@ -4,29 +4,24 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 import '../theme/digigym_dashboard_theme.dart';
+import '../theme/digigym_screen_theme.dart';
 import 'digigym_atmospheric_background.dart';
 import 'workout_app_bar.dart';
 
-/// Profile destinations share the approved background, typography and toolbar.
-/// They are full routes, so only the system safe area is reserved at the bottom.
 class ProfileDestinationScaffold extends StatelessWidget {
   final String? title;
   final Widget child;
-  final bool followAppearance;
 
   const ProfileDestinationScaffold({
     super.key,
     this.title,
     required this.child,
-    this.followAppearance = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = DigiGymDashboardTheme.content(
-      followAppearance
-          ? DigiGymDashboardTheme.resolve(Theme.of(context))
-          : DigiGymDashboardTheme.dark(Theme.of(context)),
+      DigiGymDashboardTheme.resolve(Theme.of(context)),
     );
     return Theme(
       data: theme,
@@ -35,8 +30,10 @@ class ProfileDestinationScaffold extends StatelessWidget {
           backgroundColor: Colors.transparent,
           appBar: title == null
               ? AppBar(
-                  leading: const BackButton(
-                    color: DigiGymDarkColors.electricGreen,
+                  leading: BackButton(
+                    color: theme.brightness == Brightness.light
+                        ? DigiGymSurfaces.light.accent
+                        : DigiGymDarkColors.electricGreen,
                   ),
                 )
               : workoutAppBar(
@@ -78,7 +75,9 @@ class ProfileAvatar extends StatelessWidget {
             fontSize: size * .43,
             fontWeight: FontWeight.w600,
             height: 1,
-            color: DigiGymDarkColors.primaryText,
+            color: DigiGymScreenTheme.isLight(context)
+                ? DigiGymSurfaces.light.accent
+                : DigiGymDarkColors.primaryText,
           ),
         ),
       ),
@@ -110,26 +109,28 @@ class ProfileGlassLighting extends StatelessWidget {
   const ProfileGlassLighting({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context) => DecoratedBox(
-    decoration: const BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0x2435AC7A), Color(0x050D3023), Color(0x60030907)],
-        stops: [0, .34, 1],
-      ),
-    ),
-    child: DecoratedBox(
-      decoration: const BoxDecoration(
-        gradient: RadialGradient(
-          center: Alignment(-.7, -1.1),
-          radius: 1.1,
-          colors: [Color(0x148ADFB1), Color(0x008ADFB1)],
-        ),
-      ),
-      child: child,
-    ),
-  );
+  Widget build(BuildContext context) => DigiGymScreenTheme.isLight(context)
+      ? child
+      : DecoratedBox(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0x2435AC7A), Color(0x050D3023), Color(0x60030907)],
+              stops: [0, .34, 1],
+            ),
+          ),
+          child: DecoratedBox(
+            decoration: const BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment(-.7, -1.1),
+                radius: 1.1,
+                colors: [Color(0x148ADFB1), Color(0x008ADFB1)],
+              ),
+            ),
+            child: child,
+          ),
+        );
 }
 
 /// A diffuse shadow illuminates the upper group without painting a new page
@@ -140,20 +141,22 @@ class ProfileUpperLighting extends StatelessWidget {
   const ProfileUpperLighting({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context) => DecoratedBox(
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(24),
-      boxShadow: const [
-        BoxShadow(
-          color: Color(0x1622B477),
-          blurRadius: 64,
-          spreadRadius: 14,
-          offset: Offset(0, -4),
-        ),
-      ],
-    ),
-    child: child,
-  );
+  Widget build(BuildContext context) => DigiGymScreenTheme.isLight(context)
+      ? child
+      : DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x1622B477),
+                blurRadius: 64,
+                spreadRadius: 14,
+                offset: Offset(0, -4),
+              ),
+            ],
+          ),
+          child: child,
+        );
 }
 
 class _EmeraldGlassAvatar extends StatelessWidget {
@@ -163,34 +166,50 @@ class _EmeraldGlassAvatar extends StatelessWidget {
   const _EmeraldGlassAvatar({required this.size, required this.child});
 
   @override
-  Widget build(BuildContext context) => Container(
-    width: size,
-    height: size,
-    alignment: Alignment.center,
-    decoration: BoxDecoration(
-      shape: BoxShape.circle,
-      // Translucent emerald allows the existing card reflection to show through.
-      gradient: const RadialGradient(
-        center: Alignment(-.22, -.25),
-        radius: .95,
-        colors: [Color(0xB02D9569), Color(0xA00D5038), Color(0x80102C23)],
-        stops: [0, .48, 1],
-      ),
-      border: Border.all(color: const Color(0x2476DBAF), width: .6),
-      boxShadow: const [BoxShadow(color: Color(0x1026C580), blurRadius: 12)],
-    ),
-    child: DecoratedBox(
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          center: Alignment(-.7, -.8),
-          radius: .85,
-          colors: [Color(0x24DDFFF0), Color(0x00DDFFF0)],
+  Widget build(BuildContext context) {
+    if (DigiGymScreenTheme.isLight(context)) {
+      final surfaces = DigiGymSurfaces.of(context);
+      return Container(
+        width: size,
+        height: size,
+        alignment: Alignment.center,
+        decoration: surfaces.glass.copyWith(
+          shape: BoxShape.circle,
+          border: Border.all(color: surfaces.navigationBorder, width: .6),
+          boxShadow: [surfaces.glassShadow],
         ),
+        child: child,
+      );
+    }
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        // Translucent emerald allows the existing card reflection to show through.
+        gradient: const RadialGradient(
+          center: Alignment(-.22, -.25),
+          radius: .95,
+          colors: [Color(0xB02D9569), Color(0xA00D5038), Color(0x80102C23)],
+          stops: [0, .48, 1],
+        ),
+        border: Border.all(color: const Color(0x2476DBAF), width: .6),
+        boxShadow: const [BoxShadow(color: Color(0x1026C580), blurRadius: 12)],
       ),
-      child: SizedBox.expand(child: Center(child: child)),
-    ),
-  );
+      child: DecoratedBox(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            center: Alignment(-.7, -.8),
+            radius: .85,
+            colors: [Color(0x24DDFFF0), Color(0x00DDFFF0)],
+          ),
+        ),
+        child: SizedBox.expand(child: Center(child: child)),
+      ),
+    );
+  }
 }
 
 /// The parent owns the single glass surface; rows have transparent ink only.
@@ -224,7 +243,11 @@ class ProfileMenuRow extends StatelessWidget {
       child: InkWell(
         excludeFromSemantics: true,
         onTap: onTap,
-        splashColor: DigiGymDarkColors.electricGreen.withValues(alpha: .10),
+        splashColor:
+            (DigiGymScreenTheme.isLight(context)
+                    ? DigiGymSurfaces.light.accent
+                    : DigiGymDarkColors.electricGreen)
+                .withValues(alpha: .10),
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 64),
           child: Padding(
@@ -241,7 +264,7 @@ class ProfileMenuRow extends StatelessWidget {
                   Icon(
                     icon,
                     size: 22,
-                    color: color ?? DigiGymDarkColors.primaryText,
+                    color: color ?? Theme.of(context).colorScheme.onSurface,
                     shadows: glow && color != null
                         ? [
                             Shadow(
@@ -278,10 +301,10 @@ class ProfileMenuRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Icon(
+                Icon(
                   Icons.chevron_right_rounded,
                   size: 20,
-                  color: DigiGymDarkColors.secondaryText,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ],
             ),

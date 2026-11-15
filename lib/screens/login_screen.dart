@@ -6,6 +6,8 @@ import '../models/user_profile.dart';
 import '../models/session.dart';
 import '../services/digigym_api.dart';
 import '../theme/digigym_dashboard_theme.dart';
+import '../theme/digigym_screen_theme.dart';
+import '../widgets/digigym_form_components.dart';
 import '../widgets/digigym_page_shell.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
@@ -131,6 +133,17 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Builder(
         builder: (context) => LayoutBuilder(
           builder: (context, constraints) {
+            final light = DigiGymScreenTheme.isLight(context);
+            final colors = Theme.of(context).colorScheme;
+            final secondary = light
+                ? colors.onSurfaceVariant
+                : DigiGymDarkColors.secondaryText;
+            final accent = light
+                ? DigiGymSurfaces.light.accent
+                : DigiGymDarkColors.electricGreen;
+            final inputStyle = light
+                ? _inputStyle.copyWith(color: colors.onSurface)
+                : _inputStyle;
             final topSpace = keyboardOpen
                 ? 24.0
                 : (constraints.maxHeight * .14).clamp(32.0, 128.0);
@@ -177,12 +190,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                     filterQuality: FilterQuality.none,
                                   ),
                                   const SizedBox(height: 18),
-                                  Image.asset(
-                                    'assets/images/digigym_wordmark.png',
-                                    key: const ValueKey('login-wordmark'),
-                                    width: wordmarkWidth,
-                                    fit: BoxFit.contain,
-                                    filterQuality: FilterQuality.none,
+                                  DigiGymArtworkBacking(
+                                    child: Image.asset(
+                                      'assets/images/digigym_wordmark.png',
+                                      key: const ValueKey('login-wordmark'),
+                                      width: wordmarkWidth,
+                                      fit: BoxFit.contain,
+                                      filterQuality: FilterQuality.none,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -202,8 +217,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ],
                                       autocorrect: false,
                                       readOnly: isLoggingIn,
-                                      style: _inputStyle,
+                                      style: inputStyle,
                                       decoration: _decoration(
+                                        context,
                                         'Email',
                                         Icons.mail_outline_rounded,
                                       ),
@@ -223,9 +239,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                       autocorrect: false,
                                       readOnly: isLoggingIn,
                                       onSubmitted: (_) => login(),
-                                      style: _inputStyle,
+                                      style: inputStyle,
                                       decoration:
                                           _decoration(
+                                            context,
                                             'Password',
                                             Icons.lock_outline_rounded,
                                           ).copyWith(
@@ -265,11 +282,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                         );
                                       },
                                       style: TextButton.styleFrom(
-                                        foregroundColor:
-                                            DigiGymDarkColors.secondaryText,
-                                        overlayColor: DigiGymDarkColors
-                                            .electricGreen
-                                            .withValues(alpha: .10),
+                                        foregroundColor: secondary,
+                                        overlayColor: accent.withValues(
+                                          alpha: .10,
+                                        ),
                                         minimumSize: const Size(48, 48),
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 8,
@@ -316,8 +332,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       );
                                     },
                                     style: TextButton.styleFrom(
-                                      foregroundColor:
-                                          DigiGymDarkColors.electricGreen,
+                                      foregroundColor: accent,
                                       minimumSize: const Size(48, 48),
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 4,
@@ -349,27 +364,40 @@ class _LoginScreenState extends State<LoginScreen> {
     color: DigiGymDarkColors.primaryText,
   );
 
-  InputDecoration _decoration(String hint, IconData icon) {
+  InputDecoration _decoration(
+    BuildContext context,
+    String hint,
+    IconData icon,
+  ) {
+    final light = DigiGymScreenTheme.isLight(context);
+    final secondary = light
+        ? Theme.of(context).colorScheme.onSurfaceVariant
+        : DigiGymDarkColors.secondaryText;
+    final rim = light
+        ? DigiGymSurfaces.light.navigationBorder
+        : const Color(0x25D9E7DE);
     OutlineInputBorder border(Color color) => OutlineInputBorder(
       borderRadius: BorderRadius.circular(_loginFieldRadius(context)),
       borderSide: BorderSide(color: color),
     );
     return InputDecoration(
       hintText: hint,
-      hintStyle: _inputStyle.copyWith(color: DigiGymDarkColors.secondaryText),
+      hintStyle: _inputStyle.copyWith(color: secondary),
       prefixIcon: Icon(icon, size: 24),
-      prefixIconColor: DigiGymDarkColors.secondaryText,
-      suffixIconColor: DigiGymDarkColors.secondaryText,
+      prefixIconColor: secondary,
+      suffixIconColor: secondary,
       prefixIconConstraints: const BoxConstraints(minWidth: 54, minHeight: 48),
       suffixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 48),
       isDense: true,
       filled: false,
       constraints: const BoxConstraints(minHeight: 64),
       contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-      border: border(const Color(0x25D9E7DE)),
-      enabledBorder: border(const Color(0x25D9E7DE)),
+      border: border(rim),
+      enabledBorder: border(rim),
       focusedBorder: border(
-        DigiGymDarkColors.electricGreen.withValues(alpha: .55),
+        light
+            ? DigiGymSurfaces.light.accent
+            : DigiGymDarkColors.electricGreen.withValues(alpha: .55),
       ),
     );
   }
@@ -393,13 +421,7 @@ class _LoginGlassField extends StatelessWidget {
     child: BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
       child: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0x801F2925), Color(0x40101815)],
-          ),
-        ),
+        decoration: digiGymFieldSurface(context),
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 64),
           child: child,
@@ -416,33 +438,13 @@ class _LoginButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => DecoratedBox(
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(999),
-      gradient: LinearGradient(
-        begin: Alignment.centerLeft,
-        end: Alignment.centerRight,
-        colors: [
-          // Muted tonal companions to the official artwork's #3DFB65 green.
-          const Color(0xFF3CBF5F).withValues(alpha: loading ? .40 : 1),
-          const Color(0xFF67E780).withValues(alpha: loading ? .40 : 1),
-        ],
-      ),
-      boxShadow: loading
-          ? null
-          : [
-              BoxShadow(
-                color: DigiGymDarkColors.electricGreen.withValues(alpha: .15),
-                blurRadius: 20,
-                offset: const Offset(0, 4),
-              ),
-            ],
-    ),
+    decoration: digiGymFormActionSurface(context, loading),
     child: ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.transparent,
         disabledBackgroundColor: Colors.transparent,
-        foregroundColor: DigiGymDarkColors.graphite,
+        foregroundColor: digiGymFormActionInk(context),
         shadowColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -452,11 +454,11 @@ class _LoginButton extends StatelessWidget {
         textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
       ),
       child: loading
-          ? const SizedBox.square(
+          ? SizedBox.square(
               dimension: 24,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: DigiGymDarkColors.graphite,
+                color: digiGymFormActionInk(context),
                 semanticsLabel: 'Signing in',
               ),
             )

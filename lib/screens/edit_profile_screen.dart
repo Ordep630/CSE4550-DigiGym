@@ -179,7 +179,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           DigiGymGlassField(
             child: TextField(
               controller: nameController,
-              decoration: digiGymFormDecoration('Name', icon: Icons.person),
+              decoration: digiGymFormDecoration(
+                context,
+                'Name',
+                icon: Icons.person,
+              ),
             ),
           ),
           const SizedBox(height: 15),
@@ -187,7 +191,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: TextField(
               controller: ageController,
               keyboardType: TextInputType.number,
-              decoration: digiGymFormDecoration('Age', icon: Icons.cake),
+              decoration: digiGymFormDecoration(
+                context,
+                'Age',
+                icon: Icons.cake,
+              ),
             ),
           ),
           const SizedBox(height: 15),
@@ -204,6 +212,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 decimal: true,
               ),
               decoration: digiGymFormDecoration(
+                context,
                 'Weight (lb)',
                 icon: Icons.monitor_weight,
               ),
@@ -215,7 +224,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               isExpanded: true,
               itemHeight: null,
               initialValue: fitnessLevel,
-              decoration: digiGymFormDecoration('Fitness Level'),
+              decoration: digiGymFormDecoration(context, 'Fitness Level'),
               items: const [
                 DropdownMenuItem(value: 'Beginner', child: Text('Beginner')),
                 DropdownMenuItem(
@@ -237,7 +246,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               isExpanded: true,
               itemHeight: null,
               initialValue: fitnessGoal,
-              decoration: digiGymFormDecoration('Fitness Goal'),
+              decoration: digiGymFormDecoration(context, 'Fitness Goal'),
               items: const [
                 DropdownMenuItem(
                   value: 'Lose Weight',
@@ -269,6 +278,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               controller: workoutTimeController,
               keyboardType: TextInputType.number,
               decoration: digiGymFormDecoration(
+                context,
                 'Available Workout Time (minutes)',
                 icon: Icons.timer,
               ),
@@ -280,7 +290,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               isExpanded: true,
               itemHeight: null,
               initialValue: dietaryPreference,
-              decoration: digiGymFormDecoration('Dietary Preference'),
+              decoration: digiGymFormDecoration(context, 'Dietary Preference'),
               items: const [
                 DropdownMenuItem(
                   value: 'No Preference',
@@ -309,7 +319,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               isExpanded: true,
               itemHeight: null,
               initialValue: bodyType,
-              decoration: digiGymFormDecoration('Body Type'),
+              decoration: digiGymFormDecoration(context, 'Body Type'),
               items: const [
                 DropdownMenuItem(value: 'Slim', child: Text('Slim')),
                 DropdownMenuItem(value: 'Average', child: Text('Average')),

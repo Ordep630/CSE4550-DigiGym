@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import '../services/digigym_api.dart';
 import '../theme/digigym_dashboard_theme.dart';
+import '../theme/digigym_screen_theme.dart';
 import '../widgets/dashboard_glass_card.dart';
 import '../widgets/digigym_dialog.dart';
 import '../widgets/profile_components.dart';
@@ -47,10 +48,15 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> logout() async {
+    final light = DigiGymScreenTheme.isLight(context);
+    final destructive = light
+        ? Theme.of(context).colorScheme.error
+        : DigiGymDarkColors.destructive;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => DigiGymDialog(
         title: 'Log Out',
+        translucentSurface: light,
         content: const Text('Are you sure you want to log out?'),
         actions: [
           TextButton(
@@ -62,25 +68,29 @@ class _ProfilePageState extends State<ProfilePage> {
 
           TextButton(
             key: const ValueKey('confirm-logout'),
-            style: TextButton.styleFrom(
-              foregroundColor: DigiGymDarkColors.destructive,
-            ),
+            style: TextButton.styleFrom(foregroundColor: destructive),
             onPressed: () {
               Navigator.pop(dialogContext, true);
             },
             child: Text(
               'Log Out',
               style: TextStyle(
-                shadows: [
-                  Shadow(
-                    color: DigiGymDarkColors.destructive.withValues(alpha: .45),
-                    blurRadius: 6,
-                  ),
-                  Shadow(
-                    color: DigiGymDarkColors.destructive.withValues(alpha: .18),
-                    blurRadius: 12,
-                  ),
-                ],
+                shadows: light
+                    ? null
+                    : [
+                        Shadow(
+                          color: DigiGymDarkColors.destructive.withValues(
+                            alpha: .45,
+                          ),
+                          blurRadius: 6,
+                        ),
+                        Shadow(
+                          color: DigiGymDarkColors.destructive.withValues(
+                            alpha: .18,
+                          ),
+                          blurRadius: 12,
+                        ),
+                      ],
               ),
             ),
           ),
@@ -133,9 +143,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = DigiGymDashboardTheme.content(
-      DigiGymDashboardTheme.dark(Theme.of(context)),
-    );
+    final theme = DigiGymScreenTheme.route(context);
+    final light = theme.brightness == Brightness.light;
     return Theme(
       data: theme,
       child: Scaffold(
@@ -201,19 +210,21 @@ class _ProfilePageState extends State<ProfilePage> {
                                             const SizedBox(height: 4),
                                             Text(
                                               widget.user.email,
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 fontSize: 13,
-                                                color: DigiGymDarkColors
-                                                    .secondaryText,
+                                                color: theme
+                                                    .colorScheme
+                                                    .onSurfaceVariant,
                                               ),
                                             ),
                                           ],
                                         );
-                                        const chevron = Icon(
+                                        final chevron = Icon(
                                           Icons.chevron_right_rounded,
                                           size: 20,
-                                          color:
-                                              DigiGymDarkColors.secondaryText,
+                                          color: theme
+                                              .colorScheme
+                                              .onSurfaceVariant,
                                         );
                                         // Give account text the full width at accessible
                                         // scales instead of squeezing it beside an avatar.
@@ -326,8 +337,10 @@ class _ProfilePageState extends State<ProfilePage> {
                       key: const ValueKey('profile-logout'),
                       label: 'Log Out',
                       icon: Icons.logout_rounded,
-                      color: DigiGymDarkColors.destructive,
-                      glow: true,
+                      color: light
+                          ? theme.colorScheme.error
+                          : DigiGymDarkColors.destructive,
+                      glow: !light,
                       loading: isLoggingOut,
                       onTap: isLoggingOut ? null : logout,
                     ),

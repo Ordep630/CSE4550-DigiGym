@@ -212,7 +212,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
           DigiGymGlassField(
             child: TextField(
               controller: nameController,
-              decoration: digiGymFormDecoration('Name'),
+              decoration: digiGymFormDecoration(context, 'Name'),
             ),
           ),
           const SizedBox(height: 15),
@@ -220,7 +220,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
             child: TextField(
               controller: ageController,
               keyboardType: TextInputType.number,
-              decoration: digiGymFormDecoration('Age'),
+              decoration: digiGymFormDecoration(context, 'Age'),
             ),
           ),
           const SizedBox(height: 15),
@@ -236,7 +236,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
-              decoration: digiGymFormDecoration('Weight (lb)'),
+              decoration: digiGymFormDecoration(context, 'Weight (lb)'),
             ),
           ),
           const SizedBox(height: 20),
@@ -245,7 +245,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               isExpanded: true,
               itemHeight: null,
               initialValue: fitnessLevel,
-              decoration: digiGymFormDecoration('Fitness Level'),
+              decoration: digiGymFormDecoration(context, 'Fitness Level'),
               items: ['Beginner', 'Intermediate', 'Advanced']
                   .map(
                     (value) =>
@@ -265,7 +265,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               isExpanded: true,
               itemHeight: null,
               initialValue: goal,
-              decoration: digiGymFormDecoration('Fitness Goal'),
+              decoration: digiGymFormDecoration(context, 'Fitness Goal'),
               items:
                   [
                         'Lose Weight',
@@ -291,7 +291,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               isExpanded: true,
               itemHeight: null,
               initialValue: diet,
-              decoration: digiGymFormDecoration('Diet'),
+              decoration: digiGymFormDecoration(context, 'Diet'),
               items:
                   {
                         'No Restrictions',
@@ -318,7 +318,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               isExpanded: true,
               itemHeight: null,
               initialValue: bodyType,
-              decoration: digiGymFormDecoration('Body Type'),
+              decoration: digiGymFormDecoration(context, 'Body Type'),
               items: {'Slim', 'Average', 'Athletic', 'Heavy', bodyType}
                   .map(
                     (value) =>
@@ -338,7 +338,10 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
               isExpanded: true,
               itemHeight: null,
               initialValue: workoutTime,
-              decoration: digiGymFormDecoration('Available Workout Time'),
+              decoration: digiGymFormDecoration(
+                context,
+                'Available Workout Time',
+              ),
               items: {15, 30, 45, 60, workoutTime}
                   .map(
                     (value) => DropdownMenuItem(

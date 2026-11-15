@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../models/user_profile.dart';
 import '../theme/digigym_dashboard_theme.dart';
+import '../theme/digigym_screen_theme.dart';
 import '../widgets/floating_bottom_navigation_bar.dart';
 import '../widgets/digigym_atmospheric_background.dart';
 import '../services/digigym_api.dart';
@@ -168,14 +169,14 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
 
     final base = Theme.of(context);
-    // Stage 2A: Home and Workout follow the saved appearance. Other tabs keep
-    // their approved dark styling; preserve the existing dark Workout setup.
     final followsAppearance =
-        selectedIndex == 0 ||
-        (selectedIndex == 1 && base.brightness == Brightness.light);
+        selectedIndex == 0 || DigiGymScreenTheme.isLight(context);
     final theme = followsAppearance
         ? DigiGymDashboardTheme.resolve(base)
         : DigiGymDashboardTheme.dark(base);
+    final contentTheme = DigiGymDashboardTheme.content(
+      selectedIndex >= 2 ? DigiGymScreenTheme.lightControls(theme) : theme,
+    );
 
     return Theme(
       data: theme,
@@ -183,10 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Scaffold(
           backgroundColor: Colors.transparent,
           extendBody: true,
-          body: Theme(
-            data: DigiGymDashboardTheme.content(theme),
-            child: pages[selectedIndex],
-          ),
+          body: Theme(data: contentTheme, child: pages[selectedIndex]),
           bottomNavigationBar: FloatingBottomNavigationBar(
             selectedIndex: selectedIndex,
             onDestinationSelected: selectTab,

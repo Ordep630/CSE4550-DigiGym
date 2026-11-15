@@ -4,6 +4,7 @@ import '../models/user_profile.dart';
 import '../models/session.dart';
 import '../services/digigym_api.dart';
 import '../theme/digigym_dashboard_theme.dart';
+import '../theme/digigym_screen_theme.dart';
 import '../widgets/digigym_form_components.dart';
 
 enum _RegistrationInput { name, email, password, confirmation }
@@ -83,7 +84,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   InputDecoration _decoration(String label, {IconData? icon}) {
-    final decoration = digiGymFormDecoration(label, icon: icon);
+    final decoration = digiGymFormDecoration(context, label, icon: icon);
     // Errors remain readable below the field while focus stays DigiGym green.
     return decoration.copyWith(focusedErrorBorder: decoration.focusedBorder);
   }
@@ -244,16 +245,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         .currentState
                         ?.hasError ??
                     false))
-              const Align(
+              Align(
                 alignment: Alignment.centerLeft,
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(18, 4, 18, 0),
+                  padding: const EdgeInsets.fromLTRB(18, 4, 18, 0),
                   child: Text(
                     'Use at least 8 characters.',
                     style: TextStyle(
                       fontSize: 12,
                       height: 1.3,
-                      color: DigiGymDarkColors.secondaryText,
+                      color: DigiGymScreenTheme.isLight(context)
+                          ? Theme.of(context).colorScheme.onSurfaceVariant
+                          : DigiGymDarkColors.secondaryText,
                     ),
                   ),
                 ),

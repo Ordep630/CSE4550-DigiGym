@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../theme/digigym_dashboard_theme.dart';
+import '../theme/digigym_screen_theme.dart';
+import '../theme/digigym_workout_theme.dart';
 import 'dashboard_glass_card.dart';
 
 class ProfileInformation extends StatelessWidget {
@@ -19,16 +22,27 @@ class ProfileInformation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final light = DigiGymScreenTheme.isLight(context);
     final dark = theme.brightness == Brightness.dark;
+    final appAppearance = light || dark;
+    final titleStyle = TextStyle(
+      color: appAppearance ? theme.colorScheme.onSurfaceVariant : Colors.grey,
+    );
+    final valueStyle = TextStyle(
+      fontWeight: FontWeight.bold,
+      color: light
+          ? switch (valueColor) {
+              DigiGymFitnessLevelColors.beginner =>
+                DigiGymSurfaces.light.accent,
+              DigiGymFitnessLevelColors.intermediate =>
+                DigiGymWorkoutTheme.intermediatePlanAccent,
+              DigiGymFitnessLevelColors.advanced => theme.colorScheme.error,
+              _ => valueColor ?? theme.colorScheme.onSurface,
+            }
+          : valueColor ?? (dark ? theme.colorScheme.onSurface : null),
+    );
     final content = LayoutBuilder(
       builder: (context, constraints) {
-        final titleStyle = TextStyle(
-          color: dark ? theme.colorScheme.onSurfaceVariant : Colors.grey,
-        );
-        final valueStyle = TextStyle(
-          fontWeight: FontWeight.bold,
-          color: valueColor ?? (dark ? theme.colorScheme.onSurface : null),
-        );
         double width(String text, TextStyle? style) {
           final painter = TextPainter(
             text: TextSpan(text: text, style: style),
@@ -67,24 +81,20 @@ class ProfileInformation extends StatelessWidget {
           );
         }
         return ListTile(
-          title: Text(
-            title,
-            style: TextStyle(
-              color: dark ? theme.colorScheme.onSurfaceVariant : Colors.grey,
-            ),
-          ),
+          title: Text(title, style: titleStyle),
           trailing: Text(value, textAlign: TextAlign.right, style: valueStyle),
         );
       },
     );
     if (connected) return content;
-    return dark
-        ? DashboardGlassCard(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: EdgeInsets.zero,
-            cornerRadius: 12,
-            child: content,
-          )
-        : Card(margin: const EdgeInsets.only(bottom: 8), child: content);
+    if (!appAppearance) {
+      return Card(margin: const EdgeInsets.only(bottom: 8), child: content);
+    }
+    return DashboardGlassCard(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.zero,
+      cornerRadius: 12,
+      child: content,
+    );
   }
 }
