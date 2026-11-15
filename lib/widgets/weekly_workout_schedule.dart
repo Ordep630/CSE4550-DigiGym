@@ -44,6 +44,43 @@ class WeeklyWorkoutSchedule extends StatefulWidget {
     this.cardBuilder,
   });
 
+  static BoxDecoration dayBadgeDecoration(
+    BuildContext context, {
+    required bool selected,
+    Color? currentDayColor,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+    final surfaces = DigiGymSurfaces.of(context);
+    final ringColor = currentDayColor ?? colors.primary;
+    return BoxDecoration(
+      shape: BoxShape.circle,
+      color: colors.onSurface.withValues(alpha: .035),
+      border: Border.all(
+        color: selected
+            ? ringColor.withValues(alpha: .65)
+            : colors.onSurface.withValues(alpha: .10),
+      ),
+      boxShadow: selected
+          ? [
+              BoxShadow(
+                color: ringColor.withValues(
+                  alpha: .09 * surfaces.glowIntensity,
+                ),
+                blurRadius: currentDayColor == null ? 9 : 12,
+              ),
+              if (surfaces.selectionGlowOpacity > 0)
+                BoxShadow(
+                  color: ringColor.withValues(
+                    alpha: surfaces.selectionGlowOpacity * .6,
+                  ),
+                  blurRadius: 18,
+                  spreadRadius: 1,
+                ),
+            ]
+          : null,
+    );
+  }
+
   /// Calendar arithmetic, rather than 24-hour subtraction, also handles DST.
   static List<DateTime> weekDates(DateTime date) {
     return WorkoutScheduling.weekDates(date);
@@ -234,8 +271,6 @@ class _DayColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final ringColor = currentDayColor ?? colors.primary;
-    final surfaces = DigiGymSurfaces.of(context);
     final state = day.isRestDay
         ? 'Rest Day'
         : _workoutNames[day.workoutType] ?? 'Unassigned Day';
@@ -292,34 +327,10 @@ class _DayColumn extends StatelessWidget {
                 key: ValueKey('week-badge-$date'),
                 width: size,
                 height: size,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: colors.onSurface.withValues(alpha: .035),
-                  border: Border.all(
-                    color: isToday
-                        ? ringColor.withValues(alpha: .65)
-                        : colors.onSurface.withValues(alpha: .10),
-                  ),
-                  boxShadow: isToday
-                      ? [
-                          BoxShadow(
-                            color: ringColor.withValues(
-                              alpha:
-                                  .09 *
-                                  DigiGymSurfaces.of(context).glowIntensity,
-                            ),
-                            blurRadius: currentDayColor == null ? 9 : 12,
-                          ),
-                          if (surfaces.selectionGlowOpacity > 0)
-                            BoxShadow(
-                              color: ringColor.withValues(
-                                alpha: surfaces.selectionGlowOpacity * .6,
-                              ),
-                              blurRadius: 18,
-                              spreadRadius: 1,
-                            ),
-                        ]
-                      : null,
+                decoration: WeeklyWorkoutSchedule.dayBadgeDecoration(
+                  context,
+                  selected: isToday,
+                  currentDayColor: currentDayColor,
                 ),
                 child: Center(
                   child: day.isCompleted

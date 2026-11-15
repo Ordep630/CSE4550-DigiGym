@@ -5,12 +5,14 @@ import 'segmented_progress_ring.dart';
 
 class DashboardProgressCard extends StatelessWidget {
   final double progress;
+  final String? caption;
   final double minimumHeight;
   final double ringDiameter;
 
   const DashboardProgressCard({
     super.key,
     this.progress = 0,
+    this.caption,
     this.minimumHeight = 0,
     this.ringDiameter = 148,
   });
@@ -33,6 +35,7 @@ class DashboardProgressCard extends StatelessWidget {
           Center(
             child: SegmentedProgressRing(
               progress: progress,
+              caption: caption,
               diameter: ringDiameter,
             ),
           ),

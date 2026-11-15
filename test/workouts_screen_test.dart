@@ -410,6 +410,7 @@ void main() {
     (tester) async {
       final api = FakeDigiGymApi();
       await start(tester, api: api);
+      await activate(tester, 'workout-featured-exercises');
       await activate(tester, 'workout-start');
       expect(
         find.textContaining('No workout session or completions are recorded.'),
@@ -423,6 +424,8 @@ void main() {
       }
       expect(api.updateRequest, isNull);
       expect(api.signOutCalls, 0);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
       await tab(tester, 'Home');
       expect(
         tester

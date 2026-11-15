@@ -17,6 +17,42 @@ abstract final class DigiGymWorkoutTheme {
   // Approved light-only alternative to the low-contrast dark orange #F2A34A.
   static const intermediatePlanAccent = Color(0xFF99570E);
 
+  static const confirmationOpacity = .92;
+  static const confirmationBackdropSigma = 16.0;
+  static const confirmationLightingOpacity = .35;
+
+  static ThemeData confirmation(ThemeData theme) {
+    final light = theme.brightness == Brightness.light;
+    final base = light ? DigiGymDashboardTheme.bmiDialog(theme) : theme;
+    final surfaces = base.extension<DigiGymSurfaces>()!;
+    final gradient = surfaces.glass.gradient!;
+    return base.copyWith(
+      extensions: [
+        ...base.extensions.values.where((value) => value is! DigiGymSurfaces),
+        surfaces.copyWith(
+          glass: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                for (final color in gradient.colors)
+                  color.withValues(alpha: confirmationOpacity),
+              ],
+              stops: gradient.stops,
+            ),
+          ),
+          glassShadow: light
+              ? const BoxShadow(
+                  color: Color(0x27545D6B),
+                  blurRadius: 24,
+                  offset: Offset(0, 8),
+                )
+              : surfaces.glassShadow,
+        ),
+      ],
+    );
+  }
+
   static ThemeData apply(ThemeData base) {
     if (base.brightness == Brightness.dark) {
       // Preserve the existing Workout overrides exactly.

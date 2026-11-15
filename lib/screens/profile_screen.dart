@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/user_profile.dart';
 import '../services/digigym_api.dart';
+import '../services/workout_start_preference.dart';
 import '../theme/digigym_dashboard_theme.dart';
 import '../theme/digigym_screen_theme.dart';
 import '../widgets/dashboard_glass_card.dart';
@@ -13,12 +14,14 @@ import 'change_password_screen.dart';
 import 'coming_soon_screen.dart';
 import 'profile_details_screen.dart';
 import 'edit_profile_screen.dart';
+import 'workout_preferences_screen.dart';
 
 class ProfilePage extends StatefulWidget {
   final UserProfile user;
   final Future<void> Function() onLogout;
   final Function(UserProfile) onUpdateProfile;
   final DigiGymApi api;
+  final WorkoutStartPreference? workoutStartPreference;
 
   const ProfilePage({
     super.key,
@@ -26,6 +29,7 @@ class ProfilePage extends StatefulWidget {
     required this.onLogout,
     required this.onUpdateProfile,
     this.api = digiGymApi,
+    this.workoutStartPreference,
   });
 
   @override
@@ -138,6 +142,20 @@ class _ProfilePageState extends State<ProfilePage> {
       MaterialPageRoute(
         settings: RouteSettings(name: '/profile/${feature.toLowerCase()}'),
         builder: (_) => ComingSoonScreen(feature: feature),
+      ),
+    );
+  }
+
+  void openPreferences() {
+    final preference = widget.workoutStartPreference;
+    if (preference == null) {
+      openComingSoon('Preferences');
+      return;
+    }
+    Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => WorkoutPreferencesScreen(preference: preference),
       ),
     );
   }
@@ -292,9 +310,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ProfileMenuRow(
                           label: 'Preferences',
                           icon: Icons.tune_rounded,
-                          onTap: isLoggingOut
-                              ? null
-                              : () => openComingSoon('Preferences'),
+                          onTap: isLoggingOut ? null : openPreferences,
                         ),
                         const Divider(height: 1, indent: 16, endIndent: 16),
                         ProfileMenuRow(

@@ -184,8 +184,6 @@ void main() {
       expectLightSurface(tester, find.byType(WorkoutExerciseList));
       await expandFirst(tester);
       expect(find.text('How to perform'), findsOneWidget);
-      await tester.pageBack();
-      await tester.pumpAndSettle();
       await actions.activate(tester, 'workout-start');
       expectLightSurface(
         tester,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/digigym_dashboard_theme.dart';
+import '../theme/digigym_workout_theme.dart';
 import 'dashboard_glass_card.dart';
 
 /// One lightweight glass surface, with scrollable content and wrapping actions.
@@ -11,20 +12,31 @@ class DigiGymDialog extends StatelessWidget {
   final Widget content;
   final List<Widget> actions;
   final bool translucentSurface;
+  final bool _workoutConfirmation;
   const DigiGymDialog({
     super.key,
     required this.title,
     required this.content,
     required this.actions,
     this.translucentSurface = false,
-  });
+  }) : _workoutConfirmation = false;
+
+  const DigiGymDialog.workoutConfirmation({
+    super.key,
+    required this.title,
+    required this.content,
+    required this.actions,
+  }) : translucentSurface = false,
+       _workoutConfirmation = true;
 
   @override
   Widget build(BuildContext context) {
     final contentTheme = DigiGymDashboardTheme.content(
       DigiGymDashboardTheme.resolve(Theme.of(context)),
     );
-    final base = translucentSurface
+    final base = _workoutConfirmation
+        ? DigiGymWorkoutTheme.confirmation(contentTheme)
+        : translucentSurface
         ? DigiGymDashboardTheme.bmiDialog(contentTheme)
         : contentTheme;
     final surfaces = base.extension<DigiGymSurfaces>()!;
@@ -60,7 +72,14 @@ class DigiGymDialog extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: 420),
         child: DashboardGlassCard(
           surfaceOpacity: translucentSurface ? surfaces.bmiSurfaceOpacity : 1,
-          backdropSigma: translucentSurface ? surfaces.bmiBackdropSigma : 0,
+          backdropSigma: _workoutConfirmation
+              ? DigiGymWorkoutTheme.confirmationBackdropSigma
+              : translucentSurface
+              ? surfaces.bmiBackdropSigma
+              : 0,
+          lightingOpacity: _workoutConfirmation
+              ? DigiGymWorkoutTheme.confirmationLightingOpacity
+              : 1,
           padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,

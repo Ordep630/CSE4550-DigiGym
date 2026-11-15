@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:digigym/models/user_profile.dart';
 import 'package:digigym/screens/home_screen.dart';
+import 'package:digigym/screens/workout_exercises_screen.dart';
+import 'package:digigym/screens/workouts_screen.dart';
 import 'package:digigym/services/workout_schedule_controller.dart';
 import 'package:digigym/theme/digigym_dashboard_theme.dart';
 import 'package:digigym/widgets/floating_bottom_navigation_bar.dart';
@@ -142,6 +144,7 @@ Future<void> showWorkoutVisualState(WidgetTester tester, String state) async {
       await tester.pumpAndSettle();
       break;
     case 'walkthrough':
+      await actions.activate(tester, 'workout-featured-exercises');
       await actions.activate(tester, 'workout-start');
       break;
     case 'schedule_editor':
@@ -221,74 +224,64 @@ void main() {
                   reason: '$state preserves layout across themes',
                 );
               }
-              if (light) {
-                // Only this experiment's recommendation interior may change.
-                // All other cards must match the immediately prior captures.
-                final cardRegions = [
-                  for (final element
-                      in find.byType(RecommendedWorkoutGlassCard).evaluate())
-                    tester.getRect(
-                      find
-                          .descendant(
-                            of: find.byWidget(element.widget),
-                            matching: find.byType(ClipRRect),
-                          )
-                          .first,
-                    ),
-                ];
-                // Include one raster pixel for fractional clip-edge coverage.
-                final regions = <Rect>[
-                  for (final card in cardRegions) card.inflate(1),
-                ];
+              final recommendation = find.byType(RecommendedWorkoutGlassCard);
+              final previousStyle = !light
+                  ? 'dark_stage2a_baseline'
+                  : recommendation.evaluate().isNotEmpty
+                  ? 'light_recommended_glass'
+                  : 'light_stage2a_glass';
+              final recommendationMoved = const {
+                'my_plan',
+                'weekly_preview',
+                'schedule_editor',
+                'day_dialog',
+                'unconfigured',
+              }.contains(state);
+              final viewPlan = state == 'exercise_route';
+              final layoutChanged = recommendationMoved || viewPlan;
+              if (layoutChanged) {
+                // The shorter recommendation shifts the scrollable content
+                // and its contribution to the existing glass overlays.
+                final screen = find.byType(
+                  viewPlan ? WorkoutExercisesScreen : WorkoutsScreen,
+                );
+                final viewport = tester.getRect(
+                  find
+                      .descendant(of: screen, matching: find.byType(Scrollable))
+                      .first,
+                );
                 final navigation = find.byType(FloatingBottomNavigationBar);
-                if (navigation.evaluate().isNotEmpty) {
-                  final navGlass = tester.getRect(
-                    find.descendant(
-                      of: navigation,
-                      matching: find.byType(BackdropFilter),
-                    ),
-                  );
-                  if (cardRegions.any(
-                    (card) => card.inflate(3 * 16).overlaps(navGlass),
-                  )) {
-                    regions.add(navGlass);
-                  }
-                }
                 final dialog = find.byType(Dialog);
-                if (dialog.evaluate().isNotEmpty &&
-                    find
-                        .descendant(
-                          of: dialog,
-                          matching: find.byType(BackdropFilter),
-                        )
-                        .evaluate()
-                        .isNotEmpty) {
-                  final popup = tester.getRect(dialog);
-                  for (final card in cardRegions) {
-                    regions.add(
-                      card
-                          .inflate(3 * DigiGymSurfaces.light.bmiBackdropSigma)
-                          .intersect(popup),
-                    );
-                  }
-                }
                 await expectOnlyRegionsChanged(
                   tester,
                   find.byType(MaterialApp),
                   reference:
-                      'test/goldens/workout_light_stage2a_glass_${state}_${platform.name}.png',
-                  regions: regions,
-                  reason: 'Only the Recommended Workout glass and its contribution to existing frost may change; every other card, navigation, header and background must match.',
+                      'test/goldens/workout_${previousStyle}_${state}_${platform.name}.png',
+                  regions: [
+                    // Exercise card shadows can extend into the bottom safe area.
+                    viewPlan
+                        ? Rect.fromLTRB(
+                            viewport.left,
+                            viewport.top,
+                            viewport.right,
+                            tester.view.physicalSize.height,
+                          )
+                        : viewport,
+                    if (navigation.evaluate().isNotEmpty)
+                      tester.getRect(navigation),
+                    if (dialog.evaluate().isNotEmpty) tester.getRect(dialog),
+                  ],
+                  reason:
+                      '$state changes only Workout content and the frost that samples it.',
                 );
               }
+              final style = layoutChanged
+                  ? '${light ? 'light' : 'dark'}_integrated_timer'
+                  : previousStyle;
               await expectLater(
                 find.byType(MaterialApp),
                 matchesGoldenFile(
-                  'goldens/workout_${!light
-                      ? 'dark_stage2a_baseline'
-                      : find.byType(RecommendedWorkoutGlassCard).evaluate().isNotEmpty
-                      ? 'light_recommended_glass'
-                      : 'light_stage2a_glass'}_${state}_${platform.name}.png',
+                  'goldens/workout_${style}_${state}_${platform.name}.png',
                 ),
               );
               expect(tester.takeException(), isNull, reason: state);

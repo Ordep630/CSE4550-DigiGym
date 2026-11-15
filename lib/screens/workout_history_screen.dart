@@ -1,10 +1,10 @@
-import 'dart:convert';
-
 import 'package:digigym_backend_client/digigym_backend_client.dart'
     show CompletedWorkout;
 import 'package:flutter/material.dart';
 
+import '../models/workout_record_details.dart';
 import '../services/digigym_api.dart';
+import '../services/workout_session_controller.dart';
 import '../theme/digigym_screen_theme.dart';
 import '../theme/digigym_workout_theme.dart';
 import '../widgets/workout_glass_card.dart';
@@ -14,8 +14,15 @@ import '../widgets/workout_app_bar.dart';
 
 class WorkoutHistoryScreen extends StatefulWidget {
   final DigiGymApi api;
+  final WorkoutSessionController? session;
+  final DateTime? day;
 
-  const WorkoutHistoryScreen({super.key, this.api = digiGymApi});
+  const WorkoutHistoryScreen({
+    super.key,
+    this.api = digiGymApi,
+    this.session,
+    this.day,
+  });
 
   @override
   State<WorkoutHistoryScreen> createState() => _WorkoutHistoryScreenState();
@@ -33,17 +40,35 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
   @override
   void initState() {
     super.initState();
-    _history = widget.api.getWorkoutHistory();
+    _history = _fetchHistory();
+    widget.session?.history.addListener(_entriesChanged);
   }
+
+  @override
+  void dispose() {
+    widget.session?.history.removeListener(_entriesChanged);
+    super.dispose();
+  }
+
+  void _entriesChanged() {
+    if (mounted) {
+      setState(() {
+        _history = Future.value(widget.session!.history.value);
+      });
+    }
+  }
+
+  Future<List<CompletedWorkout>> _fetchHistory() =>
+      widget.session?.fetchHistory() ?? widget.api.getWorkoutHistory();
 
   void _reload() {
     setState(() {
-      _history = widget.api.getWorkoutHistory();
+      _history = _fetchHistory();
     });
   }
 
   Future<void> _refresh() async {
-    final request = widget.api.getWorkoutHistory();
+    final request = _fetchHistory();
 
     setState(() {
       _history = request;
@@ -62,18 +87,6 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
         TimeOfDay.fromDateTime(value.toLocal()),
         alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
       );
-
-  List<dynamic> _exercises(CompletedWorkout workout) {
-    try {
-      final decoded = jsonDecode(workout.details);
-
-      if (decoded is List) {
-        return decoded;
-      }
-    } catch (_) {}
-
-    return const <dynamic>[];
-  }
 
   void _toggleSelected(int id) {
     if (_isDeleting) return;
@@ -129,14 +142,18 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
 
     setState(() => _isDeleting = true);
     try {
-      final deleted = await widget.api.deleteWorkoutHistory(ids);
+      final deleted =
+          await (widget.session?.deleteHistory(ids) ??
+              widget.api.deleteWorkoutHistory(ids));
 
       if (!mounted) return;
 
       setState(() {
         _selectedIds.clear();
         _selectionMode = false;
-        _history = widget.api.getWorkoutHistory();
+        _history = widget.session == null
+            ? _fetchHistory()
+            : Future.value(widget.session!.history.value);
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -168,7 +185,9 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
   }
 
   void _showWorkoutDetails(BuildContext context, CompletedWorkout workout) {
-    final exercises = _exercises(workout);
+    final details = WorkoutRecordDetails.decode(workout.details);
+    final exercises = details.exercises;
+    final elapsed = details.activeTime;
 
     showModalBottomSheet<void>(
       context: context,
@@ -197,6 +216,8 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                     'Completed ${_date(context, workout.completedAt)} at ${_time(context, workout.completedAt)}',
                   ),
                   Text('Planned duration: ${workout.durationMinutes} minutes'),
+                  if (elapsed != null)
+                    Text('Active time: ${formatWorkoutTime(elapsed)}'),
                   const SizedBox(height: 18),
                   Text(
                     'Exercises',
@@ -209,25 +230,23 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                     )
                   else
                     for (final exercise in exercises)
-                      if (exercise is Map)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${exercise['name'] ?? 'Exercise'}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                ),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              exercise.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
                               ),
-                              if (exercise['sets'] != null)
-                                Text('${exercise['sets']}'),
-                              if (exercise['description'] != null)
-                                Text('${exercise['description']}'),
-                            ],
-                          ),
+                            ),
+                            if (exercise.sets case final sets?) Text(sets),
+                            if (exercise.description case final description?)
+                              Text(description),
+                          ],
                         ),
+                      ),
                 ],
               ),
             ),
@@ -250,7 +269,9 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
             context,
             title: _selectionMode
                 ? '${_selectedIds.length} selected'
-                : 'Workout History',
+                : widget.day == null
+                ? 'Workout History'
+                : _date(context, widget.day!),
             showBack: true,
             theme: theme,
             actions: [
@@ -321,7 +342,15 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                   );
                 }
 
-                final workouts = snapshot.data ?? const <CompletedWorkout>[];
+                final all = snapshot.data ?? const <CompletedWorkout>[];
+                final day = widget.day;
+                final workouts = day == null
+                    ? all
+                    : all
+                          .where(
+                            (row) => workoutLocalDate(row.completedAt) == day,
+                          )
+                          .toList();
 
                 if (workouts.isEmpty) {
                   return Center(
@@ -337,7 +366,9 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'No completed workouts yet',
+                            day == null
+                                ? 'No completed workouts yet'
+                                : 'No workouts on this date',
                             style: theme.textTheme.titleMedium,
                           ),
                           const SizedBox(height: 8),
@@ -365,6 +396,9 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                       final workout = workouts[index];
                       final workoutId = workout.id!;
                       final selected = _selectedIds.contains(workoutId);
+                      final elapsed = WorkoutRecordDetails.decode(
+                        workout.details,
+                      ).activeTime;
 
                       return WorkoutGlassCard(
                         child: ListTile(
@@ -388,7 +422,8 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                             style: theme.textTheme.titleMedium,
                           ),
                           subtitle: Text(
-                            'Completed ${_date(context, workout.completedAt)} · ${workout.durationMinutes} min planned',
+                            'Completed ${_date(context, workout.completedAt)} · ${workout.durationMinutes} min planned'
+                            '${elapsed == null ? '' : ' · ${formatWorkoutTime(elapsed)} active'}',
                           ),
                           trailing: const Icon(Icons.chevron_right),
                           onLongPress: !_selectionMode

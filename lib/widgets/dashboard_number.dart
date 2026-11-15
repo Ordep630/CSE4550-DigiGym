@@ -36,7 +36,7 @@ class DashboardNumber extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final parts = RegExp(r'^([0-9][0-9.,]*)(.*)$').firstMatch(value);
+    final parts = RegExp(r'^([0-9][0-9.,:]*)(.*)$').firstMatch(value);
     final number = parts?.group(1) ?? value;
     final unit = parts?.group(2) ?? '';
     final foreground = color ?? Theme.of(context).colorScheme.onSurface;

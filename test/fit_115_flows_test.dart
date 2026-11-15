@@ -1,13 +1,14 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:digigym/models/user_profile.dart';
 import 'package:digigym/models/workout_plan.dart';
+import 'package:digigym/models/workout_record_details.dart';
 import 'package:digigym/screens/change_password_screen.dart';
 import 'package:digigym/screens/home_screen.dart';
 import 'package:digigym/screens/workout_exercises_screen.dart';
 import 'package:digigym/screens/workout_history_screen.dart';
 import 'package:digigym/services/digigym_api.dart';
+import 'package:digigym/services/workout_session_controller.dart';
 import 'package:digigym/theme/digigym_dashboard_theme.dart';
 import 'package:digigym/widgets/daily_streak_indicator.dart';
 import 'package:digigym/widgets/digigym_brand_logo.dart';
@@ -19,6 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_digigym_api.dart';
+import 'support/memory_schedule_storage.dart';
 import 'workout_theme_visual_test.dart' show loadWorkoutVisualFonts;
 import 'workouts_screen_test.dart' as workout;
 
@@ -168,6 +170,16 @@ Future<void> fillPassword(WidgetTester tester, String confirmation) async {
   await tester.enterText(fields.at(2), confirmation);
 }
 
+WorkoutSessionController createSession(FitApi api) {
+  final session = WorkoutSessionController(
+    accountId: accountId,
+    api: api,
+    storage: MemoryScheduleStorage(),
+  );
+  addTearDown(session.dispose);
+  return session;
+}
+
 void main() {
   setUpAll(loadWorkoutVisualFonts);
 
@@ -179,8 +191,10 @@ void main() {
         ..failStreakWrite = true;
 
       final plan = WorkoutPlan.forUser(workout.profile());
+      final session = createSession(api);
+      await session.initialize();
       await tester.pumpWidget(
-        app(WorkoutExercisesScreen(plan: plan, completionApi: api)),
+        app(WorkoutExercisesScreen(plan: plan, session: session)),
       );
       await tester.scrollUntilVisible(complete, 250);
       await tester.tap(complete);
@@ -212,11 +226,13 @@ void main() {
     'failed history save reports no success and never updates streak',
     (tester) async {
       final api = FitApi()..saveError = StateError('Unavailable');
+      final session = createSession(api);
+      await session.initialize();
       await tester.pumpWidget(
         app(
           WorkoutExercisesScreen(
             plan: WorkoutPlan.forUser(workout.profile()),
-            completionApi: api,
+            session: session,
           ),
         ),
       );
@@ -239,6 +255,7 @@ void main() {
             user: workout.profile(),
             api: api,
             clock: () => initial,
+            workoutSessionStorage: MemoryScheduleStorage(),
             onLogout: () async {},
             onUpdateProfile: (_) {},
           ),
@@ -254,6 +271,7 @@ void main() {
       );
 
       await workout.tab(tester, 'Workout');
+      await workout.activate(tester, 'workout-featured-exercises');
       await workout.activate(tester, 'workout-start');
       final plan = WorkoutPlan.forUser(workout.profile());
       for (var index = 1; index < plan.exercises.length; index++) {
@@ -262,10 +280,12 @@ void main() {
       await visibleTap(tester, complete);
       expect(api.streakReads, [initial, initial]);
       expect(
-        jsonDecode(api.history.single.details),
+        WorkoutRecordDetails.decode(api.history.single.details).exercises,
         hasLength(plan.exercises.length),
       );
       expect(api.history.single.durationMinutes, plan.durationMinutes);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
       await tester.pageBack();
       await tester.pumpAndSettle();
       await workout.tab(tester, 'Home');

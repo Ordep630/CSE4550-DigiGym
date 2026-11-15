@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart'
+    show KeyValueStorage;
 
 import '../models/user_profile.dart';
 import '../theme/digigym_dashboard_theme.dart';
@@ -12,11 +14,14 @@ import '../services/dashboard_personalization.dart';
 import '../services/meal_recommendation_service.dart';
 import '../services/grocery_list_controller.dart';
 import '../services/workout_schedule_controller.dart';
+import '../services/workout_session_controller.dart';
+import '../services/workout_start_preference.dart';
 import '../services/workout_scheduling.dart';
 import '../models/workout_schedule_day.dart';
 import '../widgets/workout_schedule_details.dart';
 import 'dashboard_screen.dart';
 import 'workouts_screen.dart';
+import 'workout_history_screen.dart';
 import 'meal_page.dart';
 import 'grocery_screen.dart';
 import 'profile_screen.dart';
@@ -30,6 +35,9 @@ class HomeScreen extends StatefulWidget {
   final String motivationalMessage;
   final DateTime Function()? clock;
   final WorkoutScheduleController? workoutSchedule;
+  final KeyValueStorage? workoutSessionStorage;
+  final KeyValueStorage? workoutPreferenceStorage;
+  final Duration Function()? workoutMonotonicNow;
 
   const HomeScreen({
     super.key,
@@ -40,6 +48,9 @@ class HomeScreen extends StatefulWidget {
     this.motivationalMessage = DashboardPersonalization.defaultMessage,
     this.clock,
     this.workoutSchedule,
+    this.workoutSessionStorage,
+    this.workoutPreferenceStorage,
+    this.workoutMonotonicNow,
   });
 
   @override
@@ -50,6 +61,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int selectedIndex = 0;
   GroceryListController? _groceries;
   late WorkoutScheduleController _schedule;
+  WorkoutSessionController? _workoutSession;
+  WorkoutStartPreference? _workoutStartPreference;
   bool _ownsSchedule = false;
   bool _focusSchedule = false;
   int? _streakDays;
@@ -85,13 +98,61 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     _bindSchedule();
+    _bindWorkoutSession();
+    _bindWorkoutStartPreference();
     WidgetsBinding.instance.addObserver(this);
     unawaited(_loadStreak());
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) unawaited(_loadStreak());
+    final foreground = state == AppLifecycleState.resumed;
+    _workoutSession?.foregroundChanged(foreground: foreground);
+    if (foreground) unawaited(_loadStreak());
+  }
+
+  void _bindWorkoutSession() {
+    _workoutSession?.dispose();
+    _workoutSession = null;
+    final account = _streakAccount;
+    if (account == null || widget.api.authenticatedAccountId != account) return;
+    final session = WorkoutSessionController(
+      accountId: account,
+      api: widget.api,
+      storage: widget.workoutSessionStorage,
+      monotonicNow: widget.workoutMonotonicNow,
+      onStreakUpdated: () => unawaited(_loadStreak()),
+    );
+    _workoutSession = session;
+    unawaited(session.initialize());
+    unawaited(session.refreshHistory());
+  }
+
+  void _bindWorkoutStartPreference() {
+    final account = _workoutSession?.accountId;
+    _workoutStartPreference = account == null
+        ? null
+        : WorkoutStartPreference(
+            accountId: account,
+            storage: widget.workoutPreferenceStorage,
+          );
+  }
+
+  Future<void> _logout() async {
+    await _workoutSession?.prepareLogout();
+    if (mounted) await widget.onLogout();
+  }
+
+  void _openActivity(DateTime day) {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => WorkoutHistoryScreen(
+          api: widget.api,
+          session: _workoutSession,
+          day: day,
+        ),
+      ),
+    );
   }
 
   void _bindSchedule() {
@@ -117,12 +178,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void didUpdateWidget(HomeScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.user.accountId != widget.user.accountId ||
+    final workoutSessionChanged =
+        oldWidget.user.accountId != widget.user.accountId ||
         oldWidget.user.isDemo != widget.user.isDemo ||
-        oldWidget.api != widget.api) {
+        oldWidget.api != widget.api ||
+        oldWidget.workoutSessionStorage != widget.workoutSessionStorage;
+    if (workoutSessionChanged) {
+      _bindWorkoutSession();
       _streakDays = null;
       _streakUnavailable = false;
       unawaited(_loadStreak());
+    }
+    if (workoutSessionChanged ||
+        oldWidget.workoutPreferenceStorage != widget.workoutPreferenceStorage) {
+      _bindWorkoutStartPreference();
     }
     if (oldWidget.user.accountId != widget.user.accountId ||
         oldWidget.workoutSchedule != widget.workoutSchedule ||
@@ -153,6 +222,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _groceries?.dispose();
+    _workoutSession?.dispose();
     _schedule.removeListener(_scheduleChanged);
     if (_ownsSchedule) _schedule.dispose();
     super.dispose();
@@ -196,11 +266,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         workoutSchedule: _schedule,
         onSeeWeek: _openSchedule,
         onScheduleDay: _openDay,
+        session: _workoutSession,
+        onActivitySelected: _openActivity,
+        onActivityDayChanged: () {
+          if (mounted) setState(() {});
+        },
       ),
       WorkoutsScreen(
         user: widget.user,
         api: widget.api,
-        onStreakUpdated: _loadStreak,
+        session: _workoutSession,
+        startPreference: _workoutStartPreference,
         schedule: _schedule,
         clock: widget.clock,
         focusSchedule: _focusSchedule,
@@ -210,9 +286,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       GroceryScreen(controller: _groceries),
       ProfilePage(
         user: widget.user,
-        onLogout: widget.onLogout,
+        onLogout: _logout,
         onUpdateProfile: widget.onUpdateProfile,
         api: widget.api,
+        workoutStartPreference: _workoutStartPreference,
       ),
     ];
 

@@ -9,18 +9,22 @@ import '../theme/digigym_dot_typography.dart';
 import 'dashboard_glass_card.dart';
 import 'dot_matrix_text.dart';
 
-/// Read-only current-month view of the same dated inputs as Your Week.
+/// Calendar rendering for explicit activity and schedule results.
 /// Absence of a record never implies a missed or completed workout.
 class MonthlyActivityCalendar extends StatefulWidget {
   final List<WorkoutScheduleDay> days;
   final DateTime Function()? clock;
   final Color? highlightColor;
+  final ValueChanged<DateTime>? onCompletedDate;
+  final VoidCallback? onTodayChanged;
 
   const MonthlyActivityCalendar({
     super.key,
     this.days = const [],
     this.clock,
     this.highlightColor,
+    this.onCompletedDate,
+    this.onTodayChanged,
   });
 
   static List<DateTime?> monthDates(DateTime date) {
@@ -75,6 +79,7 @@ class _MonthlyActivityCalendarState extends State<MonthlyActivityCalendar>
   static const _weekdays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
   Timer? _midnight;
   late DateTime _today;
+  DateTime? _visibleMonth;
 
   @override
   void initState() {
@@ -86,8 +91,13 @@ class _MonthlyActivityCalendarState extends State<MonthlyActivityCalendar>
   void _refresh({bool notify = true}) {
     final now = (widget.clock ?? DateTime.now)().toLocal();
     final date = DateUtils.dateOnly(now);
+    final viewed = _visibleMonth;
+    if (viewed != null && !viewed.isBefore(DateTime(date.year, date.month))) {
+      _visibleMonth = null;
+    }
     if (notify && _today != date) {
       setState(() => _today = date);
+      widget.onTodayChanged?.call();
     } else {
       _today = date;
     }
@@ -124,18 +134,60 @@ class _MonthlyActivityCalendarState extends State<MonthlyActivityCalendar>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final surfaces = DigiGymSurfaces.of(context);
+    final currentMonth = DateTime(_today.year, _today.month);
+    final display = _visibleMonth ?? currentMonth;
+    final showingToday = display == currentMonth;
+    final canGoBack = widget.days.any(
+      (day) => day.isCompleted && day.date.isBefore(display),
+    );
+    final canNavigate =
+        widget.onCompletedDate != null && (canGoBack || !showingToday);
+    final heading = Text(
+      'Monthly Activity',
+      style: theme.textTheme.titleMedium?.copyWith(
+        fontSize: 20,
+        height: 1.25,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.3,
+      ),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          'Monthly Activity',
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontSize: 20,
-            height: 1.25,
-            fontWeight: FontWeight.w600,
-            letterSpacing: -0.3,
-          ),
-        ),
+        if (canNavigate)
+          Row(
+            children: [
+              Expanded(child: heading),
+              IconButton(
+                tooltip: 'Previous activity month',
+                onPressed: canGoBack
+                    ? () => setState(
+                        () => _visibleMonth = DateTime(
+                          display.year,
+                          display.month - 1,
+                        ),
+                      )
+                    : null,
+                icon: const Icon(Icons.chevron_left),
+              ),
+              IconButton(
+                tooltip: 'Next activity month',
+                onPressed: showingToday
+                    ? null
+                    : () {
+                        final next = DateTime(display.year, display.month + 1);
+                        setState(
+                          () => _visibleMonth = next == currentMonth
+                              ? null
+                              : next,
+                        );
+                      },
+                icon: const Icon(Icons.chevron_right),
+              ),
+            ],
+          )
+        else
+          heading,
         const SizedBox(height: 8),
         DashboardGlassCard(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -145,14 +197,15 @@ class _MonthlyActivityCalendarState extends State<MonthlyActivityCalendar>
               final stacked =
                   constraints.maxWidth < 280 || scaler.scale(11) > 15.4;
               final date = Semantics(
-                label:
-                    'Today, ${_monthNames[_today.month - 1]} ${_today.day}, ${_today.year}',
+                label: showingToday
+                    ? 'Today, ${_monthNames[_today.month - 1]} ${_today.day}, ${_today.year}'
+                    : '${_monthNames[display.month - 1]} ${display.year}',
                 excludeSemantics: true,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      _months[_today.month - 1],
+                      _months[display.month - 1],
                       key: const ValueKey('activity-month'),
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontSize: 11,
@@ -167,7 +220,9 @@ class _MonthlyActivityCalendarState extends State<MonthlyActivityCalendar>
                         scale: surfaces.numberScale,
                         child: DotMatrixText.standard(
                           key: const ValueKey('activity-date'),
-                          text: '${_today.day}',
+                          text: showingToday
+                              ? '${_today.day}'
+                              : '${display.year}',
                           height: DigiGymDotTypography.calendarHeight,
                           color:
                               widget.highlightColor ??
@@ -178,7 +233,7 @@ class _MonthlyActivityCalendarState extends State<MonthlyActivityCalendar>
                   ],
                 ),
               );
-              final calendar = _calendar(context);
+              final calendar = _calendar(context, display);
               if (stacked) {
                 return Column(
                   children: [date, const SizedBox(height: 16), calendar],
@@ -205,9 +260,9 @@ class _MonthlyActivityCalendarState extends State<MonthlyActivityCalendar>
     );
   }
 
-  Widget _calendar(BuildContext context) {
+  Widget _calendar(BuildContext context, DateTime display) {
     final theme = Theme.of(context);
-    final dates = MonthlyActivityCalendar.monthDates(_today);
+    final dates = MonthlyActivityCalendar.monthDates(display);
     final supplied = {for (final day in widget.days) day.date: day};
     final cellHeight = math.max(
       20.0,
@@ -251,7 +306,8 @@ class _MonthlyActivityCalendarState extends State<MonthlyActivityCalendar>
                             date: dates[row * 7 + col]!,
                             today: _today,
                             activity: supplied[dates[row * 7 + col]],
-                            monthName: _monthNames[_today.month - 1],
+                            monthName: _monthNames[display.month - 1],
+                            onCompletedDate: widget.onCompletedDate,
                             highlightColor:
                                 widget.highlightColor ??
                                 theme.colorScheme.primary,
@@ -271,12 +327,14 @@ class _CalendarDate extends StatelessWidget {
   final WorkoutScheduleDay? activity;
   final String monthName;
   final Color highlightColor;
+  final ValueChanged<DateTime>? onCompletedDate;
   const _CalendarDate({
     required this.date,
     required this.today,
     required this.activity,
     required this.monthName,
     required this.highlightColor,
+    required this.onCompletedDate,
   });
 
   @override
@@ -314,80 +372,89 @@ class _CalendarDate extends StatelessWidget {
         : state == 'Missed scheduled workout'
         ? colors.error.withValues(alpha: .75)
         : colors.onSurfaceVariant;
+    final callback = activity?.isCompleted == true ? onCompletedDate : null;
     return Semantics(
       key: ValueKey('month-day-${date.toIso8601String().split('T').first}'),
       label:
           '$monthName ${date.day}, ${date.year}${current ? ', Today' : ''}, $state',
       selected: current,
+      button: callback == null ? null : true,
+      onTap: callback == null ? null : () => callback(date),
       excludeSemantics: true,
-      child: Container(
-        key: ValueKey(
-          'month-outline-${date.toIso8601String().split('T').first}',
-        ),
-        margin: const EdgeInsets.symmetric(horizontal: 1),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(5),
-          border: current
-              ? Border.all(
-                  color: highlightColor.withValues(alpha: .45),
-                  width: .8,
-                )
-              : null,
-          color: current ? highlightColor.withValues(alpha: .06) : null,
-          boxShadow: current && surfaces.selectionGlowOpacity > 0
-              ? [
-                  BoxShadow(
-                    color: highlightColor.withValues(
-                      alpha: surfaces.selectionGlowOpacity,
+      child: GestureDetector(
+        behavior: callback == null
+            ? HitTestBehavior.deferToChild
+            : HitTestBehavior.opaque,
+        onTap: callback == null ? null : () => callback(date),
+        child: Container(
+          key: ValueKey(
+            'month-outline-${date.toIso8601String().split('T').first}',
+          ),
+          margin: const EdgeInsets.symmetric(horizontal: 1),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            border: current
+                ? Border.all(
+                    color: highlightColor.withValues(alpha: .45),
+                    width: .8,
+                  )
+                : null,
+            color: current ? highlightColor.withValues(alpha: .06) : null,
+            boxShadow: current && surfaces.selectionGlowOpacity > 0
+                ? [
+                    BoxShadow(
+                      color: highlightColor.withValues(
+                        alpha: surfaces.selectionGlowOpacity,
+                      ),
+                      blurRadius: 8,
+                      spreadRadius: .5,
                     ),
-                    blurRadius: 8,
-                    spreadRadius: .5,
-                  ),
-                ]
-              : null,
-        ),
-        // A missing activity indicator must not reserve space below the date.
-        // Center the number in the full cell and overlay explicit activity at
-        // its bottom edge, independently of the outline and text constraints.
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Center(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  '${date.day}',
-                  key: ValueKey(
-                    'month-number-${date.toIso8601String().split('T').first}',
-                  ),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontSize: 11,
-                    height: 1.15,
-                    fontWeight: current ? FontWeight.w600 : FontWeight.w400,
-                    color: current
-                        ? colors.onSurface
-                        : colors.onSurfaceVariant.withValues(
-                            alpha: future ? .6 : 1,
-                          ),
+                  ]
+                : null,
+          ),
+          // A missing activity indicator must not reserve space below the date.
+          // Center the number in the full cell and overlay explicit activity at
+          // its bottom edge, independently of the outline and text constraints.
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    '${date.day}',
+                    key: ValueKey(
+                      'month-number-${date.toIso8601String().split('T').first}',
+                    ),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontSize: 11,
+                      height: 1.15,
+                      fontWeight: current ? FontWeight.w600 : FontWeight.w400,
+                      color: current
+                          ? colors.onSurface
+                          : colors.onSurfaceVariant.withValues(
+                              alpha: future ? .6 : 1,
+                            ),
+                    ),
                   ),
                 ),
               ),
-            ),
-            if (indicator != null)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: .5,
-                height: 4,
-                child: Icon(
-                  indicator,
-                  key: ValueKey('activity-state-${date.day}'),
-                  size: 4,
-                  color: tone,
+              if (indicator != null)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: .5,
+                  height: 4,
+                  child: Icon(
+                    indicator,
+                    key: ValueKey('activity-state-${date.day}'),
+                    size: 4,
+                    color: tone,
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );

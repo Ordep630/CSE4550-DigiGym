@@ -438,6 +438,7 @@ void main() {
               ),
               home: HomeScreen(
                 user: profile(name: 'Alexandria Morgan Hernandez'),
+                clock: () => DateTime(2026, 10, 31, 12),
                 onLogout: () async {},
                 onUpdateProfile: (_) {},
               ),

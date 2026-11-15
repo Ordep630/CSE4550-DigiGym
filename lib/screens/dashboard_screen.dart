@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../models/user_profile.dart';
+import '../models/workout_record_details.dart';
 import '../services/dashboard_personalization.dart';
 import '../services/workout_schedule_controller.dart';
+import '../services/workout_session_controller.dart';
 import '../services/workout_scheduling.dart';
 import '../models/workout_schedule_day.dart';
 import '../theme/digigym_dashboard_theme.dart';
@@ -42,6 +44,9 @@ class DashboardPage extends StatelessWidget {
   final WorkoutScheduleController? workoutSchedule;
   final VoidCallback? onSeeWeek;
   final ValueChanged<WorkoutScheduleDay>? onScheduleDay;
+  final WorkoutSessionController? session;
+  final ValueChanged<DateTime>? onActivitySelected;
+  final VoidCallback? onActivityDayChanged;
 
   const DashboardPage({
     super.key,
@@ -56,7 +61,76 @@ class DashboardPage extends StatelessWidget {
     this.workoutSchedule,
     this.onSeeWeek,
     this.onScheduleDay,
+    this.session,
+    this.onActivitySelected,
+    this.onActivityDayChanged,
   }) : assert(streakDays == null || streakDays >= 0);
+
+  ({double progress, String? caption, Duration? elapsed}) _workoutProgress() {
+    final workout = session;
+    if (workout != null) {
+      if (workout.phase != null &&
+          workout.phase != WorkoutSessionPhase.saved &&
+          workout.timed) {
+        final elapsed = workout.elapsed;
+        return (
+          progress: _percentage(elapsed, workout.planned),
+          caption: 'Time target',
+          elapsed: elapsed,
+        );
+      }
+      final today = workoutLocalDate((clock ?? DateTime.now)());
+      for (final entry in workout.history.value) {
+        if (workoutLocalDate(entry.completedAt) != today) continue;
+        final details = WorkoutRecordDetails.decode(entry.details);
+        final elapsed = details.activeTime;
+        final planned = details.plannedSeconds;
+        if (elapsed != null && planned != null) {
+          return (
+            progress: _percentage(elapsed, Duration(seconds: planned)),
+            caption: 'Saved',
+            elapsed: null,
+          );
+        }
+      }
+    }
+    return (progress: 0, caption: null, elapsed: null);
+  }
+
+  static double _percentage(Duration elapsed, Duration planned) =>
+      (100 * elapsed.inMilliseconds / planned.inMilliseconds).clamp(0.0, 100.0);
+
+  Widget _liveMetric(WidgetBuilder build) {
+    final workout = session;
+    return workout == null
+        ? Builder(builder: build)
+        : ListenableBuilder(
+            listenable: Listenable.merge([workout, workout.history]),
+            builder: (context, _) => build(context),
+          );
+  }
+
+  Widget _monthlyActivity(Color accent) {
+    final workout = session;
+    return workout == null
+        ? MonthlyActivityCalendar(clock: clock, highlightColor: accent)
+        : ValueListenableBuilder(
+            valueListenable: workout.history,
+            builder: (context, history, _) => MonthlyActivityCalendar(
+              clock: clock,
+              highlightColor: accent,
+              days: [
+                for (final date
+                    in history
+                        .map((row) => workoutLocalDate(row.completedAt))
+                        .toSet())
+                  WorkoutScheduleDay(date: date, isCompleted: true),
+              ],
+              onCompletedDate: onActivitySelected,
+              onTodayChanged: onActivityDayChanged,
+            ),
+          );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,53 +166,65 @@ class DashboardPage extends StatelessWidget {
                         final stacked =
                             constraints.maxWidth < 320 ||
                             MediaQuery.textScalerOf(context).scale(14) > 18.2;
-                        final goal = DashboardCardAction(
-                          key: const ValueKey('dashboard-progress-action'),
-                          label: "Today's Progress: 0% complete. Open Workout",
-                          onTap: onSelectTab == null
+                        final goal = _liveMetric((context) {
+                          final metric = _workoutProgress();
+                          return DashboardCardAction(
+                            key: const ValueKey('dashboard-progress-action'),
+                            label: metric.caption == null
+                                ? "Today's Progress: 0% complete. Open Workout"
+                                : "Today's Progress: ${metric.progress.round()}% of planned time. ${metric.caption == 'Saved' ? 'Workout saved. ' : ''}Open Workout",
+                            onTap: onSelectTab == null
+                                ? null
+                                : () => onSelectTab!(1),
+                            child: DashboardProgressCard(
+                              progress: metric.progress,
+                              caption: metric.caption,
+                              ringDiameter:
+                                  (148 *
+                                          MediaQuery.textScalerOf(context)
+                                              .scale(12) /
+                                          12)
+                                      .clamp(
+                                        1.0,
+                                        (stacked
+                                                ? constraints.maxWidth
+                                                : (constraints.maxWidth - 12) /
+                                                      2) -
+                                            24,
+                                      ),
+                              // Match the reference proportion at a 390px-wide
+                              // display. This is a minimum, never a clipping height.
+                              minimumHeight:
+                                  MediaQuery.sizeOf(context).width
+                                      .clamp(320.0, 430.0) *
+                                  (190 / 390),
+                            ),
+                          );
+                        });
+                        final workout = _liveMetric((context) {
+                          final elapsed = _workoutProgress().elapsed;
+                          final active = elapsed == null
                               ? null
-                              : () => onSelectTab!(1),
-                          child: DashboardProgressCard(
-                            // There are no dated workout-completion records yet.
-                            progress: 0,
-                            ringDiameter:
-                                (148 *
-                                        MediaQuery.textScalerOf(context)
-                                            .scale(12) /
-                                        12)
-                                    .clamp(
-                                      1.0,
-                                      (stacked
-                                              ? constraints.maxWidth
-                                              : (constraints.maxWidth - 12) /
-                                                    2) -
-                                          24,
-                                    ),
-                            // Match the reference proportion at a 390px-wide
-                            // display. This is a minimum, never a clipping height.
-                            minimumHeight:
-                                MediaQuery.sizeOf(context).width
-                                    .clamp(320.0, 430.0) *
-                                (190 / 390),
-                          ),
-                        );
-                        final workout = DashboardCardAction(
-                          key: const ValueKey('dashboard-workout-action'),
-                          label:
-                              'Workout duration: ${user.workoutTime} minutes. Open Workout',
-                          onTap: onSelectTab == null
-                              ? null
-                              : () => onSelectTab!(1),
-                          child: StatCard(
-                            title: 'Workout',
-                            iconGlowOnly: true,
-                            iconColor: surfaces.accent,
-                            value: '${user.workoutTime} min',
-                            icon: Icons.fitness_center,
-                            dotted: true,
-                            fitNumber: true,
-                          ),
-                        );
+                              : formatWorkoutTime(elapsed);
+                          return DashboardCardAction(
+                            key: const ValueKey('dashboard-workout-action'),
+                            label: active == null
+                                ? 'Workout duration: ${user.workoutTime} minutes. Open Workout'
+                                : 'Active workout time: $active. Open Workout',
+                            onTap: onSelectTab == null
+                                ? null
+                                : () => onSelectTab!(1),
+                            child: StatCard(
+                              title: active == null ? 'Workout' : 'Active time',
+                              iconGlowOnly: true,
+                              iconColor: surfaces.accent,
+                              value: active ?? '${user.workoutTime} min',
+                              icon: Icons.fitness_center,
+                              dotted: true,
+                              fitNumber: true,
+                            ),
+                          );
+                        });
                         final statistics = DashboardGlassCard(
                           key: const ValueKey('dashboard-statistics-panel'),
                           padding: const EdgeInsets.all(14),
@@ -405,10 +491,7 @@ class DashboardPage extends StatelessWidget {
                                       : () => onSelectTab!(1)),
                             ),
                             const SizedBox(height: 18),
-                            MonthlyActivityCalendar(
-                              clock: clock,
-                              highlightColor: surfaces.accent,
-                            ),
+                            _monthlyActivity(surfaces.accent),
                           ],
                         );
                       },

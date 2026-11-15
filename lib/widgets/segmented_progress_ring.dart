@@ -10,11 +10,13 @@ import 'dot_matrix_text.dart';
 class SegmentedProgressRing extends StatelessWidget {
   final double progress;
   final double diameter;
+  final String? caption;
 
   SegmentedProgressRing({
     super.key,
     required double progress,
     this.diameter = 148,
+    this.caption,
   }) : progress = _validate(progress);
 
   static double _validate(double progress) {
@@ -33,6 +35,7 @@ class SegmentedProgressRing extends StatelessWidget {
     // Display whole percentages; painting retains the exact supplied progress.
     // Three digits (100) are the largest display, including fractional inputs.
     final label = progress.round().toString();
+    final text = caption ?? 'Complete';
     final theme = Theme.of(context);
     final surfaces = DigiGymSurfaces.of(context);
     final size = diameter;
@@ -43,7 +46,7 @@ class SegmentedProgressRing extends StatelessWidget {
       color: theme.colorScheme.onSurfaceVariant,
     );
     final labelPainter = TextPainter(
-      text: TextSpan(text: 'Complete', style: labelStyle),
+      text: TextSpan(text: text, style: labelStyle),
       textDirection: Directionality.of(context),
       textScaler: MediaQuery.textScalerOf(context),
     )..layout();
@@ -67,7 +70,9 @@ class SegmentedProgressRing extends StatelessWidget {
       ),
     );
     return Semantics(
-      label: '$label% complete',
+      label: caption == null
+          ? '$label% complete'
+          : '$label% of planned time. $text',
       excludeSemantics: true,
       child: SizedBox.square(
         dimension: size,
@@ -99,7 +104,7 @@ class SegmentedProgressRing extends StatelessWidget {
                   const SizedBox(height: 4),
                   FittedBox(
                     fit: BoxFit.scaleDown,
-                    child: Text('Complete', style: labelStyle),
+                    child: Text(text, style: labelStyle),
                   ),
                 ],
               ),

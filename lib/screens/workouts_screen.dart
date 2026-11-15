@@ -6,6 +6,8 @@ import '../models/user_profile.dart';
 import '../models/workout_plan.dart';
 import '../services/digigym_api.dart';
 import '../services/workout_schedule_controller.dart';
+import '../services/workout_session_controller.dart';
+import '../services/workout_start_preference.dart';
 import '../theme/digigym_dashboard_theme.dart';
 import '../theme/digigym_workout_theme.dart';
 import '../widgets/workout_overview.dart';
@@ -21,7 +23,8 @@ enum WorkoutView { myPlan, exercises, moreWorkouts }
 class WorkoutsScreen extends StatefulWidget {
   final UserProfile user;
   final DigiGymApi api;
-  final VoidCallback? onStreakUpdated;
+  final WorkoutSessionController? session;
+  final WorkoutStartPreference? startPreference;
   final WorkoutScheduleController? schedule;
   final DateTime Function()? clock;
   final bool focusSchedule;
@@ -30,7 +33,8 @@ class WorkoutsScreen extends StatefulWidget {
     super.key,
     required this.user,
     this.api = digiGymApi,
-    this.onStreakUpdated,
+    this.session,
+    this.startPreference,
     this.schedule,
     this.clock,
     this.focusSchedule = false,
@@ -129,19 +133,21 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
 
   void _openHistory() {
     Navigator.of(context).push<void>(
-      MaterialPageRoute(builder: (_) => WorkoutHistoryScreen(api: widget.api)),
+      MaterialPageRoute(
+        builder: (_) =>
+            WorkoutHistoryScreen(api: widget.api, session: widget.session),
+      ),
     );
   }
 
-  void _openExercises(WorkoutPlan plan, {bool walkthrough = false}) {
+  void _openExercises(WorkoutPlan plan, {bool offersWalkthrough = false}) {
     if (plan.exercises.isEmpty) return;
     Navigator.of(context).push<void>(
       MaterialPageRoute(
         builder: (_) => WorkoutExercisesScreen(
           plan: plan,
-          walkthrough: walkthrough,
-          completionApi: _hasWorkoutAccount ? widget.api : null,
-          onStreakUpdated: widget.onStreakUpdated,
+          offersWalkthrough: offersWalkthrough,
+          session: _hasWorkoutAccount ? widget.session : null,
         ),
       ),
     );
@@ -153,15 +159,27 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     final alternatives = WorkoutPlan.alternativesForUser(widget.user);
     final base = Theme.of(context);
     final theme = DigiGymWorkoutTheme.apply(base);
+    final historyWidth = _hasWorkoutAccount
+        ? (MediaQuery.textScalerOf(context).scale(46) + 24).clamp(
+            64.0,
+            (MediaQuery.sizeOf(context).width * .44).clamp(64.0, 200.0),
+          )
+        : null;
+    final level = Text(
+      '${widget.user.fitnessLevel} Plan',
+      style: theme.textTheme.bodyMedium?.copyWith(
+        color: theme.brightness == Brightness.light
+            ? widget.user.fitnessLevel.trim().toLowerCase() == 'intermediate'
+                  ? DigiGymWorkoutTheme.intermediatePlanAccent
+                  : theme.colorScheme.onSurfaceVariant
+            : DigiGymFitnessLevelColors.forLevel(widget.user.fitnessLevel),
+      ),
+    );
     Widget heading(String text) => Text(
       text,
       style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
     );
-    Widget noTime() => WorkoutOverview(
-      plan: plan,
-      onViewExercises: () {},
-      onStartWalkthrough: () {},
-    );
+    Widget noTime() => WorkoutOverview(plan: plan, onViewExercises: () {});
     return Theme(
       data: theme,
       child: AnimatedBuilder(
@@ -173,15 +191,6 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
             title: 'Workout',
             large: true,
             theme: theme,
-            actions: [
-              if (_hasWorkoutAccount)
-                IconButton(
-                  key: const ValueKey('open-workout-history'),
-                  tooltip: 'Workout History',
-                  onPressed: _openHistory,
-                  icon: const Icon(Icons.history),
-                ),
-            ],
           ),
           body: SafeArea(
             top: false,
@@ -199,19 +208,28 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                 20 + MediaQuery.paddingOf(context).bottom,
               ),
               children: [
-                Text(
-                  '${widget.user.fitnessLevel} Plan',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.brightness == Brightness.light
-                        ? widget.user.fitnessLevel.trim().toLowerCase() ==
-                                  'intermediate'
-                              ? DigiGymWorkoutTheme.intermediatePlanAccent
-                              : theme.colorScheme.onSurfaceVariant
-                        : DigiGymFitnessLevelColors.forLevel(
-                            widget.user.fitnessLevel,
+                if (historyWidth == null)
+                  level
+                else
+                  Row(
+                    children: [
+                      Expanded(child: level),
+                      SizedBox(
+                        width: historyWidth,
+                        child: Tooltip(
+                          message: 'Workout History',
+                          child: TextButton(
+                            key: const ValueKey('open-workout-history'),
+                            onPressed: _openHistory,
+                            child: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text('History'),
+                            ),
                           ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
                 const SizedBox(height: 18),
                 _WorkoutSegments(selected: _view, onSelected: _select),
                 const SizedBox(height: 20),
@@ -221,9 +239,10 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                     children: [
                       WorkoutOverview(
                         plan: plan,
-                        onViewExercises: () => _openExercises(plan),
-                        onStartWalkthrough: () =>
-                            _openExercises(plan, walkthrough: true),
+                        session: widget.session,
+                        startPreference: widget.startPreference,
+                        onViewExercises: () =>
+                            _openExercises(plan, offersWalkthrough: true),
                       ),
                       const SizedBox(height: 20),
                       WorkoutWeekView(
