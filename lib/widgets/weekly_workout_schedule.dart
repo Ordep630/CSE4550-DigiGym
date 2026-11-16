@@ -81,6 +81,9 @@ class WeeklyWorkoutSchedule extends StatefulWidget {
     );
   }
 
+  static double dayBadgeSize(double columnWidth) =>
+      math.min(34, math.max(0, columnWidth - 6));
+
   /// Calendar arithmetic, rather than 24-hour subtraction, also handles DST.
   static List<DateTime> weekDates(DateTime date) {
     return WorkoutScheduling.weekDates(date);
@@ -284,7 +287,7 @@ class _DayColumn extends StatelessWidget {
       excludeSemantics: true,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final size = math.min(34.0, math.max(0.0, constraints.maxWidth - 6));
+          final size = WeeklyWorkoutSchedule.dayBadgeSize(constraints.maxWidth);
           final content = Column(
             mainAxisSize: MainAxisSize.min,
             children: [

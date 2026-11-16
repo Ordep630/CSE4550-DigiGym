@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart'
     show KeyValueStorage;
 
 import '../models/user_profile.dart';
+import '../models/workout_record_details.dart';
 import '../theme/digigym_dashboard_theme.dart';
 import '../theme/digigym_screen_theme.dart';
 import '../widgets/floating_bottom_navigation_bar.dart';
@@ -19,6 +21,7 @@ import '../services/workout_start_preference.dart';
 import '../services/workout_scheduling.dart';
 import '../models/workout_schedule_day.dart';
 import '../widgets/workout_schedule_details.dart';
+import '../widgets/workout_streak_dialog.dart';
 import 'dashboard_screen.dart';
 import 'workouts_screen.dart';
 import 'workout_history_screen.dart';
@@ -67,31 +70,101 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool _focusSchedule = false;
   int? _streakDays;
   bool _streakUnavailable = false;
-  int _streakRequest = 0;
+  Future<int>? _streakInFlight;
+  DateTime? _streakRequestDay;
+  Future<void>? _historyInFlight;
+  ({WorkoutSessionController? session, ValueNotifier<Future<int>?> streak})?
+  _streakPopup;
 
   String? get _streakAccount =>
       widget.user.isDemo ? null : widget.user.accountId;
 
-  Future<void> _loadStreak() async {
-    final request = ++_streakRequest;
+  Future<void> _loadStreak({bool afterCompletion = false}) async {
     final account = _streakAccount;
-    if (account == null) return;
+    final api = widget.api;
+    if (account == null || api.authenticatedAccountId != account) {
+      _invalidateStreakPopup();
+      return;
+    }
+    final now = (widget.clock ?? DateTime.now)();
+    final day = workoutLocalDate(now);
+    final popup = _streakPopup;
+    final pending = _streakInFlight;
+    if (!afterCompletion && pending != null && _streakRequestDay == day) {
+      if (popup != null && identical(popup.session, _workoutSession)) {
+        popup.streak.value = pending;
+      }
+      return;
+    }
+
+    final request = Future<int>.sync(() => api.getWorkoutStreak(now));
+    _streakInFlight = request;
+    _streakRequestDay = day;
+    if (popup != null && identical(popup.session, _workoutSession)) {
+      popup.streak.value = request;
+    }
     int? days;
     bool unavailable = false;
     try {
-      if (widget.api.authenticatedAccountId == account) {
-        days = await widget.api.getWorkoutStreak(
-          (widget.clock ?? DateTime.now)(),
-        );
-      }
+      days = await request;
     } catch (_) {
       unavailable = true;
     }
-    if (!mounted || request != _streakRequest) return;
+    if (!mounted || !identical(request, _streakInFlight)) return;
+    _streakInFlight = null;
+    if (api.authenticatedAccountId != account || _streakAccount != account) {
+      _invalidateStreakPopup();
+      return;
+    }
     setState(() {
       _streakDays = days;
       _streakUnavailable = unavailable;
     });
+  }
+
+  void _invalidateStreakPopup() {
+    final popup = _streakPopup;
+    if (popup == null) return;
+    // Home can be updating under a modal that belongs to the previous account.
+    scheduleMicrotask(() {
+      if (identical(_streakPopup?.streak, popup.streak)) {
+        popup.streak.value = null;
+      }
+    });
+  }
+
+  Future<void> _openWorkoutStreak() async {
+    if (_streakPopup != null) return;
+    final session = _workoutSession;
+    bool isCurrentAccount() =>
+        mounted &&
+        session != null &&
+        identical(_workoutSession, session) &&
+        widget.api.authenticatedAccountId == session.accountId;
+
+    final streak = ValueNotifier<Future<int>?>(null);
+    _streakPopup = (session: session, streak: streak);
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final route = DialogRoute<bool>(
+      context: navigator.context,
+      builder: (_) => WorkoutStreakDialog(
+        streak: streak,
+        history: session?.history,
+        isCurrentAccount: isCurrentAccount,
+        clock: widget.clock ?? DateTime.now,
+        retryStreak: () => unawaited(_loadStreak()),
+        loadHistory: () => _fetchWorkoutHistory(session!),
+      ),
+    );
+    if (isCurrentAccount()) unawaited(_loadStreak());
+    try {
+      final viewHistory = await navigator.push(route);
+      await route.completed;
+      if (viewHistory == true && isCurrentAccount()) _openActivity(null);
+    } finally {
+      _streakPopup = null;
+      streak.dispose();
+    }
   }
 
   @override
@@ -112,6 +185,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _bindWorkoutSession() {
+    _streakInFlight = null;
+    _historyInFlight = null;
+    _invalidateStreakPopup();
     _workoutSession?.dispose();
     _workoutSession = null;
     final account = _streakAccount;
@@ -121,11 +197,33 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       api: widget.api,
       storage: widget.workoutSessionStorage,
       monotonicNow: widget.workoutMonotonicNow,
-      onStreakUpdated: () => unawaited(_loadStreak()),
+      onStreakUpdated: () => unawaited(_loadStreak(afterCompletion: true)),
     );
     _workoutSession = session;
     unawaited(session.initialize());
-    unawaited(session.refreshHistory());
+    unawaited(_fetchWorkoutHistory(session).catchError((Object _) {}));
+  }
+
+  Future<void> _fetchWorkoutHistory(WorkoutSessionController session) {
+    final pending = _historyInFlight;
+    if (pending != null) return pending;
+    late final Future<void> request;
+    request = session
+        .fetchHistory()
+        .then<void>((rows) async {
+          // A save or deletion can make a response older than the shared history.
+          // Refresh the snapshot again if the session discarded that response.
+          if (mounted &&
+              identical(_workoutSession, session) &&
+              widget.api.authenticatedAccountId == session.accountId &&
+              !listEquals(rows, session.history.value)) {
+            await session.fetchHistory();
+          }
+        })
+        .whenComplete(() {
+          if (identical(_historyInFlight, request)) _historyInFlight = null;
+        });
+    return _historyInFlight = request;
   }
 
   void _bindWorkoutStartPreference() {
@@ -143,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (mounted) await widget.onLogout();
   }
 
-  void _openActivity(DateTime day) {
+  void _openActivity(DateTime? day) {
     Navigator.of(context).push<void>(
       MaterialPageRoute(
         builder: (_) => WorkoutHistoryScreen(
@@ -221,6 +319,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _invalidateStreakPopup();
     _groceries?.dispose();
     _workoutSession?.dispose();
     _schedule.removeListener(_scheduleChanged);
@@ -260,6 +359,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         motivationalMessage: widget.motivationalMessage,
         streakDays: _streakDays,
         streakUnavailable: _streakUnavailable,
+        onViewStreak: _openWorkoutStreak,
         clock: widget.clock,
         onSelectTab: selectTab,
         onEditProfile: editProfile,
@@ -270,6 +370,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         onActivitySelected: _openActivity,
         onActivityDayChanged: () {
           if (mounted) setState(() {});
+          if (_streakPopup != null) unawaited(_loadStreak());
         },
       ),
       WorkoutsScreen(

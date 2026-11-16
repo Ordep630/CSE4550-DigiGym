@@ -38,6 +38,7 @@ class DashboardPage extends StatelessWidget {
   final DateTime Function()? clock;
   final int? streakDays;
   final bool streakUnavailable;
+  final VoidCallback? onViewStreak;
   final VoidCallback? onNotifications;
   final ValueChanged<int>? onSelectTab;
   final VoidCallback? onEditProfile;
@@ -55,6 +56,7 @@ class DashboardPage extends StatelessWidget {
     this.clock,
     this.streakDays,
     this.streakUnavailable = false,
+    this.onViewStreak,
     this.onNotifications,
     this.onSelectTab,
     this.onEditProfile,
@@ -337,6 +339,7 @@ class DashboardPage extends StatelessWidget {
                                         child: DailyStreakIndicator(
                                           days: days,
                                           unavailable: streakUnavailable,
+                                          onTap: onViewStreak,
                                         ),
                                       ),
                                       if (hasBell) const SizedBox(width: 6),

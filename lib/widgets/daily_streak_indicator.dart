@@ -6,6 +6,7 @@ import '../theme/digigym_dashboard_theme.dart';
 class DailyStreakIndicator extends StatelessWidget {
   final int? days;
   final bool unavailable;
+  final VoidCallback? onTap;
 
   /// Identifies sample data to assistive technology without extra visible text.
   final bool isPreview;
@@ -15,6 +16,7 @@ class DailyStreakIndicator extends StatelessWidget {
     this.days,
     this.isPreview = false,
     this.unavailable = false,
+    this.onTap,
   }) : assert(days == null || days >= 0);
 
   static const _numberStyle = TextStyle(
@@ -51,41 +53,66 @@ class DailyStreakIndicator extends StatelessWidget {
     final scaler = MediaQuery.textScalerOf(context);
     final colors = Theme.of(context).colorScheme;
     final surfaces = DigiGymSurfaces.of(context);
-    return Semantics(
-      label: unavailable
-          ? 'Workout streak unavailable'
-          : days == null
-          ? '0-day workout streak. No workout completions recorded; tracking is not available yet.'
-          : isPreview
-          ? 'Development preview: sample $days-day workout streak'
-          : '$days-day workout streak',
-      excludeSemantics: true,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: surfaces.streak.copyWith(
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 6,
-          runSpacing: 2,
-          children: [
-            Icon(
-              Icons.local_fire_department_rounded,
-              size: scaler.scale(17),
-              color: surfaces.streakAccent,
+    final status = unavailable
+        ? 'Workout streak unavailable'
+        : days == null
+        ? 'Workout streak not loaded'
+        : isPreview
+        ? 'Development preview: sample $days-day workout streak'
+        : '$days-day workout streak';
+    final radius = BorderRadius.circular(24);
+    final badge = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: surfaces.streak.copyWith(borderRadius: radius),
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 6,
+        runSpacing: 2,
+        children: [
+          Icon(
+            Icons.local_fire_department_rounded,
+            size: scaler.scale(17),
+            color: surfaces.streakAccent,
+          ),
+          Text(
+            unavailable ? '–' : (days ?? 0).toString(),
+            style: _numberStyle.copyWith(
+              color: (days ?? 0) == 0
+                  ? colors.onSurfaceVariant
+                  : colors.onSurface,
             ),
-            Text(
-              unavailable ? '–' : (days ?? 0).toString(),
-              style: _numberStyle.copyWith(
-                color: (days ?? 0) == 0
-                    ? colors.onSurfaceVariant
-                    : colors.onSurface,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
+    );
+    return Semantics(
+      label: onTap == null ? status : 'View Workout Streak. $status',
+      button: onTap == null ? null : true,
+      onTap: onTap,
+      excludeSemantics: true,
+      child: onTap == null
+          ? badge
+          : Stack(
+              children: [
+                badge,
+                Positioned.fill(
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: InkWell(
+                      key: const ValueKey('view-workout-streak'),
+                      onTap: onTap,
+                      excludeFromSemantics: true,
+                      borderRadius: radius,
+                      overlayColor: WidgetStateProperty.resolveWith(
+                        (states) => states.isEmpty
+                            ? Colors.transparent
+                            : surfaces.streakAccent.withValues(alpha: .12),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }
