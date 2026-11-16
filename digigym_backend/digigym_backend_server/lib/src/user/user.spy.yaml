@@ -1,0 +1,32 @@
+
+### A DigiGym user account and fitness profile linked to their Serverpod's auth account
+class: DigiGymUser
+table: digigym_user
+
+fields:
+    ### The linked Serverpod authentication account for this user.
+    authUser: module:serverpod_auth_core:AuthUser?, relation(onDelete=Cascade)
+    ### The user's display name.
+    name: String
+    ### The user's age in years
+    age: int
+    ### The user's height in centimeters.
+    height: double
+    ### The user's weight in kilograms.
+    weight: double
+    ### The user's fitness experience level.
+    fitnessLevel: FitnessLevel
+    ### The user's fitness goal.
+    fitnessGoal: FitnessGoal
+    ### How many minutes the user has available to work out.
+    workoutTime: int
+    ### The user's dietary preference.
+    dietaryPreference: String
+    ### The user's body type
+    bodyType: String
+
+indexes:
+    ### Ensures each auth account can only have one DigiGym Profile
+    digigym_user_auth_user_idx:
+        fields: authUserId
+        unique: true

@@ -36,9 +36,8 @@ The technologies used for this project include:
 
 ## Team Roles
 
-  Team Member | Role 
-  * Chaya       | Frontend Developer
-  * Isaac       | Frontend Integration
+  Team Member | Role
+  * Isaac       | UI & Frontend Integration
   * Genesis     | Backend developer
   * Yoni        | Backend Developer
   * Oscar       | UI/UX & Frontend
@@ -48,7 +47,7 @@ The technologies used for this project include:
 
 # Project Status
 
-Current Sprint: Sprint 1
+Current Sprint: Sprint 2
 Status: In development
 
 DigiGym is currently in the initial development phase. The team is working on the application prototype, core functionality, UI/UX Design, backend development, frontend integration, and project documentation.

@@ -1,0 +1,9 @@
+### The fitness goals supported by DigiGym.
+enum: FitnessGoal
+serialized: byName
+
+values:
+  - loseWeight
+  - buildMuscle
+  - gainWeight
+  - maintainWeight

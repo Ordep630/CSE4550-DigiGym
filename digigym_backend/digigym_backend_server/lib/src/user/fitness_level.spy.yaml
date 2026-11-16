@@ -1,0 +1,8 @@
+### The fitness experience levels supported by DigiGym.
+enum: FitnessLevel
+serialized: byName
+
+values:
+  - beginner
+  - intermediate
+  - advanced

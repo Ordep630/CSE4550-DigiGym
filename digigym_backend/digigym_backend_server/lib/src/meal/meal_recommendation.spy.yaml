@@ -1,0 +1,8 @@
+class: MealRecommendation
+fields:
+  goal: String
+  dietaryPreference: String
+  breakfast: String
+  lunch: String
+  dinner: String
+  snack: String
