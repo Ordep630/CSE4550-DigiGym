@@ -88,5 +88,18 @@ void main() {
         'Weight maintenance',
       );
     });
+
+    test('structured meal options respect vegan dietary preference', () {
+      final result = service.recommendOptions(
+      createUser(dietaryPreference: 'Vegan'),
+    );
+
+      expect(result, isNotEmpty);
+
+    for (final meal in result) {
+      expect(meal.compatibleDiets, contains('Vegan'));
+      }
+    });
   });
+  
 }
