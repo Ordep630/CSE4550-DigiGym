@@ -193,6 +193,16 @@ void main() {
         find.byType(DropdownButtonFormField<String>).at(1),
         'Maintain Weight',
       );
+      await choose(
+        tester,
+        find.byType(DropdownButtonFormField<String>).at(0),
+        'Advanced',
+      );
+      await choose(
+        tester,
+        find.byType(DropdownButtonFormField<String>).at(2),
+        'Vegan',
+      );
       final button = find.widgetWithText(ElevatedButton, 'SAVE CHANGES');
       await tester.pumpAndSettle();
       await tester.ensureVisible(button);
@@ -212,6 +222,8 @@ void main() {
       expect(result!.name, 'Updated User');
       expect(result!.weight, closeTo(72.5747792, 1e-9));
       expect(result!.fitnessGoal, 'Maintain Weight');
+      expect(result!.fitnessLevel, 'Advanced');
+      expect(result!.dietaryPreference, 'Vegan');
       expect(result!.email, original.email);
       expect(api.updates, 2);
     },
