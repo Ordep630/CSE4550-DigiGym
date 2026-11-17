@@ -335,6 +335,18 @@ class Endpoints extends _is.EndpointDispatch {
                           as _ix7sbnmc.MealRecommendationEndpoint)
                       .getMyMealRecommendation(session),
         ),
+        'getMyMealOptions': _is.MethodConnector(
+          name: 'getMyMealOptions',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['mealRecommendation']
+                          as _ix7sbnmc.MealRecommendationEndpoint)
+                      .getMyMealOptions(session),
+        ),
       },
     );
     connectors['profile'] = _is.EndpointConnector(

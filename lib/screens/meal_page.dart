@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/user_profile.dart';
 import '../models/meal.dart';
-import '../services/meal_recommendation_service.dart';
+
 import '../utils/calorie_format.dart';
 import '../widgets/dashboard_glass_card.dart';
 import '../widgets/dashboard_card_action.dart';
@@ -10,19 +10,55 @@ import '../widgets/dashboard_number.dart';
 import '../widgets/meal_nutrition_summary.dart';
 import '../widgets/soft_glow_icon.dart';
 import '../widgets/workout_app_bar.dart';
+import '../client.dart';
+import '../models/meal_option_mapping.dart';
 import 'meal_details_screen.dart';
 
-class MealPage extends StatelessWidget {
+class MealPage extends StatefulWidget {
   final UserProfile user;
   final List<Meal>? recommendations;
   const MealPage({super.key, required this.user, this.recommendations});
 
-  List<Meal> getMeals() =>
-      recommendations ?? const MealRecommendationService().recommend(user);
+  @override
+  State<MealPage> createState() => _MealPageState();
+}
+
+class _MealPageState extends State<MealPage> {
+  List<Meal>? _meals;
+  Object? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMeals();
+  }
+
+  Future<void> _loadMeals() async {
+    if (widget.recommendations != null) {
+      setState(() => _meals = widget.recommendations);
+      return;
+    }
+
+    try {
+      final options = await client.mealRecommendation.getMyMealOptions();
+
+      if (!mounted) return;
+
+      setState(() {
+        _meals = options.map(mealFromOption).toList();
+      });
+    } catch (error) {
+      if (!mounted) return;
+
+      setState(() {
+        _error = error;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final meals = getMeals();
+    final meals = _meals;
     final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -31,7 +67,7 @@ class MealPage extends StatelessWidget {
         top: false,
         bottom: false,
         child: ListView(
-          key: PageStorageKey(('meals', user.email)),
+          key: PageStorageKey(('meals', widget.user.email)),
           padding: EdgeInsets.fromLTRB(
             20,
             20,
@@ -59,7 +95,7 @@ class MealPage extends StatelessWidget {
                       final target = DashboardNumber(
                         key: const ValueKey('meal-calorie-target'),
                         value: CalorieFormat.format(
-                          user.estimatedCalories,
+                          widget.user.estimatedCalories,
                           grouped: true,
                         ),
                         fontSize: 45,
@@ -133,7 +169,7 @@ class MealPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${user.fitnessGoal} · ${user.dietaryPreference}',
+                    '${widget.user.fitnessGoal} · ${widget.user.dietaryPreference}',
                     style: theme.textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 10),
@@ -161,71 +197,84 @@ class MealPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            if (meals.isEmpty)
+            if (_error != null)
+              const DashboardGlassCard(
+                child: Text('Unable to load meal recommendations.'),
+              )
+            else if (meals == null)
+              const Center(child: CircularProgressIndicator())
+            else if (meals.isEmpty)
               const DashboardGlassCard(
                 key: ValueKey('meals-empty'),
                 child: Text(
                   'No meals match your saved goal and dietary preference. You can review your preferences in Edit Profile.',
                 ),
               ),
-            for (final meal in meals) ...[
-              DashboardCardAction(
-                key: ValueKey('meal-${meal.id}'),
-                label:
-                    '${meal.name}. Approximately ${CalorieFormat.format(meal.calories)}. '
-                    'Protein ${meal.proteinGrams} grams, carbohydrates ${meal.carbohydrateGrams} grams, '
-                    'fat ${meal.fatGrams} grams. ${meal.serving}. View meal details',
-                onTap: () => Navigator.of(context).push<void>(
-                  MaterialPageRoute(
-                    builder: (_) => MealDetailsScreen(meal: meal),
+            const DashboardGlassCard(
+              key: ValueKey('meals-empty'),
+              child: Text(
+                'No meals match your saved goal and dietary preference. You can review your preferences in Edit Profile.',
+              ),
+            ),
+            if (meals != null)
+              for (final meal in meals) ...[
+                DashboardCardAction(
+                  key: ValueKey('meal-${meal.id}'),
+                  label:
+                      '${meal.name}. Approximately ${CalorieFormat.format(meal.calories)}. '
+                      'Protein ${meal.proteinGrams} grams, carbohydrates ${meal.carbohydrateGrams} grams, '
+                      'fat ${meal.fatGrams} grams. ${meal.serving}. View meal details',
+                  onTap: () => Navigator.of(context).push<void>(
+                    MaterialPageRoute(
+                      builder: (_) => MealDetailsScreen(meal: meal),
+                    ),
                   ),
-                ),
-                child: DashboardGlassCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              meal.name,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
+                  child: DashboardGlassCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                meal.name,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          Icon(
-                            Icons.chevron_right_rounded,
-                            color: theme.colorScheme.onSurfaceVariant,
-                            size: 20,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      DashboardNumber(
-                        value: CalorieFormat.format(meal.calories),
-                        dotted: false,
-                        fontSize: 30,
-                        unitFontSize: 16,
-                        fitToWidth: true,
-                      ),
-                      const SizedBox(height: 8),
-                      MealNutritionSummary(meal: meal),
-                      const SizedBox(height: 10),
-                      Text(
-                        meal.serving,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                            const SizedBox(width: 8),
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              color: theme.colorScheme.onSurfaceVariant,
+                              size: 20,
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        DashboardNumber(
+                          value: CalorieFormat.format(meal.calories),
+                          dotted: false,
+                          fontSize: 30,
+                          unitFontSize: 16,
+                          fitToWidth: true,
+                        ),
+                        const SizedBox(height: 8),
+                        MealNutritionSummary(meal: meal),
+                        const SizedBox(height: 10),
+                        Text(
+                          meal.serving,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 14),
-            ],
+                const SizedBox(height: 14),
+              ],
           ],
         ),
       ),

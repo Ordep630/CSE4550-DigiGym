@@ -1,4 +1,5 @@
 import '../generated/protocol.dart';
+import 'meal_option_data.dart';
 
 /// Generates basic meal suggestions from a user's fitness profile.
 class MealRecommendationService {
@@ -41,7 +42,7 @@ class MealRecommendationService {
       snack = 'A snack matching your dietary needs';
     }
 
-    return MealRecommendation(
+  return MealRecommendation(
       goal: _getGoalDescription(user.fitnessGoal),
       dietaryPreference: preference.isEmpty ? 'No Preference' : preference,
       breakfast: breakfast,
@@ -49,6 +50,26 @@ class MealRecommendationService {
       dinner: dinner,
       snack: snack,
     );
+  }
+
+List<MealOption> recommendOptions(DigiGymUser user) {
+final preference = user.dietaryPreference;
+final lowerPref = preference.trim().toLowerCase();
+
+String normalizedPreference = preference;
+
+if (lowerPref == 'no preference' ||
+    lowerPref == 'no restrictions' ||
+    lowerPref == 'none') {
+  normalizedPreference = 'No Preference';
+}
+
+  return mealOptions
+    .where((meal) => 
+    meal.supportedGoals.contains(user.fitnessGoal) && 
+    meal.compatibleDiets.contains(normalizedPreference),
+    )
+    .toList();
   }
 
   String _getGoalDescription(FitnessGoal goal) {

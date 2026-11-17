@@ -15,6 +15,8 @@ import 'package:digigym_backend_client/src/protocol/fitness/fitness_data.dart'
     as _i7ssfes1;
 import 'package:digigym_backend_client/src/protocol/greetings/greeting.dart'
     as _isjug9ek;
+import 'package:digigym_backend_client/src/protocol/meal/meal_options.dart'
+    as _iuclxmna;
 import 'package:digigym_backend_client/src/protocol/meal/meal_recommendation.dart'
     as _iolhdjxc;
 import 'package:digigym_backend_client/src/protocol/user/fitness_goal.dart'
@@ -278,7 +280,6 @@ class EndpointGreeting extends _isc.EndpointRef {
       );
 }
 
-/// Provides meal recommendations for the authenticated user.
 /// {@category Endpoint}
 class EndpointMealRecommendation extends _isc.EndpointRef {
   EndpointMealRecommendation(_isc.EndpointCaller caller) : super(caller);
@@ -290,6 +291,13 @@ class EndpointMealRecommendation extends _isc.EndpointRef {
       caller.callServerEndpoint<_iolhdjxc.MealRecommendation?>(
         'mealRecommendation',
         'getMyMealRecommendation',
+        {},
+      );
+
+  _ida.Future<List<_iuclxmna.MealOption>> getMyMealOptions() =>
+      caller.callServerEndpoint<List<_iuclxmna.MealOption>>(
+        'mealRecommendation',
+        'getMyMealOptions',
         {},
       );
 }

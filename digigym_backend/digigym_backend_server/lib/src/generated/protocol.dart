@@ -21,6 +21,9 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _iais;
 import 'fitness/fitness_data.dart' as _isdrmxyn;
 import 'greetings/greeting.dart' as _izw8z7ou;
+import 'meal/ingredient_unit.dart' as _ija8s0hd;
+import 'meal/meal_ingredient_opt.dart' as _iy37bkub;
+import 'meal/meal_options.dart' as _ia9a4p3p;
 import 'meal/meal_recommendation.dart' as _icj2h90j;
 import 'user/fitness_goal.dart' as _ifss0aho;
 import 'user/fitness_level.dart' as _ifclzg6e;
@@ -31,6 +34,9 @@ import 'workout/workout_schedule.dart' as _ikxcc35h;
 import 'workout/workout_streak.dart' as _iext2gyt;
 export 'fitness/fitness_data.dart';
 export 'greetings/greeting.dart';
+export 'meal/ingredient_unit.dart';
+export 'meal/meal_ingredient_opt.dart';
+export 'meal/meal_options.dart';
 export 'meal/meal_recommendation.dart';
 export 'user/fitness_goal.dart';
 export 'user/fitness_level.dart';
@@ -382,6 +388,15 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _izw8z7ou.Greeting) {
       return _izw8z7ou.Greeting.fromJson(data) as T;
     }
+    if (t == _ija8s0hd.IngredientUnit) {
+      return _ija8s0hd.IngredientUnit.fromJson(data) as T;
+    }
+    if (t == _iy37bkub.MealIngredientOption) {
+      return _iy37bkub.MealIngredientOption.fromJson(data) as T;
+    }
+    if (t == _ia9a4p3p.MealOption) {
+      return _ia9a4p3p.MealOption.fromJson(data) as T;
+    }
     if (t == _icj2h90j.MealRecommendation) {
       return _icj2h90j.MealRecommendation.fromJson(data) as T;
     }
@@ -412,6 +427,19 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_izw8z7ou.Greeting?>()) {
       return (data != null ? _izw8z7ou.Greeting.fromJson(data) : null) as T;
     }
+    if (t == _is.getType<_ija8s0hd.IngredientUnit?>()) {
+      return (data != null ? _ija8s0hd.IngredientUnit.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_iy37bkub.MealIngredientOption?>()) {
+      return (data != null
+              ? _iy37bkub.MealIngredientOption.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _is.getType<_ia9a4p3p.MealOption?>()) {
+      return (data != null ? _ia9a4p3p.MealOption.fromJson(data) : null) as T;
+    }
     if (t == _is.getType<_icj2h90j.MealRecommendation?>()) {
       return (data != null ? _icj2h90j.MealRecommendation.fromJson(data) : null)
           as T;
@@ -441,6 +469,21 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _is.getType<_iext2gyt.WorkoutStreak?>()) {
       return (data != null ? _iext2gyt.WorkoutStreak.fromJson(data) : null)
+          as T;
+    }
+    if (t == List<_ifss0aho.FitnessGoal>) {
+      return (data as List)
+              .map((e) => deserialize<_ifss0aho.FitnessGoal>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<String>) {
+      return (data as List).map((e) => deserialize<String>(e)).toList() as T;
+    }
+    if (t == List<_iy37bkub.MealIngredientOption>) {
+      return (data as List)
+              .map((e) => deserialize<_iy37bkub.MealIngredientOption>(e))
+              .toList()
           as T;
     }
     if (t == List<int>) {
@@ -477,6 +520,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     return switch (type) {
       _isdrmxyn.FitnessData => 'FitnessData',
       _izw8z7ou.Greeting => 'Greeting',
+      _ija8s0hd.IngredientUnit => 'IngredientUnit',
+      _iy37bkub.MealIngredientOption => 'MealIngredientOption',
+      _ia9a4p3p.MealOption => 'MealOption',
       _icj2h90j.MealRecommendation => 'MealRecommendation',
       _ifss0aho.FitnessGoal => 'FitnessGoal',
       _ifclzg6e.FitnessLevel => 'FitnessLevel',
@@ -506,6 +552,12 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'FitnessData';
       case _izw8z7ou.Greeting():
         return 'Greeting';
+      case _ija8s0hd.IngredientUnit():
+        return 'IngredientUnit';
+      case _iy37bkub.MealIngredientOption():
+        return 'MealIngredientOption';
+      case _ia9a4p3p.MealOption():
+        return 'MealOption';
       case _icj2h90j.MealRecommendation():
         return 'MealRecommendation';
       case _ifss0aho.FitnessGoal():
@@ -553,6 +605,15 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (dataClassName == 'Greeting') {
       return deserialize<_izw8z7ou.Greeting>(data['data']);
+    }
+    if (dataClassName == 'IngredientUnit') {
+      return deserialize<_ija8s0hd.IngredientUnit>(data['data']);
+    }
+    if (dataClassName == 'MealIngredientOption') {
+      return deserialize<_iy37bkub.MealIngredientOption>(data['data']);
+    }
+    if (dataClassName == 'MealOption') {
+      return deserialize<_ia9a4p3p.MealOption>(data['data']);
     }
     if (dataClassName == 'MealRecommendation') {
       return deserialize<_icj2h90j.MealRecommendation>(data['data']);

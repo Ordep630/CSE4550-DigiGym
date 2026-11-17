@@ -1,0 +1,10 @@
+enum: IngredientUnit
+serialized: byName
+values:
+  - gram
+  - kilogram
+  - milliliter
+  - liter
+  - item
+  - ounce
+  - fluidOunce

@@ -1,0 +1,8 @@
+# structure: MealIngredientOption, returned by endpoint
+class: MealIngredientOption
+fields:
+  # ingredient object fields
+  id: String 
+  name: String
+  amount: double
+  unit: IngredientUnit
