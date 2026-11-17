@@ -124,6 +124,9 @@ class Meal {
   final String serving;
   final List<MealIngredient> ingredients;
   final Set<String> supportedGoals;
+  final MealNutrition? providedNutrition;
+  final Set<String>? providedCompatibleDiets;
+
   Meal({
     required this.id,
     required this.name,
@@ -131,12 +134,16 @@ class Meal {
     required this.serving,
     required List<MealIngredient> ingredients,
     required Set<String> supportedGoals,
+    this.providedNutrition,
+    this.providedCompatibleDiets,
   }) : ingredients = List.unmodifiable(ingredients),
        supportedGoals = Set.unmodifiable(supportedGoals);
-  MealNutrition get nutrition => ingredients.fold(
-    const MealNutrition(0, 0, 0, 0),
-    (sum, item) => sum + item.nutrition,
-  );
+  MealNutrition get nutrition =>
+      providedNutrition ??
+      ingredients.fold(
+        const MealNutrition(0, 0, 0, 0),
+        (sum, item) => sum + item.nutrition,
+      );
   int get calories => (nutrition.calories / 10).round() * 10;
   int get proteinGrams => nutrition.proteinGrams.round();
   int get carbohydrateGrams => nutrition.carbohydrateGrams.round();
@@ -150,12 +157,14 @@ class Meal {
   bool get highProtein =>
       proteinGrams >= 25 &&
       nutrition.proteinGrams * 4 >= nutrition.calories * .20;
-  Set<String> get compatibleDiets => {
-    'No Preference',
-    if (vegan) 'Vegan',
-    if (vegetarian) 'Vegetarian',
-    if (highProtein) 'High Protein',
-  };
+  Set<String> get compatibleDiets =>
+      providedCompatibleDiets ??
+      {
+        'No Preference',
+        if (vegan) 'Vegan',
+        if (vegetarian) 'Vegetarian',
+        if (highProtein) 'High Protein',
+      };
   static const estimateNotice =
       'Approximate recipe nutrition per serving. '
       'Ingredients and preparation vary. These options are not a complete daily meal plan.';
