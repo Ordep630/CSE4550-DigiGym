@@ -1,384 +1,468 @@
-import 'dart:async';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/user_profile.dart';
-import '../models/workout_plan.dart';
-import '../services/digigym_api.dart';
+import '../models/workout_record_details.dart';
+import '../services/dashboard_personalization.dart';
 import '../services/workout_schedule_controller.dart';
 import '../services/workout_session_controller.dart';
-import '../services/workout_start_preference.dart';
+import '../services/workout_scheduling.dart';
+import '../models/workout_schedule_day.dart';
 import '../theme/digigym_dashboard_theme.dart';
-import '../theme/digigym_workout_theme.dart';
-import '../widgets/workout_overview.dart';
-import '../widgets/workout_week_view.dart';
-import '../widgets/workout_exercise_list.dart';
-import '../widgets/workout_glass_card.dart';
-import '../widgets/workout_app_bar.dart';
-import 'workout_exercises_screen.dart';
-import 'workout_history_screen.dart';
+import '../widgets/dashboard_glass_card.dart';
+import '../widgets/dashboard_progress_card.dart';
+import '../widgets/digigym_dialog.dart';
+import '../widgets/digigym_brand_logo.dart';
+import '../widgets/monthly_activity_calendar.dart';
+import '../widgets/stat_card.dart';
+import '../widgets/dashboard_greeting.dart';
+import '../widgets/daily_streak_indicator.dart';
+import '../widgets/dashboard_notification_button.dart';
+import '../widgets/dashboard_card_action.dart';
+import '../widgets/weekly_workout_schedule.dart';
 
-enum WorkoutView { myPlan, exercises, moreWorkouts }
-
-class WorkoutsScreen extends StatefulWidget {
-  final UserProfile user;
-  final DigiGymApi api;
-  final WorkoutSessionController? session;
-  final WorkoutStartPreference? startPreference;
-  final WorkoutScheduleController? schedule;
-  final DateTime Function()? clock;
-  final bool focusSchedule;
-  final VoidCallback? onScheduleShown;
-  const WorkoutsScreen({
-    super.key,
-    required this.user,
-    this.api = digiGymApi,
-    this.session,
-    this.startPreference,
-    this.schedule,
-    this.clock,
-    this.focusSchedule = false,
-    this.onScheduleShown,
-  });
-  @override
-  State<WorkoutsScreen> createState() => _WorkoutsScreenState();
+/// Opt-in visual review only. The flag cannot enable samples in profile/release.
+abstract final class DashboardHeaderPreview {
+  static const enabled =
+      kDebugMode && bool.fromEnvironment('DIGIGYM_HEADER_PREVIEW');
 }
 
-class _WorkoutsScreenState extends State<WorkoutsScreen> {
-  WorkoutView _view = WorkoutView.myPlan;
-  WorkoutScheduleController? _owned;
-  final _scheduleKey = GlobalKey();
-  bool _restored = false;
-  WorkoutScheduleController get _schedule => widget.schedule ?? _owned!;
-  Object get _storageKey =>
-      ('workout-view', widget.user.accountId ?? widget.user.email);
+class DashboardPage extends StatelessWidget {
+  final UserProfile user;
+  final String motivationalMessage;
+  final DateTime Function()? clock;
+  final int? streakDays;
+  final bool streakUnavailable;
+  final VoidCallback? onViewStreak;
+  final VoidCallback? onNotifications;
+  final ValueChanged<int>? onSelectTab;
+  final VoidCallback? onEditProfile;
+  final WorkoutScheduleController? workoutSchedule;
+  final VoidCallback? onSeeWeek;
+  final ValueChanged<WorkoutScheduleDay>? onScheduleDay;
+  final WorkoutSessionController? session;
+  final ValueChanged<DateTime>? onActivitySelected;
+  final VoidCallback? onActivityDayChanged;
 
-  void _bind() {
-    if (widget.schedule != null) {
-      _owned?.dispose();
-      _owned = null;
-      return;
+  const DashboardPage({
+    super.key,
+    required this.user,
+    this.motivationalMessage = DashboardPersonalization.defaultMessage,
+    this.clock,
+    this.streakDays,
+    this.streakUnavailable = false,
+    this.onViewStreak,
+    this.onNotifications,
+    this.onSelectTab,
+    this.onEditProfile,
+    this.workoutSchedule,
+    this.onSeeWeek,
+    this.onScheduleDay,
+    this.session,
+    this.onActivitySelected,
+    this.onActivityDayChanged,
+  }) : assert(streakDays == null || streakDays >= 0);
+
+  ({double progress, String? caption, Duration? elapsed}) _workoutProgress() {
+    final workout = session;
+    if (workout != null) {
+      if (workout.phase != null &&
+          workout.phase != WorkoutSessionPhase.saved &&
+          workout.timed) {
+        final elapsed = workout.elapsed;
+        return (
+          progress: _percentage(elapsed, workout.planned),
+          caption: 'Time target',
+          elapsed: elapsed,
+        );
+      }
+      final today = workoutLocalDate((clock ?? DateTime.now)());
+      for (final entry in workout.history.value) {
+        if (workoutLocalDate(entry.completedAt) != today) continue;
+        final details = WorkoutRecordDetails.decode(entry.details);
+        final elapsed = details.activeTime;
+        final planned = details.plannedSeconds;
+        if (elapsed != null && planned != null) {
+          return (
+            progress: _percentage(elapsed, Duration(seconds: planned)),
+            caption: 'Saved',
+            elapsed: null,
+          );
+        }
+      }
     }
-    if (_owned == null || _owned!.accountId != widget.user.accountId) {
-      _owned?.dispose();
-      _owned = WorkoutScheduleController(accountId: widget.user.accountId);
-      unawaited(_owned!.initialize());
-    }
+    return (progress: 0, caption: null, elapsed: null);
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _bind();
+  static double _percentage(Duration elapsed, Duration planned) =>
+      (100 * elapsed.inMilliseconds / planned.inMilliseconds).clamp(0.0, 100.0);
+
+  Widget _liveMetric(WidgetBuilder build) {
+    final workout = session;
+    return workout == null
+        ? Builder(builder: build)
+        : ListenableBuilder(
+            listenable: Listenable.merge([workout, workout.history]),
+            builder: (context, _) => build(context),
+          );
   }
 
-  @override
-  void dispose() {
-    _owned?.dispose();
-    super.dispose();
-  }
-
-  void _restoreView() {
-    final stored = PageStorage.maybeOf(context)
-        ?.readState(context, identifier: _storageKey);
-    _view = widget.focusSchedule
-        ? WorkoutView.myPlan
-        : stored is WorkoutView
-        ? stored
-        : WorkoutView.myPlan;
-    _restored = true;
-    if (widget.focusSchedule) _focusSchedule();
-  }
-
-  void _focusSchedule() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final target = _scheduleKey.currentContext;
-      if (!mounted || target == null) return;
-      Scrollable.ensureVisible(target, alignment: 0);
-      widget.onScheduleShown?.call();
-    });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_restored) _restoreView();
-  }
-
-  @override
-  void didUpdateWidget(WorkoutsScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _bind();
-    if (oldWidget.user.accountId != widget.user.accountId ||
-        oldWidget.user.email != widget.user.email) {
-      _restoreView();
-    }
-    if (widget.focusSchedule && !oldWidget.focusSchedule) {
-      _view = WorkoutView.myPlan;
-      _focusSchedule();
-    }
-  }
-
-  void _select(WorkoutView view) {
-    if (_view == view) return;
-    setState(() => _view = view);
-    PageStorage.maybeOf(context)
-        ?.writeState(context, view, identifier: _storageKey);
-  }
-
-  bool get _hasWorkoutAccount =>
-      widget.user.accountId != null &&
-      !widget.user.isDemo &&
-      widget.api.authenticatedAccountId == widget.user.accountId;
-
-  void _openHistory() {
-    Navigator.of(context).push<void>(
-      MaterialPageRoute(
-        builder: (_) =>
-            WorkoutHistoryScreen(api: widget.api, session: widget.session),
-      ),
-    );
-  }
-
-  void _openExercises(WorkoutPlan plan, {bool offersWalkthrough = false}) {
-    if (plan.exercises.isEmpty) return;
-    Navigator.of(context).push<void>(
-      MaterialPageRoute(
-        builder: (_) => WorkoutExercisesScreen(
-          plan: plan,
-          offersWalkthrough: offersWalkthrough,
-          session: _hasWorkoutAccount ? widget.session : null,
-        ),
-      ),
-    );
+  Widget _monthlyActivity(Color accent) {
+    final workout = session;
+    return workout == null
+        ? MonthlyActivityCalendar(clock: clock, highlightColor: accent)
+        : ValueListenableBuilder(
+            valueListenable: workout.history,
+            builder: (context, history, _) => MonthlyActivityCalendar(
+              clock: clock,
+              highlightColor: accent,
+              days: [
+                for (final date
+                    in history
+                        .map((row) => workoutLocalDate(row.completedAt))
+                        .toSet())
+                  WorkoutScheduleDay(date: date, isCompleted: true),
+              ],
+              onCompletedDate: onActivitySelected,
+              onTodayChanged: onActivityDayChanged,
+            ),
+          );
   }
 
   @override
   Widget build(BuildContext context) {
-    final plan = WorkoutPlan.forUser(widget.user);
-    final alternatives = WorkoutPlan.alternativesForUser(widget.user);
-    final base = Theme.of(context);
-    final theme = DigiGymWorkoutTheme.apply(base);
-    final historyWidth = _hasWorkoutAccount
-        ? (MediaQuery.textScalerOf(context).scale(46) + 24).clamp(
-            64.0,
-            (MediaQuery.sizeOf(context).width * .44).clamp(64.0, 200.0),
-          )
-        : null;
-    final level = Text(
-      '${widget.user.fitnessLevel} Plan',
-      style: theme.textTheme.bodyMedium?.copyWith(
-        color: theme.brightness == Brightness.light
-            ? widget.user.fitnessLevel.trim().toLowerCase() == 'intermediate'
-                  ? DigiGymWorkoutTheme.intermediatePlanAccent
-                  : theme.colorScheme.onSurfaceVariant
-            : DigiGymFitnessLevelColors.forLevel(widget.user.fitnessLevel),
-      ),
-    );
-    Widget heading(String text) => Text(
-      text,
-      style: theme.textTheme.titleLarge?.copyWith(
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.3,
-      ),
-    );
-    Widget noTime() => WorkoutOverview(plan: plan, onViewExercises: () {});
+    // Dashboard-only typography; the sibling navigation bar retains its theme.
+    final theme = DigiGymDashboardTheme.content(Theme.of(context));
+    final surfaces = DigiGymSurfaces.of(context);
+    // A missing streak is neutral, never a fabricated workout count.
+    final preview = DashboardHeaderPreview.enabled;
+    final days = streakDays;
+    // HomeScreen supplies the measured pill + system inset through extendBody.
+    // Keep it in scroll content, not an outer SafeArea that clips glass/shadows
+    // along a rectangular boundary above the pill (especially visible on iOS).
+    final navigationInset = MediaQuery.paddingOf(context).bottom;
     return Theme(
       data: theme,
-      child: AnimatedBuilder(
-        animation: _schedule,
-        builder: (context, _) => Scaffold(
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: theme.brightness == Brightness.dark
+            ? SystemUiOverlayStyle.light
+            : SystemUiOverlayStyle.dark,
+        child: Scaffold(
           backgroundColor: Colors.transparent,
-          appBar: workoutAppBar(
-            context,
-            title: 'Workout',
-            large: true,
-            theme: theme,
-          ),
-          body: SafeArea(
-            top: false,
-            bottom: false,
-            child: ListView(
-              key: PageStorageKey((
-                'workout-scroll',
-                widget.user.accountId ?? widget.user.email,
-                _view,
-              )),
-              padding: EdgeInsets.fromLTRB(
-                20,
-                0,
-                20,
-                20 + MediaQuery.paddingOf(context).bottom,
-              ),
-              children: [
-                if (historyWidth == null)
-                  level
-                else
-                  Row(
-                    children: [
-                      Expanded(child: level),
-                      SizedBox(
-                        width: historyWidth,
-                        child: Tooltip(
-                          message: 'Workout History',
-                          child: TextButton(
-                            key: const ValueKey('open-workout-history'),
-                            onPressed: _openHistory,
-                            child: const FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text('History'),
+          body: SizedBox.expand(
+            child: SafeArea(
+              bottom: false,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(20, 0, 20, 14 + navigationInset),
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 640),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final stacked =
+                            constraints.maxWidth < 320 ||
+                            MediaQuery.textScalerOf(context).scale(14) > 18.2;
+                        final goal = _liveMetric((context) {
+                          final metric = _workoutProgress();
+                          return DashboardCardAction(
+                            key: const ValueKey('dashboard-progress-action'),
+                            label: metric.caption == null
+                                ? "Today's Progress: 0% complete. Open Workout"
+                                : "Today's Progress: ${metric.progress.round()}% of planned time. ${metric.caption == 'Saved' ? 'Workout saved. ' : ''}Open Workout",
+                            onTap: onSelectTab == null
+                                ? null
+                                : () => onSelectTab!(1),
+                            child: DashboardProgressCard(
+                              progress: metric.progress,
+                              caption: metric.caption,
+                              ringDiameter:
+                                  (148 *
+                                          MediaQuery.textScalerOf(context)
+                                              .scale(12) /
+                                          12)
+                                      .clamp(
+                                        1.0,
+                                        (stacked
+                                                ? constraints.maxWidth
+                                                : (constraints.maxWidth - 12) /
+                                                      2) -
+                                            24,
+                                      ),
+                              // Match the reference proportion at a 390px-wide
+                              // display. This is a minimum, never a clipping height.
+                              minimumHeight:
+                                  MediaQuery.sizeOf(context).width
+                                      .clamp(320.0, 430.0) *
+                                  (190 / 390),
                             ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                const SizedBox(height: 8),
-                Text(
-                  'Your training space — follow your plan or explore other sessions.',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                _WorkoutSegments(selected: _view, onSelected: _select),
-                const SizedBox(height: 24),
-                switch (_view) {
-                  WorkoutView.myPlan => Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      WorkoutOverview(
-                        plan: plan,
-                        session: widget.session,
-                        startPreference: widget.startPreference,
-                        onViewExercises: () =>
-                            _openExercises(plan, offersWalkthrough: true),
-                      ),
-                      const SizedBox(height: 20),
-                      WorkoutWeekView(
-                        key: _scheduleKey,
-                        user: widget.user,
-                        controller: _schedule,
-                        clock: widget.clock,
-                      ),
-                      if (plan.exercises.isNotEmpty) ...[
-                        const SizedBox(height: 20),
-                        Row(
-                          children: [
-                            Expanded(child: heading('Exercise preview')),
-                            Icon(
-                              Icons.fitness_center_outlined,
-                              size: 20,
-                              color: theme.colorScheme.primary,
+                          );
+                        });
+                        final workout = _liveMetric((context) {
+                          final elapsed = _workoutProgress().elapsed;
+                          final active = elapsed == null
+                              ? null
+                              : formatWorkoutTime(elapsed);
+                          return DashboardCardAction(
+                            key: const ValueKey('dashboard-workout-action'),
+                            label: active == null
+                                ? 'Workout duration: ${user.workoutTime} minutes. Open Workout'
+                                : 'Active workout time: $active. Open Workout',
+                            onTap: onSelectTab == null
+                                ? null
+                                : () => onSelectTab!(1),
+                            child: StatCard(
+                              title: active == null ? 'Workout' : 'Active time',
+                              iconGlowOnly: true,
+                              iconColor: surfaces.accent,
+                              value: active ?? '${user.workoutTime} min',
+                              icon: Icons.fitness_center,
+                              dotted: true,
+                              fitNumber: true,
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        WorkoutExerciseList(plan: plan, limit: 3),
-                        OutlinedButton.icon(
-                          key: const ValueKey('workout-preview-all'),
-                          onPressed: () => _openExercises(plan),
-                          icon: const Icon(Icons.arrow_forward, size: 18),
-                          label: const Text('View all exercises'),
-                        ),
-                      ],
-                      const SizedBox(height: 12),
-                      Text(
-                        'Estimates include a 2-minute warm-up, 1-minute cool-down, set rests and transitions. Your pace may vary.',
-                        key: const ValueKey('workout-timing-notice'),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                  WorkoutView.exercises =>
-                    plan.exercises.isEmpty
-                        ? noTime()
-                        : Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              heading(plan.title),
-                              const SizedBox(height: 10),
-                              Text(
-                                '${plan.exercises.length} exercises · Estimated ${plan.durationMinutes} min',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              WorkoutExerciseList(plan: plan),
-                            ],
-                          ),
-                  WorkoutView.moreWorkouts => Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      heading('More workouts for you'),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Browse alternatives for your saved goal, level and available time. Viewing one does not replace your primary plan.',
-                      ),
-                      const SizedBox(height: 16),
-                      if (alternatives.isEmpty) noTime(),
-                      for (var i = 0; i < alternatives.length; i++)
-                        WorkoutGlassCard(
-                          key: ValueKey('workout-library-plan-$i'),
-                          margin: const EdgeInsets.only(bottom: 12),
+                          );
+                        });
+                        // Quick navigation replaces profile/meal statistics so
+                        // the dashboard stays an overview, not a duplicate tab.
+                        final quickAccess = DashboardGlassCard(
+                          key: const ValueKey('dashboard-quick-access'),
+                          padding: const EdgeInsets.all(14),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 44,
-                                    height: 44,
-                                    decoration: BoxDecoration(
-                                      color: theme.colorScheme.primary
-                                          .withValues(alpha: .12),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Icon(
-                                      Icons.fitness_center_outlined,
-                                      color: theme.colorScheme.primary,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      alternatives[i].title,
-                                      style: theme.textTheme.titleMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
                               Text(
-                                'Estimated ${alternatives[i].durationMinutes} min · ${alternatives[i].exercises.length} exercises',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
+                                'Quick Access',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              Text(alternatives[i].description),
-                              const SizedBox(height: 12),
-                              OutlinedButton.icon(
-                                key: ValueKey('workout-library-exercises-$i'),
-                                onPressed: () =>
-                                    _openExercises(alternatives[i]),
-                                icon: const Icon(Icons.arrow_forward, size: 18),
-                                label: const Text('View Workout'),
+                              _DashboardShortcut(
+                                icon: Icons.fitness_center,
+                                title: 'Workouts',
+                                subtitle: 'View your exercises',
+                                color: surfaces.accent,
+                                onTap: onSelectTab == null
+                                    ? null
+                                    : () => onSelectTab!(1),
+                              ),
+                              _DashboardShortcut(
+                                icon: Icons.restaurant_outlined,
+                                title: 'Meals',
+                                subtitle: 'Plan your nutrition',
+                                color: surfaces.accent,
+                                onTap: onSelectTab == null
+                                    ? null
+                                    : () => onSelectTab!(2),
+                              ),
+                              _DashboardShortcut(
+                                icon: Icons.person_outline,
+                                title: 'Profile',
+                                subtitle: 'Your personal details',
+                                color: surfaces.accent,
+                                onTap: onSelectTab == null
+                                    ? null
+                                    : () => onSelectTab!(4),
                               ),
                             ],
                           ),
-                        ),
-                    ],
+                        );
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            LayoutBuilder(
+                              builder: (context, headerConstraints) {
+                                final branding = Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 18,
+                                  ),
+                                  child: _DashboardBranding(
+                                    style: theme.textTheme.titleLarge?.copyWith(
+                                      fontSize: 26,
+                                      height: 1.2,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: -0.7,
+                                    ),
+                                  ),
+                                );
+                                final hasBell =
+                                    onNotifications != null || preview;
+                                final actions = ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxWidth: headerConstraints.maxWidth,
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Flexible(
+                                        child: DailyStreakIndicator(
+                                          days: days,
+                                          unavailable: streakUnavailable,
+                                          onTap: onViewStreak,
+                                        ),
+                                      ),
+                                      if (hasBell) const SizedBox(width: 6),
+                                      if (hasBell)
+                                        DashboardNotificationButton(
+                                          isPreview:
+                                              onNotifications == null &&
+                                              preview,
+                                          onPressed:
+                                              onNotifications ??
+                                              () => showDialog<void>(
+                                                context: context,
+                                                builder: (context) =>
+                                                    DigiGymDialog(
+                                                      title:
+                                                          'Development preview',
+                                                      content: const Text(
+                                                        'Workout streaks are not available until '
+                                                        'workout completion is tracked. '
+                                                        'Notifications are not connected.',
+                                                      ),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () =>
+                                                              Navigator.pop(
+                                                                context,
+                                                              ),
+                                                          child: const Text(
+                                                            'Close',
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                              ),
+                                        ),
+                                    ],
+                                  ),
+                                );
+                                // Measure actual lettering at the active text
+                                // scale. Artwork keeps its approved dimensions.
+                                const brandWidth =
+                                    DigiGymBrandLogo.dashboardWidth;
+                                final actionsWidth =
+                                    DailyStreakIndicator.preferredWidth(
+                                      context,
+                                      days,
+                                      unavailable: streakUnavailable,
+                                    ) +
+                                    (hasBell ? 6 : 0) +
+                                    (hasBell ? 48 : 0);
+                                if (brandWidth + 12 + actionsWidth >
+                                    headerConstraints.maxWidth) {
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      branding,
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 18,
+                                        ),
+                                        child: Align(
+                                          alignment:
+                                              AlignmentDirectional.centerEnd,
+                                          child: actions,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }
+                                // Keep the original 18px branding gaps and bell
+                                // center; actions occupy the existing free area.
+                                return Stack(
+                                  children: [
+                                    branding,
+                                    PositionedDirectional(
+                                      end: 0,
+                                      top: 0,
+                                      bottom: 0,
+                                      child: Center(child: actions),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                            DashboardGreeting(
+                              clock: clock,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontSize: 15,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            _DashboardName(name: user.name),
+                            const SizedBox(height: 5),
+                            Text(
+                              motivationalMessage,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontSize: 12,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            if (stacked) ...[
+                              goal,
+                              const SizedBox(height: 10),
+                              workout,
+                              const SizedBox(height: 12),
+                              quickAccess,
+                            ] else
+                              IntrinsicHeight(
+                                child: Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: [
+                                          goal,
+                                          const SizedBox(height: 10),
+                                          workout,
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(child: quickAccess),
+                                  ],
+                                ),
+                              ),
+                            const SizedBox(height: 18),
+                            WeeklyWorkoutSchedule(
+                              clock: clock,
+                              daysForWeek: workoutSchedule == null
+                                  ? null
+                                  : (date) => WorkoutScheduling.week(
+                                      user: user,
+                                      workoutDays: workoutSchedule!.workoutDays,
+                                      date: date,
+                                    ).map((day) => day.presentation).toList(),
+                              onDaySelected: onScheduleDay,
+                              scheduledColor: surfaces.accent,
+                              seeAllColor: surfaces.accent,
+                              currentDayColor: surfaces.accent,
+                              onSeeAll:
+                                  onSeeWeek ??
+                                  (onSelectTab == null
+                                      ? null
+                                      : () => onSelectTab!(1)),
+                            ),
+                            const SizedBox(height: 18),
+                            _monthlyActivity(surfaces.accent),
+                          ],
+                        );
+                      },
+                    ),
                   ),
-                },
-              ],
+                ),
+              ),
             ),
           ),
         ),
@@ -387,91 +471,116 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
   }
 }
 
-class _WorkoutSegments extends StatelessWidget {
-  final WorkoutView selected;
-  final ValueChanged<WorkoutView> onSelected;
-  const _WorkoutSegments({required this.selected, required this.onSelected});
+class _DashboardName extends StatelessWidget {
+  final String name;
+
+  const _DashboardName({required this.name});
+
+  @override
+  Widget build(BuildContext context) => Text(
+    name,
+    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+      fontSize: 32,
+      height: 1.12,
+      fontWeight: FontWeight.w700,
+      letterSpacing: -0.9,
+    ),
+  );
+}
+
+class _DashboardBranding extends StatelessWidget {
+  final TextStyle? style;
+
+  const _DashboardBranding({required this.style});
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      // Preserve the prior wordmark line box and the responsive header height.
+      // The original icon and gap occupied 58 logical pixels beside that box.
+      final title =
+          TextPainter(
+            text: TextSpan(text: 'DigiGym', style: style),
+            textDirection: Directionality.of(context),
+            textScaler: MediaQuery.textScalerOf(context),
+            locale: Localizations.maybeLocaleOf(context),
+          )..layout(
+            maxWidth: (constraints.maxWidth - 58).clamp(0, double.infinity),
+          );
+      final height = title.height.clamp(48 * 331 / 796, double.infinity);
+      title.dispose();
+      return SizedBox(
+        height: height,
+        child: const Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: DigiGymBrandLogo(
+            key: ValueKey('dashboard-brand-logo'),
+            layout: DigiGymLogoLayout.horizontal,
+            width: DigiGymBrandLogo.dashboardWidth,
+            height: DigiGymBrandLogo.dashboardHeight,
+          ),
+        ),
+      );
+    },
+  );
+}
+
+/// Compact shortcut matching the dashboard's existing glass-card styling.
+class _DashboardShortcut extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final VoidCallback? onTap;
+
+  const _DashboardShortcut({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final lightSurfaces = DigiGymSurfaces.of(context);
-    final light = theme.brightness == Brightness.light;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: light
-            ? DigiGymWorkoutTheme.segmentSurface
-            : theme.colorScheme.surface.withValues(alpha: .65),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: light
-              ? lightSurfaces.navigationBorder
-              : theme.colorScheme.outlineVariant,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(3),
-        child: IntrinsicHeight(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 3),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              for (final entry in const {
-                WorkoutView.myPlan: 'My Plan',
-                WorkoutView.exercises: 'Exercises',
-                WorkoutView.moreWorkouts: 'More Workouts',
-              }.entries)
-                Expanded(
-                  child: Semantics(
-                    button: true,
-                    selected: selected == entry.key,
-                    label: '${entry.value} workout view',
-                    onTap: () => onSelected(entry.key),
-                    excludeSemantics: true,
-                    child: AnimatedContainer(
-                      duration: MediaQuery.disableAnimationsOf(context)
-                          ? Duration.zero
-                          : const Duration(milliseconds: 160),
-                      decoration: BoxDecoration(
-                        color: selected == entry.key
-                            ? theme.colorScheme.primary
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: Material(
-                        type: MaterialType.transparency,
-                        child: InkWell(
-                          key: ValueKey('workout-view-${entry.key.name}'),
-                          borderRadius: BorderRadius.circular(25),
-                          onTap: () => onSelected(entry.key),
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(minHeight: 48),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 10,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  entry.value,
-                                  textAlign: TextAlign.center,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    fontSize: 13,
-                                    fontWeight: selected == entry.key
-                                        ? FontWeight.w600
-                                        : FontWeight.w400,
-                                    color: selected == entry.key
-                                        ? theme.colorScheme.onPrimary
-                                        : theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+              Icon(icon, color: color, size: 24),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ),
+                    Text(
+                      subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: theme.colorScheme.onSurfaceVariant,
+                size: 18,
+              ),
             ],
           ),
         ),
