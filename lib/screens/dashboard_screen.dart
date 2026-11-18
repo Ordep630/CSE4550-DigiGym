@@ -12,10 +12,6 @@ import '../models/workout_schedule_day.dart';
 import '../theme/digigym_dashboard_theme.dart';
 import '../widgets/dashboard_glass_card.dart';
 import '../widgets/dashboard_progress_card.dart';
-import '../utils/measurement_units.dart';
-import '../utils/calorie_format.dart';
-import '../utils/bmi_category.dart';
-import '../widgets/dashboard_information_dialogs.dart';
 import '../widgets/digigym_dialog.dart';
 import '../widgets/digigym_brand_logo.dart';
 import '../widgets/monthly_activity_calendar.dart';
@@ -227,83 +223,48 @@ class DashboardPage extends StatelessWidget {
                             ),
                           );
                         });
-                        final statistics = DashboardGlassCard(
-                          key: const ValueKey('dashboard-statistics-panel'),
+                        // Quick navigation replaces profile/meal statistics so
+                        // the dashboard stays an overview, not a duplicate tab.
+                        final quickAccess = DashboardGlassCard(
+                          key: const ValueKey('dashboard-quick-access'),
                           padding: const EdgeInsets.all(14),
                           child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              DashboardCardAction(
-                                key: const ValueKey(
-                                  'dashboard-calories-action',
+                              Text(
+                                'Quick Access',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
                                 ),
-                                label:
-                                    'Daily calorie target: ${CalorieFormat.format(user.estimatedCalories)}. Open Meals',
+                              ),
+                              const SizedBox(height: 8),
+                              _DashboardShortcut(
+                                icon: Icons.fitness_center,
+                                title: 'Workouts',
+                                subtitle: 'View your exercises',
+                                color: surfaces.accent,
+                                onTap: onSelectTab == null
+                                    ? null
+                                    : () => onSelectTab!(1),
+                              ),
+                              _DashboardShortcut(
+                                icon: Icons.restaurant_outlined,
+                                title: 'Meals',
+                                subtitle: 'Plan your nutrition',
+                                color: surfaces.accent,
                                 onTap: onSelectTab == null
                                     ? null
                                     : () => onSelectTab!(2),
-                                child: StatCard(
-                                  title: 'Daily calorie target',
-                                  statisticTypography: true,
-                                  iconGlowOnly: true,
-                                  value: CalorieFormat.format(
-                                    user.estimatedCalories,
-                                  ),
-                                  icon: Icons.local_fire_department,
-                                  iconColor: surfaces.warmAccent,
-                                  lightIconShadow: DigiGymDashboardTheme
-                                      .calorieFlameLightShadow,
-                                  embedded: true,
-                                  fitNumber: true,
-                                ),
                               ),
-                              const SizedBox(height: 14),
-                              DashboardCardAction(
-                                key: const ValueKey('dashboard-weight-action'),
-                                label:
-                                    'Weight: ${MeasurementUnits.formatWeight(user.weight)}. View weight information',
-                                onTap: () => showDashboardWeightDialog(
-                                  context,
-                                  weight: user.weight,
-                                  onEditWeight: onEditProfile,
-                                ),
-                                child: StatCard(
-                                  title: 'Weight',
-                                  statisticTypography: true,
-                                  iconGlowOnly: true,
-                                  value: MeasurementUnits.formatWeight(
-                                    user.weight,
-                                  ),
-                                  fitNumber: true,
-                                  embedded: true,
-                                  compactNumber: true,
-                                  icon: Icons.scale_outlined,
-                                  iconColor: surfaces.accent,
-                                ),
-                              ),
-                              const SizedBox(height: 14),
-                              DashboardCardAction(
-                                key: const ValueKey('dashboard-bmi-action'),
-                                label:
-                                    'BMI: ${BmiCategory.fromValue(user.bmi) == null ? 'unavailable' : user.bmi.toStringAsFixed(1)}. View BMI information',
-                                onTap: () => showDashboardBmiDialog(
-                                  context,
-                                  bmi: user.bmi,
-                                ),
-                                child: StatCard(
-                                  title: 'BMI',
-                                  statisticTypography: true,
-                                  iconGlowOnly: true,
-                                  value: BmiCategory.fromValue(user.bmi) == null
-                                      ? 'Unavailable'
-                                      : user.bmi.toStringAsFixed(1),
-                                  icon: Icons.monitor_weight_outlined,
-                                  iconColor: surfaces.accent,
-                                  embedded: true,
-                                  compactNumber: true,
-                                  fitNumber: true,
-                                ),
+                              _DashboardShortcut(
+                                icon: Icons.person_outline,
+                                title: 'Profile',
+                                subtitle: 'Your personal details',
+                                color: surfaces.accent,
+                                onTap: onSelectTab == null
+                                    ? null
+                                    : () => onSelectTab!(4),
                               ),
                             ],
                           ),
@@ -448,7 +409,7 @@ class DashboardPage extends StatelessWidget {
                               const SizedBox(height: 10),
                               workout,
                               const SizedBox(height: 12),
-                              statistics,
+                              quickAccess,
                             ] else
                               IntrinsicHeight(
                                 child: Row(
@@ -469,7 +430,7 @@ class DashboardPage extends StatelessWidget {
                                       ),
                                     ),
                                     const SizedBox(width: 12),
-                                    Expanded(child: statistics),
+                                    Expanded(child: quickAccess),
                                   ],
                                 ),
                               ),
@@ -562,4 +523,68 @@ class _DashboardBranding extends StatelessWidget {
       );
     },
   );
+}
+
+/// Compact shortcut matching the dashboard's existing glass-card styling.
+class _DashboardShortcut extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final VoidCallback? onTap;
+
+  const _DashboardShortcut({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 3),
+          child: Row(
+            children: [
+              Icon(icon, color: color, size: 24),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: theme.colorScheme.onSurfaceVariant,
+                size: 18,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
