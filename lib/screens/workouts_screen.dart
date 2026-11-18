@@ -177,7 +177,10 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     );
     Widget heading(String text) => Text(
       text,
-      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+      style: theme.textTheme.titleLarge?.copyWith(
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.3,
+      ),
     );
     Widget noTime() => WorkoutOverview(plan: plan, onViewExercises: () {});
     return Theme(
@@ -230,9 +233,17 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                       ),
                     ],
                   ),
-                const SizedBox(height: 18),
-                _WorkoutSegments(selected: _view, onSelected: _select),
+                const SizedBox(height: 8),
+                Text(
+                  'Your training space — follow your plan or explore other sessions.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    height: 1.4,
+                  ),
+                ),
                 const SizedBox(height: 20),
+                _WorkoutSegments(selected: _view, onSelected: _select),
+                const SizedBox(height: 24),
                 switch (_view) {
                   WorkoutView.myPlan => Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -253,13 +264,23 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                       ),
                       if (plan.exercises.isNotEmpty) ...[
                         const SizedBox(height: 20),
-                        heading('Exercise preview'),
+                        Row(
+                          children: [
+                            Expanded(child: heading('Exercise preview')),
+                            Icon(
+                              Icons.fitness_center_outlined,
+                              size: 20,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 12),
                         WorkoutExerciseList(plan: plan, limit: 3),
-                        OutlinedButton(
+                        OutlinedButton.icon(
                           key: const ValueKey('workout-preview-all'),
                           onPressed: () => _openExercises(plan),
-                          child: const Text('View all exercises'),
+                          icon: const Icon(Icons.arrow_forward, size: 18),
+                          label: const Text('View all exercises'),
                         ),
                       ],
                       const SizedBox(height: 12),
@@ -279,9 +300,12 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               heading(plan.title),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 10),
                               Text(
                                 '${plan.exercises.length} exercises · Estimated ${plan.durationMinutes} min',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
                               ),
                               const SizedBox(height: 16),
                               WorkoutExerciseList(plan: plan),
@@ -304,22 +328,49 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Text(
-                                alternatives[i].title,
-                                style: theme.textTheme.titleLarge,
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 44,
+                                    height: 44,
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.primary
+                                          .withValues(alpha: .12),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(
+                                      Icons.fitness_center_outlined,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      alternatives[i].title,
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                    ),
+                                  ),
+                                ],
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 'Estimated ${alternatives[i].durationMinutes} min · ${alternatives[i].exercises.length} exercises',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
                               ),
                               const SizedBox(height: 8),
                               Text(alternatives[i].description),
                               const SizedBox(height: 12),
-                              OutlinedButton(
+                              OutlinedButton.icon(
                                 key: ValueKey('workout-library-exercises-$i'),
                                 onPressed: () =>
                                     _openExercises(alternatives[i]),
-                                child: const Text('View Workout'),
+                                icon: const Icon(Icons.arrow_forward, size: 18),
+                                label: const Text('View Workout'),
                               ),
                             ],
                           ),
@@ -404,7 +455,7 @@ class _WorkoutSegments extends StatelessWidget {
                                   entry.value,
                                   textAlign: TextAlign.center,
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    fontSize: 12,
+                                    fontSize: 13,
                                     fontWeight: selected == entry.key
                                         ? FontWeight.w600
                                         : FontWeight.w400,
