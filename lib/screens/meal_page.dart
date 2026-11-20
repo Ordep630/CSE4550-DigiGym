@@ -13,6 +13,7 @@ import '../widgets/workout_app_bar.dart';
 import '../client.dart';
 import '../models/meal_option_mapping.dart';
 import 'meal_details_screen.dart';
+import 'calorie_tracker_screen.dart';
 
 class MealPage extends StatefulWidget {
   final UserProfile user;
@@ -182,6 +183,39 @@ class _MealPageState extends State<MealPage> {
                 ],
               ),
             ),
+            const SizedBox(height: 12),
+
+            DashboardCardAction(
+              label: 'Open Calorie Tracker',
+              onTap: () => Navigator.of(context).push<void>(
+                MaterialPageRoute(builder: (_) => const CalorieTrackerScreen()),
+              ),
+              child: DashboardGlassCard(
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.local_fire_department_outlined,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Calorie Tracker',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
             const SizedBox(height: 24),
             Text(
               'Recommended for you',

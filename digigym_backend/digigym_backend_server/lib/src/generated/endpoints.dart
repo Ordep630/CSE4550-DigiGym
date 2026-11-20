@@ -23,6 +23,7 @@ import '../auth/email_idp_endpoint.dart' as _iuc1hd5t;
 import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
 import '../meal/meal_recommendation_endpoint.dart' as _ix7sbnmc;
+import '../nutrition/food_entry_endpoint.dart' as _iou2di2v;
 import '../user/profile_endpoint.dart' as _i6a309j1;
 import '../workout/workout_history_endpoint.dart' as _i8pjsjqh;
 import '../workout/workout_recommendation_endpoint.dart' as _if4v7cf2;
@@ -55,6 +56,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'mealRecommendation',
+          null,
+        ),
+      'foodEntry': _iou2di2v.FoodEntryEndpoint()
+        ..initialize(
+          server,
+          'foodEntry',
           null,
         ),
       'profile': _i6a309j1.ProfileEndpoint()
@@ -346,6 +353,118 @@ class Endpoints extends _is.EndpointDispatch {
                   (endpoints['mealRecommendation']
                           as _ix7sbnmc.MealRecommendationEndpoint)
                       .getMyMealOptions(session),
+        ),
+      },
+    );
+    connectors['foodEntry'] = _is.EndpointConnector(
+      name: 'foodEntry',
+      endpoint: endpoints['foodEntry']!,
+      methodConnectors: {
+        'addFoodEntry': _is.MethodConnector(
+          name: 'addFoodEntry',
+          params: {
+            'name': _is.ParameterDescription(
+              name: 'name',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'calories': _is.ParameterDescription(
+              name: 'calories',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'consumedAt': _is.ParameterDescription(
+              name: 'consumedAt',
+              type: _is.getType<DateTime>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['foodEntry'] as _iou2di2v.FoodEntryEndpoint)
+                  .addFoodEntry(
+                    session,
+                    params['name'],
+                    params['calories'],
+                    params['consumedAt'],
+                  ),
+        ),
+        'findFoodEntries': _is.MethodConnector(
+          name: 'findFoodEntries',
+          params: {
+            'day': _is.ParameterDescription(
+              name: 'day',
+              type: _is.getType<DateTime>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['foodEntry'] as _iou2di2v.FoodEntryEndpoint)
+                  .findFoodEntries(
+                    session,
+                    params['day'],
+                  ),
+        ),
+        'updateFoodEntry': _is.MethodConnector(
+          name: 'updateFoodEntry',
+          params: {
+            'entryId': _is.ParameterDescription(
+              name: 'entryId',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'name': _is.ParameterDescription(
+              name: 'name',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'calories': _is.ParameterDescription(
+              name: 'calories',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'consumedAt': _is.ParameterDescription(
+              name: 'consumedAt',
+              type: _is.getType<DateTime>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['foodEntry'] as _iou2di2v.FoodEntryEndpoint)
+                  .updateFoodEntry(
+                    session,
+                    params['entryId'],
+                    params['name'],
+                    params['calories'],
+                    params['consumedAt'],
+                  ),
+        ),
+        'deleteFoodEntry': _is.MethodConnector(
+          name: 'deleteFoodEntry',
+          params: {
+            'entryId': _is.ParameterDescription(
+              name: 'entryId',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['foodEntry'] as _iou2di2v.FoodEntryEndpoint)
+                  .deleteFoodEntry(
+                    session,
+                    params['entryId'],
+                  ),
         ),
       },
     );

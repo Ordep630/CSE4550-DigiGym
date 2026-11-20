@@ -19,6 +19,8 @@ import 'package:digigym_backend_client/src/protocol/meal/meal_options.dart'
     as _iuclxmna;
 import 'package:digigym_backend_client/src/protocol/meal/meal_recommendation.dart'
     as _iolhdjxc;
+import 'package:digigym_backend_client/src/protocol/nutrition/food_entry.dart'
+    as _iztfsiw8;
 import 'package:digigym_backend_client/src/protocol/user/fitness_goal.dart'
     as _i1zhugzl;
 import 'package:digigym_backend_client/src/protocol/user/fitness_level.dart'
@@ -302,6 +304,58 @@ class EndpointMealRecommendation extends _isc.EndpointRef {
       );
 }
 
+/// {@category Endpoint}
+class EndpointFoodEntry extends _isc.EndpointRef {
+  EndpointFoodEntry(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'foodEntry';
+
+  _ida.Future<_iztfsiw8.FoodEntry> addFoodEntry(
+    String name,
+    int calories,
+    DateTime consumedAt,
+  ) => caller.callServerEndpoint<_iztfsiw8.FoodEntry>(
+    'foodEntry',
+    'addFoodEntry',
+    {
+      'name': name,
+      'calories': calories,
+      'consumedAt': consumedAt,
+    },
+  );
+
+  _ida.Future<List<_iztfsiw8.FoodEntry>> findFoodEntries(DateTime day) =>
+      caller.callServerEndpoint<List<_iztfsiw8.FoodEntry>>(
+        'foodEntry',
+        'findFoodEntries',
+        {'day': day},
+      );
+
+  _ida.Future<_iztfsiw8.FoodEntry?> updateFoodEntry(
+    int entryId,
+    String name,
+    int calories,
+    DateTime consumedAt,
+  ) => caller.callServerEndpoint<_iztfsiw8.FoodEntry?>(
+    'foodEntry',
+    'updateFoodEntry',
+    {
+      'entryId': entryId,
+      'name': name,
+      'calories': calories,
+      'consumedAt': consumedAt,
+    },
+  );
+
+  _ida.Future<bool> deleteFoodEntry(int entryId) =>
+      caller.callServerEndpoint<bool>(
+        'foodEntry',
+        'deleteFoodEntry',
+        {'entryId': entryId},
+      );
+}
+
 /// Lets the currently logged-in user manage their DigiGym fitness profile.
 /// {@category Endpoint}
 class EndpointProfile extends _isc.EndpointRef {
@@ -524,6 +578,7 @@ class Client extends _isc.ServerpodClientShared {
     jwtRefresh = EndpointJwtRefresh(this);
     greeting = EndpointGreeting(this);
     mealRecommendation = EndpointMealRecommendation(this);
+    foodEntry = EndpointFoodEntry(this);
     profile = EndpointProfile(this);
     workoutHistory = EndpointWorkoutHistory(this);
     workoutRecommendation = EndpointWorkoutRecommendation(this);
@@ -539,6 +594,8 @@ class Client extends _isc.ServerpodClientShared {
   late final EndpointGreeting greeting;
 
   late final EndpointMealRecommendation mealRecommendation;
+
+  late final EndpointFoodEntry foodEntry;
 
   late final EndpointProfile profile;
 
@@ -558,6 +615,7 @@ class Client extends _isc.ServerpodClientShared {
     'jwtRefresh': jwtRefresh,
     'greeting': greeting,
     'mealRecommendation': mealRecommendation,
+    'foodEntry': foodEntry,
     'profile': profile,
     'workoutHistory': workoutHistory,
     'workoutRecommendation': workoutRecommendation,
