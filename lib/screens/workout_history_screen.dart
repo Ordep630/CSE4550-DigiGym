@@ -79,6 +79,13 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
     } catch (_) {}
   }
 
+  /// Total saved workouts, e.g. "Workout History (411)". Read from the shared
+  /// history so it changes as soon as a workout is saved or deleted.
+  String get _title {
+    final total = widget.session?.history.value.length;
+    return total == null ? 'Workout History' : 'Workout History ($total)';
+  }
+
   String _date(BuildContext context, DateTime value) =>
       MaterialLocalizations.of(context).formatShortDate(value.toLocal());
 
@@ -270,7 +277,7 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
             title: _selectionMode
                 ? '${_selectedIds.length} selected'
                 : widget.day == null
-                ? 'Workout History'
+                ? _title
                 : _date(context, widget.day!),
             showBack: true,
             theme: theme,

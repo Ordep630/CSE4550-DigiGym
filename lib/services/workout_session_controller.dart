@@ -65,6 +65,7 @@ class WorkoutSessionController extends ChangeNotifier {
   int _plannedMinutes = 0;
   int _plannedSeconds = 0;
   Duration get planned => Duration(seconds: _plannedSeconds);
+  double _caloriesBurned = 0;
   List<WorkoutExerciseDetails> _exercises = const [];
   List<WorkoutExerciseDetails> get exercises => _exercises;
   Duration _accumulated = Duration.zero;
@@ -146,6 +147,7 @@ class WorkoutSessionController extends ChangeNotifier {
     _plannedMinutes = minutes;
     _timed = timed;
     _exercises = details.exercises;
+    _caloriesBurned = details.caloriesBurned ?? 0;
     _accumulated = details.activeTime ?? Duration.zero;
     _phase = restoredPhase;
     _savedAt = completed;
@@ -156,6 +158,7 @@ class WorkoutSessionController extends ChangeNotifier {
     sessionId: _id,
     activeTime: _timed ? elapsed : null,
     plannedSeconds: _plannedSeconds,
+    caloriesBurned: _caloriesBurned,
     exercises: _exercises,
   );
 
@@ -206,6 +209,7 @@ class WorkoutSessionController extends ChangeNotifier {
     _plannedMinutes = plan.durationMinutes;
     _plannedSeconds = plan.estimatedSeconds;
     _exercises = WorkoutRecordDetails.snapshot(plan);
+    _caloriesBurned = plan.caloriesBurned;
     _timed = timed;
     _accumulated = Duration.zero;
     _savedAt = null;

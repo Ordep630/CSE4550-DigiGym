@@ -10,6 +10,7 @@ import '../services/workout_session_controller.dart';
 import '../services/workout_start_preference.dart';
 import '../theme/digigym_dashboard_theme.dart';
 import '../theme/digigym_workout_theme.dart';
+import '../widgets/workout_calorie_tracker.dart';
 import '../widgets/workout_overview.dart';
 import '../widgets/workout_week_view.dart';
 import '../widgets/workout_exercise_list.dart';
@@ -248,6 +249,13 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                   WorkoutView.myPlan => Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      if (_hasWorkoutAccount && widget.session != null) ...[
+                        WorkoutCalorieTracker(
+                          history: widget.session!.history,
+                          clock: widget.clock,
+                        ),
+                        const SizedBox(height: 20),
+                      ],
                       WorkoutOverview(
                         plan: plan,
                         session: widget.session,

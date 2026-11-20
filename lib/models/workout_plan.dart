@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import '../utils/workout_calories.dart';
 import 'exercise.dart';
 import 'user_profile.dart';
 import 'workout_schedule_day.dart';
@@ -10,6 +11,7 @@ class WorkoutPlan {
   final String title;
   final String fitnessLevel;
   final String fitnessGoal;
+  final double bodyWeightKg;
   final int availableMinutes;
   final int warmUpSeconds = 120;
   final int coolDownSeconds = 60;
@@ -23,6 +25,7 @@ class WorkoutPlan {
     required this.title,
     required this.fitnessLevel,
     required this.fitnessGoal,
+    required this.bodyWeightKg,
     required this.availableMinutes,
     required this.description,
     required this.minimumMinutes,
@@ -30,6 +33,15 @@ class WorkoutPlan {
     this.workoutType = ScheduledWorkoutType.fullBody,
     this.isRecovery = false,
   }) : exercises = List.unmodifiable(exercises);
+
+  /// Calories burned by completing every exercise in this plan, scaled to the
+  /// user's body weight. Exercises outside the calorie table count as zero.
+  double get caloriesBurned => WorkoutCalories.forExercises(
+    level: fitnessLevel,
+    goal: fitnessGoal,
+    exercises: exercises.map((e) => e.name),
+    bodyWeightKg: bodyWeightKg,
+  );
 
   int get estimatedSeconds => exercises.isEmpty ? 0 : _duration(exercises);
   int get durationMinutes => (estimatedSeconds / 60).ceil();
@@ -189,6 +201,7 @@ class WorkoutPlan {
       title: title,
       fitnessLevel: user.fitnessLevel,
       fitnessGoal: user.fitnessGoal,
+      bodyWeightKg: user.weight,
       availableMinutes: user.workoutTime,
       description: description,
       workoutType: workoutType,

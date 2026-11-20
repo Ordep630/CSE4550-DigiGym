@@ -14,12 +14,17 @@ class WorkoutRecordDetails {
   final String? sessionId;
   final Duration? activeTime;
   final int? plannedSeconds;
+
+  /// Calories burned, frozen at save time with the user's weight then. Absent
+  /// on workouts saved before the calorie tracker existed.
+  final double? caloriesBurned;
   final List<WorkoutExerciseDetails> exercises;
 
   const WorkoutRecordDetails({
     this.sessionId,
     this.activeTime,
     this.plannedSeconds,
+    this.caloriesBurned,
     this.exercises = const [],
   });
 
@@ -38,6 +43,7 @@ class WorkoutRecordDetails {
     'sessionId': sessionId,
     'activeMilliseconds': activeTime?.inMilliseconds,
     'plannedSeconds': plannedSeconds,
+    'caloriesBurned': caloriesBurned,
     'exercises': [
       for (final exercise in exercises)
         {
@@ -62,12 +68,16 @@ class WorkoutRecordDetails {
     final elapsed = versioned?['activeMilliseconds'];
     final planned = versioned?['plannedSeconds'];
     final id = versioned?['sessionId'];
+    final calories = versioned?['caloriesBurned'];
     return WorkoutRecordDetails(
       sessionId: id is String ? id : null,
       activeTime: elapsed is int && elapsed >= 0
           ? Duration(milliseconds: elapsed)
           : null,
       plannedSeconds: planned is int && planned > 0 ? planned : null,
+      caloriesBurned: calories is num && calories.isFinite && calories >= 0
+          ? calories.toDouble()
+          : null,
       exercises: List.unmodifiable([
         if (rawExercises is List)
           for (final entry in rawExercises)
