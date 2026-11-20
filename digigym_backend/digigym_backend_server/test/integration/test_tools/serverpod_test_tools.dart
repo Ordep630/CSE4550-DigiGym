@@ -17,8 +17,12 @@ import 'package:digigym_backend_server/src/generated/fitness/fitness_data.dart'
     as _iqjir54v;
 import 'package:digigym_backend_server/src/generated/greetings/greeting.dart'
     as _ixw9ndps;
+import 'package:digigym_backend_server/src/generated/meal/meal_options.dart'
+    as _iyrh9rih;
 import 'package:digigym_backend_server/src/generated/meal/meal_recommendation.dart'
     as _i6k5u2jh;
+import 'package:digigym_backend_server/src/generated/nutrition/food_entry.dart'
+    as _ipfw0aai;
 import 'package:digigym_backend_server/src/generated/user/fitness_goal.dart'
     as _i4runcty;
 import 'package:digigym_backend_server/src/generated/user/fitness_level.dart'
@@ -169,6 +173,8 @@ class TestEndpoints {
 
   late final _MealRecommendationEndpoint mealRecommendation;
 
+  late final _FoodEntryEndpoint foodEntry;
+
   late final _ProfileEndpoint profile;
 
   late final _WorkoutHistoryEndpoint workoutHistory;
@@ -200,6 +206,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     mealRecommendation = _MealRecommendationEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    foodEntry = _FoodEntryEndpoint(
       endpoints,
       serializationManager,
     );
@@ -619,6 +629,185 @@ class _MealRecommendationEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<_i6k5u2jh.MealRecommendation?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<List<_iyrh9rih.MealOption>> getMyMealOptions(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'mealRecommendation',
+            method: 'getMyMealOptions',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'mealRecommendation',
+          methodName: 'getMyMealOptions',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_iyrh9rih.MealOption>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _FoodEntryEndpoint {
+  _FoodEntryEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<_ipfw0aai.FoodEntry> addFoodEntry(
+    _ist.TestSessionBuilder sessionBuilder,
+    String name,
+    int calories,
+    DateTime consumedAt,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'foodEntry',
+            method: 'addFoodEntry',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'foodEntry',
+          methodName: 'addFoodEntry',
+          parameters: _ist.testObjectToJson({
+            'name': name,
+            'calories': calories,
+            'consumedAt': consumedAt,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_ipfw0aai.FoodEntry>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<List<_ipfw0aai.FoodEntry>> findFoodEntries(
+    _ist.TestSessionBuilder sessionBuilder,
+    DateTime day,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'foodEntry',
+            method: 'findFoodEntries',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'foodEntry',
+          methodName: 'findFoodEntries',
+          parameters: _ist.testObjectToJson({'day': day}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_ipfw0aai.FoodEntry>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<_ipfw0aai.FoodEntry?> updateFoodEntry(
+    _ist.TestSessionBuilder sessionBuilder,
+    int entryId,
+    String name,
+    int calories,
+    DateTime consumedAt,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'foodEntry',
+            method: 'updateFoodEntry',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'foodEntry',
+          methodName: 'updateFoodEntry',
+          parameters: _ist.testObjectToJson({
+            'entryId': entryId,
+            'name': name,
+            'calories': calories,
+            'consumedAt': consumedAt,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_ipfw0aai.FoodEntry?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<bool> deleteFoodEntry(
+    _ist.TestSessionBuilder sessionBuilder,
+    int entryId,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'foodEntry',
+            method: 'deleteFoodEntry',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'foodEntry',
+          methodName: 'deleteFoodEntry',
+          parameters: _ist.testObjectToJson({'entryId': entryId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<bool>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

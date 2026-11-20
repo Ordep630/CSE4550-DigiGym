@@ -13,6 +13,12 @@ greeting:
   - hello:
 mealRecommendation:
   - getMyMealRecommendation:
+  - getMyMealOptions:
+foodEntry:
+  - addFoodEntry:
+  - findFoodEntries:
+  - updateFoodEntry:
+  - deleteFoodEntry:
 profile:
   - getMyProfile:
   - updateMyProfile:

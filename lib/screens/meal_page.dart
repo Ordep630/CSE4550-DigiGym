@@ -7,6 +7,7 @@ import '../utils/calorie_format.dart';
 import '../widgets/dashboard_card_action.dart';
 import '../widgets/workout_app_bar.dart';
 import 'meal_details_screen.dart';
+import 'calorie_tracker_screen.dart';
 
 class MealPage extends StatelessWidget {
   final UserProfile user;
@@ -177,6 +178,59 @@ class MealPage extends StatelessWidget {
                 ],
               ),
             ),
+
+            const SizedBox(height: 16),
+
+            DashboardCardAction(
+              label: 'Open Calorie Tracker',
+              
+              onTap: () => Navigator.of(context).push<void>(
+                MaterialPageRoute(builder: (_) => const CalorieTrackerScreen()),
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(17),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF18251F) : Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                    color: isDark
+                        ? const Color(0xFF34473B)
+                        : const Color(0xFFE4EBE7),
+                  ),
+                  boxShadow: isDark
+                      ? null
+                      : [
+                          BoxShadow(
+                            color: const Color(0xFF152A20).withValues(alpha: .055),
+                            blurRadius: 18,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.local_fire_department_outlined,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Calorie Tracker',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
 
             const SizedBox(height: 28),
             Row(

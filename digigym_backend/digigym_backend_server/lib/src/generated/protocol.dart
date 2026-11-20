@@ -11,6 +11,10 @@
 // ignore_for_file: dead_code, unnecessary_type_check
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:digigym_backend_server/src/generated/meal/meal_options.dart'
+    as _iyrh9rih;
+import 'package:digigym_backend_server/src/generated/nutrition/food_entry.dart'
+    as _ipfw0aai;
 import 'package:digigym_backend_server/src/generated/workout/completed_workout.dart'
     as _ihjluj51;
 import 'package:serverpod/protocol.dart' as _isp;
@@ -25,6 +29,7 @@ import 'meal/ingredient_unit.dart' as _ija8s0hd;
 import 'meal/meal_ingredient_opt.dart' as _iy37bkub;
 import 'meal/meal_options.dart' as _ia9a4p3p;
 import 'meal/meal_recommendation.dart' as _icj2h90j;
+import 'nutrition/food_entry.dart' as _iyluxuq6;
 import 'user/fitness_goal.dart' as _ifss0aho;
 import 'user/fitness_level.dart' as _ifclzg6e;
 import 'user/user.dart' as _izvcgnx4;
@@ -38,6 +43,7 @@ export 'meal/ingredient_unit.dart';
 export 'meal/meal_ingredient_opt.dart';
 export 'meal/meal_options.dart';
 export 'meal/meal_recommendation.dart';
+export 'nutrition/food_entry.dart';
 export 'user/fitness_goal.dart';
 export 'user/fitness_level.dart';
 export 'user/user.dart';
@@ -235,6 +241,59 @@ class Protocol extends _is.DatabaseSerializationManager {
       managed: true,
     ),
     _isp.TableDefinition(
+      name: 'food_entry',
+      dartName: 'FoodEntry',
+      schema: 'public',
+      module: 'digigym_backend',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'authUserId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'name',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'calories',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'consumedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'food_entry_fk_0',
+          columns: ['authUserId'],
+          referenceTable: 'serverpod_auth_core_user',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+      ],
+      indexes: [],
+      managed: true,
+    ),
+    _isp.TableDefinition(
       name: 'workout_schedule',
       dartName: 'WorkoutSchedule',
       schema: 'public',
@@ -400,6 +459,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _icj2h90j.MealRecommendation) {
       return _icj2h90j.MealRecommendation.fromJson(data) as T;
     }
+    if (t == _iyluxuq6.FoodEntry) {
+      return _iyluxuq6.FoodEntry.fromJson(data) as T;
+    }
     if (t == _ifss0aho.FitnessGoal) {
       return _ifss0aho.FitnessGoal.fromJson(data) as T;
     }
@@ -443,6 +505,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_icj2h90j.MealRecommendation?>()) {
       return (data != null ? _icj2h90j.MealRecommendation.fromJson(data) : null)
           as T;
+    }
+    if (t == _is.getType<_iyluxuq6.FoodEntry?>()) {
+      return (data != null ? _iyluxuq6.FoodEntry.fromJson(data) : null) as T;
     }
     if (t == _is.getType<_ifss0aho.FitnessGoal?>()) {
       return (data != null ? _ifss0aho.FitnessGoal.fromJson(data) : null) as T;
@@ -489,6 +554,18 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == List<int>) {
       return (data as List).map((e) => deserialize<int>(e)).toList() as T;
     }
+    if (t == List<_iyrh9rih.MealOption>) {
+      return (data as List)
+              .map((e) => deserialize<_iyrh9rih.MealOption>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_ipfw0aai.FoodEntry>) {
+      return (data as List)
+              .map((e) => deserialize<_ipfw0aai.FoodEntry>(e))
+              .toList()
+          as T;
+    }
     if (t == List<_ihjluj51.CompletedWorkout>) {
       return (data as List)
               .map((e) => deserialize<_ihjluj51.CompletedWorkout>(e))
@@ -524,6 +601,7 @@ class Protocol extends _is.DatabaseSerializationManager {
       _iy37bkub.MealIngredientOption => 'MealIngredientOption',
       _ia9a4p3p.MealOption => 'MealOption',
       _icj2h90j.MealRecommendation => 'MealRecommendation',
+      _iyluxuq6.FoodEntry => 'FoodEntry',
       _ifss0aho.FitnessGoal => 'FitnessGoal',
       _ifclzg6e.FitnessLevel => 'FitnessLevel',
       _izvcgnx4.DigiGymUser => 'DigiGymUser',
@@ -560,6 +638,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'MealOption';
       case _icj2h90j.MealRecommendation():
         return 'MealRecommendation';
+      case _iyluxuq6.FoodEntry():
+        return 'FoodEntry';
       case _ifss0aho.FitnessGoal():
         return 'FitnessGoal';
       case _ifclzg6e.FitnessLevel():
@@ -617,6 +697,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (dataClassName == 'MealRecommendation') {
       return deserialize<_icj2h90j.MealRecommendation>(data['data']);
+    }
+    if (dataClassName == 'FoodEntry') {
+      return deserialize<_iyluxuq6.FoodEntry>(data['data']);
     }
     if (dataClassName == 'FitnessGoal') {
       return deserialize<_ifss0aho.FitnessGoal>(data['data']);
@@ -680,6 +763,8 @@ class Protocol extends _is.DatabaseSerializationManager {
       }
     }
     switch (t) {
+      case _iyluxuq6.FoodEntry:
+        return _iyluxuq6.FoodEntry.t;
       case _izvcgnx4.DigiGymUser:
         return _izvcgnx4.DigiGymUser.t;
       case _ikkxl43r.CompletedWorkout:

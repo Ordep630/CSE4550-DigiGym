@@ -1,0 +1,7 @@
+class: FoodEntry
+table: food_entry
+fields:
+  authUser: module:serverpod_auth_core:AuthUser?, relation(onDelete=Cascade)
+  name: String
+  calories: int
+  consumedAt: DateTime
