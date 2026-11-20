@@ -57,6 +57,8 @@ class _GroceryScreenState extends State<GroceryScreen> {
   Widget build(BuildContext context) {
     final controller = _controller();
     final theme = Theme.of(context);
+    final light = DigiGymScreenTheme.isLight(context);
+    final accent = DigiGymSurfaces.of(context).accent;
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: workoutAppBar(context, title: 'Groceries', large: true),
@@ -72,69 +74,130 @@ class _GroceryScreenState extends State<GroceryScreen> {
               key: PageStorageKey(('groceries', controller.accountKey)),
               padding: EdgeInsets.fromLTRB(
                 20,
+                12,
                 20,
-                20,
-                20 + MediaQuery.paddingOf(context).bottom,
+                112 + MediaQuery.paddingOf(context).bottom,
               ),
               children: [
-                DashboardGlassCard(
+                Text(
+                  'YOUR SHOPPING LIST',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: accent,
+                    letterSpacing: 1.8,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Everything you need.',
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -.7,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Check items off as you shop.',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Container(
                   key: const ValueKey('grocery-summary'),
+                  padding: const EdgeInsets.all(22),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF193D2C), Color(0xFF0C1D17)],
+                    ),
+                    borderRadius: BorderRadius.circular(26),
+                    border: Border.all(color: const Color(0xFF426A50)),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'YOUR GROCERY LIST',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          letterSpacing: 1.1,
-                        ),
+                      Row(
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              'SHOPPING PROGRESS',
+                              style: TextStyle(
+                                color: Color(0xFFB3D3BE),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1.4,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF315C41),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(
+                              Icons.shopping_basket_outlined,
+                              color: Color(0xFF65ECA0),
+                              size: 26,
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        '$purchased / ${items.length} items purchased',
-                        style: theme.textTheme.titleLarge,
+                        '$purchased of ${items.length} items',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                        ),
                         key: const ValueKey('grocery-purchased-count'),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                       LinearProgressIndicator(
                         value: items.isEmpty ? 0 : purchased / items.length,
-                        backgroundColor: DigiGymScreenTheme.isLight(context)
-                            ? DigiGymSurfaces.light.progressTrack
-                            : null,
+                        backgroundColor: const Color(0xFF355543),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          Color(0xFF65ECA0),
+                        ),
                         semanticsLabel:
                             'Grocery purchases: $purchased of ${items.length} items',
                         borderRadius: BorderRadius.circular(8),
-                        minHeight: 5,
+                        minHeight: 8,
                       ),
-                      const SizedBox(height: 12),
-                      Text(
+                      const SizedBox(height: 16),
+                      const Text(
                         'Your shopping list is based on your recommended meals.',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFFB3D3BE),
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
+                      const SizedBox(height: 5),
+                      const Text(
                         'Changes are saved for this session only.',
-                        style: theme.textTheme.bodySmall?.copyWith(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: theme.colorScheme.onSurfaceVariant,
+                          color: Color(0xFFB3D3BE),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                OutlinedButton.icon(
+                const SizedBox(height: 18),
+                FilledButton.icon(
                   key: const ValueKey('grocery-add'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: DigiGymSurfaces.of(context).accent,
-                    minimumSize: const Size(48, 48),
-                    padding: const EdgeInsets.all(12),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(0, 54),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
                   onPressed: () => _addItem(controller),
                   icon: const Icon(Icons.add_rounded),
-                  label: const Text('Add item'),
+                  label: const Text('Add grocery item'),
                 ),
                 if (items.isEmpty) ...[
                   const SizedBox(height: 20),
@@ -147,111 +210,150 @@ class _GroceryScreenState extends State<GroceryScreen> {
                 ],
                 for (final category in GroceryCategory.values)
                   if (items.any((item) => item.category == category)) ...[
-                    const SizedBox(height: 24),
-                    Text(
-                      category.label,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                    const SizedBox(height: 26),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            category.label,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: accent.withValues(alpha: .12),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${items.where((item) => item.category == category).length} items',
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: accent,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 10),
                     DashboardGlassCard(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
-                        vertical: 4,
+                        vertical: 8,
                       ),
                       child: Column(
                         children: [
                           for (final item in items.where(
                             (item) => item.category == category,
                           ))
-                            Row(
+                            Container(
                               key: ValueKey('grocery-row-${item.id}'),
-                              children: [
-                                Expanded(
-                                  child: CheckboxListTile(
-                                    key: ValueKey('grocery-check-${item.id}'),
-                                    // Normal two-line rows: 72px -> 62px (~14%).
-                                    // Wrapped/accessibility text can grow freely.
-                                    dense: true,
-                                    visualDensity: const VisualDensity(
-                                      vertical: -.5,
-                                    ),
-                                    controlAffinity:
-                                        ListTileControlAffinity.leading,
-                                    contentPadding: EdgeInsets.zero,
-                                    value: item.purchased,
-                                    onChanged: (value) => controller
-                                        .setPurchased(item.id, value ?? false),
-                                    title: Text(
-                                      item.name,
-                                      style: theme.textTheme.bodyLarge
-                                          ?.copyWith(
-                                            decoration: item.purchased
-                                                ? TextDecoration.lineThrough
-                                                : null,
-                                            color: item.purchased
-                                                ? theme
-                                                      .colorScheme
-                                                      .onSurfaceVariant
-                                                : theme.colorScheme.onSurface,
+                              margin: const EdgeInsets.symmetric(vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: accent.withValues(
+                                  alpha: light ? .065 : .09,
+                                ),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: CheckboxListTile(
+                                      key: ValueKey('grocery-check-${item.id}'),
+                                      // Normal two-line rows: 72px -> 62px (~14%).
+                                      // Wrapped/accessibility text can grow freely.
+                                      dense: true,
+                                      visualDensity: const VisualDensity(
+                                        vertical: -.5,
+                                      ),
+                                      controlAffinity:
+                                          ListTileControlAffinity.leading,
+                                      contentPadding: EdgeInsets.zero,
+                                      value: item.purchased,
+                                      onChanged: (value) =>
+                                          controller.setPurchased(
+                                            item.id,
+                                            value ?? false,
                                           ),
-                                    ),
-                                    subtitle: Text(
-                                      item.quantityLabel.isEmpty
-                                          ? 'Custom item'
-                                          : item.quantityLabel,
-                                      style: theme.textTheme.bodySmall
-                                          ?.copyWith(
-                                            color: theme
-                                                .colorScheme
-                                                .onSurfaceVariant,
-                                          ),
+                                      title: Text(
+                                        item.name,
+                                        style: theme.textTheme.bodyLarge
+                                            ?.copyWith(
+                                              decoration: item.purchased
+                                                  ? TextDecoration.lineThrough
+                                                  : null,
+                                              color: item.purchased
+                                                  ? theme
+                                                        .colorScheme
+                                                        .onSurfaceVariant
+                                                  : theme.colorScheme.onSurface,
+                                            ),
+                                      ),
+                                      subtitle: Text(
+                                        item.quantityLabel.isEmpty
+                                            ? 'Custom item'
+                                            : item.quantityLabel,
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: theme
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                            ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                                IconButton(
-                                  tooltip: 'Remove ${item.name}',
-                                  onPressed: () {
-                                    controller.remove(item.id);
-                                    final messenger = ScaffoldMessenger.of(
-                                      context,
-                                    );
+                                  IconButton(
+                                    tooltip: 'Remove ${item.name}',
+                                    onPressed: () {
+                                      controller.remove(item.id);
+                                      final messenger = ScaffoldMessenger.of(
+                                        context,
+                                      );
 
-                                    final snackBarController = messenger
-                                        .showSnackBar(
-                                          SnackBar(
-                                            duration: const Duration(
-                                              seconds: 5,
+                                      final snackBarController = messenger
+                                          .showSnackBar(
+                                            SnackBar(
+                                              duration: const Duration(
+                                                seconds: 5,
+                                              ),
+                                              content: const Text(
+                                                'Grocery item removed',
+                                              ),
+                                              action: SnackBarAction(
+                                                label: 'Undo',
+                                                onPressed: () =>
+                                                    controller.restore(item),
+                                              ),
                                             ),
-                                            content: const Text(
-                                              'Grocery item removed',
-                                            ),
-                                            action: SnackBarAction(
-                                              label: 'Undo',
-                                              onPressed: () =>
-                                                  controller.restore(item),
-                                            ),
-                                          ),
-                                        );
-                                    _snackBarTimer?.cancel();
+                                          );
+                                      _snackBarTimer?.cancel();
 
-                                    _snackBarTimer = Timer(
-                                      const Duration(seconds: 5),
-                                      () {
-                                        if (mounted) {
-                                          snackBarController.close();
-                                        }
-                                      },
-                                    );
-                                  },
-                                  icon: Icon(
-                                    Icons.close_rounded,
-                                    size: 20,
-                                    color: theme.colorScheme.onSurfaceVariant,
+                                      _snackBarTimer = Timer(
+                                        const Duration(seconds: 5),
+                                        () {
+                                          if (mounted) {
+                                            snackBarController.close();
+                                          }
+                                        },
+                                      );
+                                    },
+                                    icon: Icon(
+                                      Icons.close_rounded,
+                                      size: 20,
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                         ],
                       ),
